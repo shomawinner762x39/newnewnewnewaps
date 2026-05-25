@@ -1205,16 +1205,7 @@ html[data-theme="berserk"] [style*="color: #A78BFA"][style*="border: none"] {
   color: #c4621d !important;
 }
 
-/* Знак Жертвы как фоновая декорация */
-html[data-theme="berserk"] #app-root::after {
-  content: "⛧";
-  position: fixed;
-  bottom: 90px; right: 16px;
-  font-size: 100px;
-  color: rgba(155,32,32,0.05);
-  pointer-events: none; z-index: 0;
-  user-select: none; line-height: 1;
-}
+/* декорация убрана */
 
 /* Анимация появления */
 @keyframes berserk-in {
@@ -1225,6 +1216,135 @@ html[data-theme="berserk"] [style*="border-radius: 12px"],
 html[data-theme="berserk"] [style*="border-radius: 14px"],
 html[data-theme="berserk"] [style*="border-radius: 16px"] {
   animation: berserk-in 0.35s ease both;
+}
+
+
+/* ============================================================ */
+/* БЕРСЕРК — ДЕТАЛИ ИКОНОК И КАРТОЧЕК                          */
+/* ============================================================ */
+
+/* Сферы — иконки перекрашиваем в стиль Берсерка */
+/* Тело ⚡ → красный крови */
+html[data-theme="berserk"] [style*="color: #FF3D71"],
+html[data-theme="berserk"] [style*="color:#FF3D71"] { color: #8b1a1a !important; filter: drop-shadow(0 0 4px rgba(139,26,26,0.8)); }
+
+/* Карьера ◆ → охра */
+html[data-theme="berserk"] [style*="color: #FFAA00"],
+html[data-theme="berserk"] [style*="color:#FFAA00"] { color: #b8740a !important; }
+
+/* Навыки ✦ → стальной */
+html[data-theme="berserk"] [style*="color: #00E5FF"],
+html[data-theme="berserk"] [style*="color:#00E5FF"] { color: #8a9a8a !important; }
+
+/* Религия ☾ → ночное золото */
+html[data-theme="berserk"] [style*="color: #A78BFA"],
+html[data-theme="berserk"] [style*="color:#A78BFA"] { color: #b89040 !important; }
+
+/* Финансы ◈ → болотный */
+html[data-theme="berserk"] [style*="color: #10E891"],
+html[data-theme="berserk"] [style*="color:#10E891"] { color: #5a7a30 !important; }
+
+/* Связи ♥ → тёмно-бордовый */
+html[data-theme="berserk"] [style*="color: #FF4DD8"],
+html[data-theme="berserk"] [style*="color:#FF4DD8"] { color: #7a1a3a !important; }
+
+/* Карточки сфер — угловые украшения через outline + тень */
+html[data-theme="berserk"] [style*="border-radius: 16px"][style*="padding: 14px"],
+html[data-theme="berserk"] [style*="border-radius: 14px"][style*="padding: 14px"],
+html[data-theme="berserk"] [style*="border-radius: 12px"][style*="padding: 14px"] {
+  border-radius: 0 !important;
+  border-width: 1px !important;
+  border-color: #3d2810 !important;
+  box-shadow: inset 0 0 0 3px rgba(255,255,255,0.02), 3px 3px 0 rgba(0,0,0,0.5) !important;
+  position: relative !important;
+}
+
+/* Гравировка углов на карточках сфер */
+html[data-theme="berserk"] [style*="grid-template-columns: repeat(2, 1fr)"] > div::before {
+  content: "⊹";
+  position: absolute;
+  top: 4px; left: 4px;
+  font-size: 8px;
+  color: rgba(196,98,29,0.4);
+  line-height: 1;
+  pointer-events: none;
+}
+html[data-theme="berserk"] [style*="grid-template-columns: repeat(2, 1fr)"] > div::after {
+  content: "⊹";
+  position: absolute;
+  bottom: 4px; right: 4px;
+  font-size: 8px;
+  color: rgba(196,98,29,0.4);
+  line-height: 1;
+  pointer-events: none;
+}
+
+/* Разделители — царапина меча */
+html[data-theme="berserk"] [style*="height:1px;background:rgba(255,255,255,0.08)"],
+html[data-theme="berserk"] [style*="height: 1px; background: rgba(255,255,255,0.08)"] {
+  background: linear-gradient(90deg, transparent, #5a3010 30%, #8b4a18 50%, #5a3010 70%, transparent) !important;
+  height: 1px !important;
+}
+
+/* Прогресс-бар — как шрам */
+html[data-theme="berserk"] [style*="height: 4px"][style*="border-radius: 2px"],
+html[data-theme="berserk"] [style*="height:4px"][style*="border-radius"] {
+  background: rgba(60,20,5,0.8) !important;
+  border-radius: 0 !important;
+}
+html[data-theme="berserk"] [style*="height: 4px"] > div,
+html[data-theme="berserk"] [style*="height:4px"] > div {
+  border-radius: 0 !important;
+  box-shadow: 0 0 6px rgba(139,26,26,0.6) !important;
+}
+
+/* XP число — цвет крови */
+html[data-theme="berserk"] [style*="font-size: 22px"][style*="-webkit-background-clip"] {
+  -webkit-text-fill-color: #c4621d !important;
+}
+
+/* Шапка — стиль Берсерка: ранг как эпитет */
+html[data-theme="berserk"] [style*="font-size: 20px"][style*="font-weight: 700"][style*="color: #fff"],
+html[data-theme="berserk"] [style*="font-size: 20px"][style*="font-weight: 700"] {
+  font-family: Georgia, serif !important;
+  letter-spacing: 0.05em !important;
+  text-transform: uppercase !important;
+  font-size: 16px !important;
+}
+
+/* Таб-бар иконки — активный получает красный */
+html[data-theme="berserk"] [style*="color: #A78BFA"][style*="border: none"] {
+  color: #c4621d !important;
+  text-shadow: 0 0 8px rgba(196,98,29,0.6) !important;
+}
+
+/* Иконки сфер — подсветка текст-тени */
+html[data-theme="berserk"] [style*="text-shadow: 0 0 12px rgba(255,61,113"] { text-shadow: 0 0 12px rgba(139,26,26,0.8) !important; }
+html[data-theme="berserk"] [style*="text-shadow: 0 0 12px rgba(255,170,0"] { text-shadow: 0 0 10px rgba(184,116,10,0.7) !important; }
+html[data-theme="berserk"] [style*="text-shadow: 0 0 12px rgba(0,229,255"] { text-shadow: 0 0 10px rgba(138,154,138,0.6) !important; }
+html[data-theme="berserk"] [style*="text-shadow: 0 0 12px rgba(167,139,250"] { text-shadow: 0 0 10px rgba(184,144,64,0.7) !important; }
+html[data-theme="berserk"] [style*="text-shadow: 0 0 12px rgba(16,232,145"] { text-shadow: 0 0 10px rgba(90,122,48,0.6) !important; }
+html[data-theme="berserk"] [style*="text-shadow: 0 0 12px rgba(255,77,216"] { text-shadow: 0 0 10px rgba(122,26,58,0.7) !important; }
+
+/* Кнопка НАЧАТЬ → в стиле свитка */
+html[data-theme="berserk"] [style*="box-shadow: 0 4px 20px rgba(167,139,250"] {
+  box-shadow: 0 2px 12px rgba(139,26,26,0.5) !important;
+}
+
+/* Streak огонь — красный */
+html[data-theme="berserk"] [style*="0 дней"],
+html[data-theme="berserk"] [style*="streak"] { color: var(--text-2) !important; }
+
+/* Зачем-блок — пергаментный свиток */
+html[data-theme="berserk"] [style*="border-bottom:1px solid rgba(167,139,250,0.12)"],
+html[data-theme="berserk"] [style*="border-bottom: 1px solid rgba(167,139,250,0.12)"] {
+  border-bottom-color: #3d2810 !important;
+  background: linear-gradient(135deg, rgba(40,20,5,0.8), rgba(25,12,3,0.6)) !important;
+}
+
+/* Кнопка-иконки в табах — шрифт */
+html[data-theme="berserk"] [style*="font-size: 18px"][style*="margin-bottom: 4px"] {
+  filter: grayscale(0.3) sepia(0.5);
 }
 
 /* Бэкап-баннер */

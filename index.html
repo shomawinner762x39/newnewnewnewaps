@@ -2726,11 +2726,7 @@ function renderApp() {
       <span style="color:#00E5FF;">◷ ${th.toFixed(1)} ч</span>
       <span style="color:#A78BFA;">⚡ ${Object.keys(state.achievementsUnlocked).length}/${ACHIEVEMENTS.length}</span>
     </div>
-    <div id="prayer-strip" style="margin-top: 10px; padding: 8px 10px; background: rgba(16,232,145,0.06); border: 1px solid rgba(16,232,145,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
-      <div style="font-size: 10px; color: #10E891; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 700;">☾ Молитва</div>
-      <div id="prayer-strip-text" style="font-size: 11px; color: #b0a0d0; flex: 1; text-align: center;">загрузка...</div>
-      <div style="font-size: 9px; color: #6a5a8a;">${escapeHtml(state.prayerTimes.city)}</div>
-    </div>
+    <div id="prayer-strip" style="display:none;"></div>
   </div>
   </div>`;
 

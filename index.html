@@ -50,6 +50,10 @@
   @keyframes slide-down { from {transform: translateY(-20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
   @keyframes confetti-fall { 0% { transform: translate3d(0,0,0) rotate(0deg); opacity: 1; } 100% { transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--rot)); opacity: 0; } }
   @keyframes ring-draw { from { stroke-dashoffset: var(--ring-circ); } to { stroke-dashoffset: var(--ring-target); } }
+  @keyframes berserk-aura { 0%,100% { box-shadow: 0 0 14px var(--bk-c,#c4621d), 0 0 28px var(--bk-c,#c4621d)40, inset 0 0 12px var(--bk-c,#c4621d)30; } 50% { box-shadow: 0 0 22px var(--bk-c,#c4621d), 0 0 44px var(--bk-c,#c4621d)60, inset 0 0 16px var(--bk-c,#c4621d)50; } }
+  @keyframes berserk-reveal { 0% { transform: scale(0.3) rotate(-180deg); opacity: 0; } 60% { transform: scale(1.15) rotate(8deg); opacity: 1; } 100% { transform: scale(1) rotate(0deg); opacity: 1; } }
+  .berserk-medallion { animation: berserk-reveal 0.7s ease-out, berserk-aura 3s ease-in-out 0.7s infinite; }
+  .berserk-name { animation: slide-down 0.5s 0.3s both; }
   input[type="date"] { color-scheme: dark; }
   /* Таббар — flex-item внизу body, НЕ position:fixed (исключает любые iOS-прыжки) */
   #tab-bar-fixed {
@@ -1474,6 +1478,28 @@ function stageOverallProgress(stageId) {
 // === УРОВНИ ===
 // 150 уровней. Шаг 1500 XP. ~1 уровень за 2 недели.
 // Тиры по 10 уровней — название меняется каждые 10 уровней с римской цифрой
+// === Персонажи Берсерка по месяцам чистоты ===
+// Каждые 30 дней — новый персонаж, от ученика до Гатса
+const BERSERK_TIERS = [
+  { name: 'Каска',       symbol: '◐',  color: '#8a6a4a', tag: 'Воин Сокола' },
+  { name: 'Пиппин',      symbol: '🛡',  color: '#6a8a4a', tag: 'Гора духа' },
+  { name: 'Юдо',         symbol: '🗡',  color: '#4a8aaa', tag: 'Клинки в тени' },
+  { name: 'Серпико',     symbol: '⚜',  color: '#aa8a4a', tag: 'Ветер клинка' },
+  { name: 'Исидро',      symbol: '➷',  color: '#aa4a4a', tag: 'Дерзкий ученик' },
+  { name: 'Фарнеза',     symbol: '✟',  color: '#aa4a8a', tag: 'Командир огня' },
+  { name: 'Сирка',       symbol: '☾',  color: '#7a6aaa', tag: 'Мудрость луны' },
+  { name: 'Рикерт',      symbol: '✚',  color: '#8a8a4a', tag: 'Мастер ремесла' },
+  { name: 'Гриффит',     symbol: '♕',  color: '#daa520', tag: 'Белый Сокол' },
+  { name: 'Зодд',        symbol: '☥',  color: '#8a2a2a', tag: 'Бессмертный апостол' },
+  { name: 'Скалл-Найт',  symbol: '☠',  color: '#9a9aaa', tag: 'Король черепов' },
+  { name: 'Гатс',        symbol: '⚔',  color: '#c4621d', tag: 'НЕСОКРУШИМЫЙ' }
+];
+function getBerserkTier(totalDays) {
+  // day 0-29 → Каска (месяц 1), 30-59 → Пиппин (месяц 2), …, 330+ → Гатс (месяц 12)
+  const idx = Math.min(BERSERK_TIERS.length - 1, Math.max(0, Math.floor(totalDays / 30)));
+  return { ...BERSERK_TIERS[idx], idx, month: idx + 1 };
+}
+
 const XP_PER_LEVEL = 1500;
 const MAX_LEVEL = 150;
 // 15 тиров по 10 уровней — серьёзные мужские названия, без детского пафоса
@@ -5150,6 +5176,17 @@ function renderSphereModal() {
       // Ранг
       purityHtml += '<div style="text-align:center;margin-bottom:12px;">'
         + '<span style="display:inline-block;padding:5px 14px;background:' + rankColor + '20;border:1px solid ' + rankColor + ';border-radius:20px;font-size:11px;color:' + rankColor + ';font-weight:700;letter-spacing:0.1em;">' + rank + '</span>'
+        + '</div>';
+
+      // === Персонаж Берсерка (по месяцу чистоты) ===
+      const bk = getBerserkTier(totalDays);
+      const daysInMonth = totalDays % 30;
+      const isFreshTier = daysInMonth < 2; // подсветить если только-только разблокирован
+      purityHtml += '<div style="text-align:center;margin:18px 0 12px;" key="bk-' + bk.idx + '">'
+        + '<div class="berserk-medallion" style="--bk-c:' + bk.color + ';display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:50%;background:radial-gradient(circle,' + bk.color + '30 0%,' + bk.color + '08 70%,transparent 100%);border:2px solid ' + bk.color + ';font-size:34px;color:' + bk.color + ';text-shadow:0 0 12px ' + bk.color + ';">' + bk.symbol + '</div>'
+        + '<div class="berserk-name" style="margin-top:8px;font-family:Georgia,serif;font-size:15px;font-weight:700;color:#e8d5a8;letter-spacing:0.12em;text-transform:uppercase;">' + bk.name + '</div>'
+        + '<div style="font-size:10px;color:' + bk.color + ';letter-spacing:0.15em;text-transform:uppercase;margin-top:2px;font-weight:600;">Месяц ' + bk.month + ' · ' + bk.tag + '</div>'
+        + (isFreshTier && totalDays >= 30 ? '<div style="font-size:9px;color:#10E891;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;font-weight:700;animation:cel-in 1s;">✦ Новый персонаж раскрыт</div>' : '')
         + '</div>';
 
       // Прогресс до рубежа

@@ -3048,10 +3048,10 @@ function renderApp() {
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;min-height:170px;">
       <div style="font-size:18px;font-weight:700;color:#e8d5a8;font-family:Georgia,serif;letter-spacing:0.08em;text-transform:uppercase;">${r.name}</div>
       <div style="display:flex;gap:6px;font-size:11px;flex-wrap:wrap;margin-top:8px;font-weight:700;">
-        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,144,64,0.4);padding:2px 7px;border-radius:10px;color:#ffb070;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔥 ${streak} ${plural(streak, 'день', 'дня', 'дней')}</span>
-        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(232,213,168,0.3);padding:2px 7px;border-radius:10px;color:#e8d5a8;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">✓ ${state.history.length}</span>
-        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(184,212,160,0.3);padding:2px 7px;border-radius:10px;color:#b8d4a0;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">◷ ${th.toFixed(1)} ч</span>
-        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,144,64,0.4);padding:2px 7px;border-radius:10px;color:#ff9040;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">⚔ ${Object.keys(state.achievementsUnlocked).length}/${ACHIEVEMENTS.length}</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;background:rgba(0,0,0,0.55);border:1px solid rgba(255,144,64,0.4);padding:5px 9px;border-radius:10px;color:#ffb070;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔥 ${streak} ${plural(streak, 'день', 'дня', 'дней')}</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;background:rgba(0,0,0,0.55);border:1px solid rgba(232,213,168,0.3);padding:5px 9px;border-radius:10px;color:#e8d5a8;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">✓ ${state.history.length}</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;background:rgba(0,0,0,0.55);border:1px solid rgba(184,212,160,0.3);padding:5px 9px;border-radius:10px;color:#b8d4a0;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">◷ ${th.toFixed(1)} ч</span>
+        <span style="display:inline-flex;align-items:center;justify-content:center;gap:4px;line-height:1;background:rgba(0,0,0,0.55);border:1px solid rgba(255,144,64,0.4);padding:5px 9px;border-radius:10px;color:#ff9040;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">⚔ ${Object.keys(state.achievementsUnlocked).length}/${ACHIEVEMENTS.length}</span>
       </div>
       <div style="height:62px;"></div>
       <div style="text-align:right;margin-bottom:4px;">
@@ -4413,7 +4413,9 @@ function renderSkillModal() {
   </div>`;
 
   return `<div onclick="window.__app.closeSkill()" style="position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 250; display: flex; align-items: flex-end; justify-content: center;"><div onclick="event.stopPropagation()" style="background: linear-gradient(180deg, #150a25, #0a0612); border-radius: 20px 20px 0 0; width: 100%; max-width: 520px; max-height: 92vh; overflow-y: auto; padding: 20px; position: relative; border-top: 3px solid ${sk.color}; box-shadow: 0 -10px 40px ${sk.color}40;">
-    <button onclick="window.__app.closeSkill()" style="position: absolute; top: 12px; right: 12px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #b0a0d0; cursor: pointer; padding: 0; width: 28px; height: 28px; border-radius: 50%; font-size: 16px;">✕</button>
+    <div style="position: sticky; top: 0; z-index: 5; display: flex; justify-content: flex-end; margin: -20px -20px 0; padding: 12px 14px; background: linear-gradient(to bottom, rgba(21,10,37,0.98) 60%, rgba(21,10,37,0)); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); pointer-events: none;">
+      <button onclick="window.__app.closeSkill()" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; cursor: pointer; padding: 0; width: 44px; height: 44px; border-radius: 50%; font-size: 20px; pointer-events: auto; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">✕</button>
+    </div>
     <div style="display: flex; align-items: center; gap: 14px; margin: 8px 0 18px;">
       <div style="width: 56px; height: 56px; border-radius: 16px; background: linear-gradient(135deg, ${sk.color}40, ${sk.color}10); border: 1px solid ${sk.color}; display: flex; align-items: center; justify-content: center; font-size: 28px; box-shadow: 0 0 20px ${sk.color}60;">${sk.icon || skType.icon}</div>
       <div style="flex: 1; min-width: 0;">
@@ -4423,6 +4425,9 @@ function renderSkillModal() {
       </div>
     </div>
     ${body}
+    <div style="position:sticky;bottom:-20px;left:-20px;right:-20px;margin:20px -20px -20px;padding:14px 16px calc(14px + env(safe-area-inset-bottom));background:linear-gradient(to top, rgba(10,6,18,0.98) 70%, rgba(10,6,18,0));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);">
+      <button onclick="window.__app.closeSkill()" style="width:100%;padding:14px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:12px;color:#fff;font-size:14px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">✕ Закрыть</button>
+    </div>
   </div></div>`;
 }
 

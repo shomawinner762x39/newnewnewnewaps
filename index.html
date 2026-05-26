@@ -3043,7 +3043,7 @@ function renderApp() {
   const header = `<div style="padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); position:relative; overflow:hidden;">
     <div style="position:absolute;inset:0;background-image:var(--guts-bg);background-size:cover;background-position:center 28%;opacity:0.7;"></div>
     <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(10,6,18,0.0) 40%, rgba(10,6,18,0.75) 100%);"></div>
-    <div style="position:relative;z-index:1;display:flex;flex-direction:column;min-height:200px;">
+    <div style="position:relative;z-index:1;display:flex;flex-direction:column;min-height:150px;">
       <div style="font-size:18px;font-weight:700;color:#e8d5a8;font-family:Georgia,serif;letter-spacing:0.08em;text-transform:uppercase;">${r.name}</div>
       <div style="display:flex;gap:10px;font-size:11px;color:#b0a0d0;flex-wrap:wrap;margin-top:4px;">
         <span>🔥 ${streak} ${plural(streak, 'день', 'дня', 'дней')}</span>
@@ -3051,7 +3051,7 @@ function renderApp() {
         <span style="color:#8a9a7a;">◷ ${th.toFixed(1)} ч</span>
         <span style="color:#c4621d;">⚔ ${Object.keys(state.achievementsUnlocked).length}/${ACHIEVEMENTS.length}</span>
       </div>
-      <div style="flex:1;"></div>
+      <div style="height:36px;"></div>
       <div style="text-align:right;margin-bottom:4px;">
         <div style="font-size:26px;font-weight:700;color:#c4621d;font-family:Georgia,serif;text-shadow:0 0 12px rgba(196,98,29,0.8);">${xp}</div>
       </div>

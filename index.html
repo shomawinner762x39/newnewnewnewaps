@@ -2070,7 +2070,7 @@ function makeInitial() {
     context: JSON.parse(JSON.stringify(PREFILLED)),
     prefilledFlags: JSON.parse(JSON.stringify(PREFILLED_FLAGS)),
     tasks: buildMandatoryTasks(),
-    history: [], stagesUnlocked: {}, achievementsUnlocked: {}, stageReflections: {}, stageContracts: {}, why: '',
+    history: [], stagesUnlocked: {}, achievementsUnlocked: {}, stageReflections: {}, stageContracts: {}, why: '', berserkPortraits: {},
     dismissedMandatory: [],
     startedAt: today(), lastBackup: null, bannerDismissedDate: null,
     finance: {
@@ -5181,12 +5181,19 @@ function renderSphereModal() {
       // === Персонаж Берсерка (по месяцу чистоты) ===
       const bk = getBerserkTier(totalDays);
       const daysInMonth = totalDays % 30;
-      const isFreshTier = daysInMonth < 2; // подсветить если только-только разблокирован
+      const isFreshTier = daysInMonth < 2;
+      const portrait = (state.berserkPortraits || {})[bk.idx];
+      const medallionInner = portrait
+        ? '<img src="' + portrait + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />'
+        : '<span style="font-size:34px;color:' + bk.color + ';text-shadow:0 0 12px ' + bk.color + ';">' + bk.symbol + '</span>';
       purityHtml += '<div style="text-align:center;margin:18px 0 12px;" key="bk-' + bk.idx + '">'
-        + '<div class="berserk-medallion" style="--bk-c:' + bk.color + ';display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:50%;background:radial-gradient(circle,' + bk.color + '30 0%,' + bk.color + '08 70%,transparent 100%);border:2px solid ' + bk.color + ';font-size:34px;color:' + bk.color + ';text-shadow:0 0 12px ' + bk.color + ';">' + bk.symbol + '</div>'
+        + '<div onclick="window.__app.uploadBerserkPortrait(' + bk.idx + ')" class="berserk-medallion" style="--bk-c:' + bk.color + ';position:relative;display:inline-flex;align-items:center;justify-content:center;width:72px;height:72px;border-radius:50%;background:radial-gradient(circle,' + bk.color + '30 0%,' + bk.color + '08 70%,transparent 100%);border:2px solid ' + bk.color + ';overflow:hidden;cursor:pointer;">' + medallionInner
+        + '<div style="position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-radius:50%;background:#0a0612;border:1.5px solid ' + bk.color + ';display:flex;align-items:center;justify-content:center;font-size:10px;color:' + bk.color + ';">' + (portrait ? '✎' : '+') + '</div>'
+        + '</div>'
         + '<div class="berserk-name" style="margin-top:8px;font-family:Georgia,serif;font-size:15px;font-weight:700;color:#e8d5a8;letter-spacing:0.12em;text-transform:uppercase;">' + bk.name + '</div>'
         + '<div style="font-size:10px;color:' + bk.color + ';letter-spacing:0.15em;text-transform:uppercase;margin-top:2px;font-weight:600;">Месяц ' + bk.month + ' · ' + bk.tag + '</div>'
         + (isFreshTier && totalDays >= 30 ? '<div style="font-size:9px;color:#10E891;letter-spacing:0.2em;text-transform:uppercase;margin-top:6px;font-weight:700;animation:cel-in 1s;">✦ Новый персонаж раскрыт</div>' : '')
+        + (!portrait ? '<div style="font-size:9px;color:#6a5a8a;margin-top:4px;">тапни чтобы загрузить лицо</div>' : '')
         + '</div>';
 
       // Прогресс до рубежа
@@ -5939,6 +5946,39 @@ window.__app = {
   bodyRemoveMeasurement: (id) => { bodyRemoveMeasurement(id); },
 
   // ── Чистый путь ──────────────────────────────────────────────────────────
+  uploadBerserkPortrait: (idx) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.onchange = (e) => {
+      const f = e.target.files && e.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        // Сжимаем картинку до 200x200 чтобы не раздувать localStorage
+        const img = new Image();
+        img.onload = () => {
+          const sz = 200;
+          const cv = document.createElement('canvas');
+          cv.width = sz; cv.height = sz;
+          const ctx = cv.getContext('2d');
+          // crop to square + cover
+          const ratio = Math.max(sz / img.width, sz / img.height);
+          const w = img.width * ratio, h = img.height * ratio;
+          ctx.drawImage(img, (sz - w) / 2, (sz - h) / 2, w, h);
+          const dataUrl = cv.toDataURL('image/jpeg', 0.82);
+          if (!state.berserkPortraits) state.berserkPortraits = {};
+          state.berserkPortraits[idx] = dataUrl;
+          save(); render();
+          const charName = BERSERK_TIERS[idx]?.name || 'персонаж';
+          showToast('✦ Лицо: ' + charName, BERSERK_TIERS[idx]?.color || '#A78BFA');
+        };
+        img.src = reader.result;
+      };
+      reader.readAsDataURL(f);
+    };
+    input.click();
+  },
   editPurity: () => { view.purityEditing = true; render(); },
   cancelEditPurity: () => { view.purityEditing = false; render(); },
   savePurity: () => {

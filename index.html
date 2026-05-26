@@ -3051,10 +3051,12 @@ function renderApp() {
       <span style="color:#8a9a7a;">◷ ${th.toFixed(1)} ч</span>
       <span style="color:#c4621d;">⚔ ${Object.keys(state.achievementsUnlocked).length}/${ACHIEVEMENTS.length}</span>
     </div>
-    ${nr ? `<div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 10px;"><div style="height: 100%; width: ${rankPct}%; background: linear-gradient(90deg,#8b1a1a,#c4621d); box-shadow: 0 0 8px rgba(139,26,26,0.5);"></div></div>` : ''}
-    <div style="text-align: right;">
+    <div style="text-align: right; margin-bottom: 4px;">
       <div style="font-size: 26px; font-weight: 700; color: #c4621d; font-family: Georgia, serif; text-shadow: 0 0 12px rgba(196,98,29,0.8);">${xp}</div>
-      <div style="font-size: 14px; letter-spacing: 0.2em; color: rgba(255,255,255,0.85); text-transform: uppercase; font-weight: 700; font-family: Georgia, serif;">ВОЛЯ</div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 10px;">
+      ${nr ? `<div style="flex: 1; height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden;"><div style="height: 100%; width: ${rankPct}%; background: linear-gradient(90deg,#8b1a1a,#c4621d); box-shadow: 0 0 8px rgba(139,26,26,0.5);"></div></div>` : '<div style="flex:1;"></div>'}
+      <div style="font-size: 14px; letter-spacing: 0.2em; color: rgba(255,255,255,0.85); text-transform: uppercase; font-weight: 700; font-family: Georgia, serif; flex-shrink: 0;">ВОЛЯ</div>
     </div>
     <div id="prayer-strip" style="display:none;"></div>
   </div>

@@ -3050,10 +3050,10 @@ function renderApp() {
       </div>
       <div style="text-align: right;">
         <div style="font-size: 14px; letter-spacing: 0.2em; color: rgba(255,255,255,0.85); text-transform: uppercase; font-weight: 700; font-family: Georgia, serif;">ВОЛЯ</div>
-        <div style="font-size: 26px; font-weight: 700; color: #f0e8d0; font-family: Georgia, serif; text-shadow: 0 0 12px rgba(196,98,29,0.8);">${xp}</div>
+        <div style="font-size: 26px; font-weight: 700; color: #c4621d; font-family: Georgia, serif; text-shadow: 0 0 12px rgba(196,98,29,0.8);">${xp}</div>
       </div>
     </div>
-    ${nr ? `<div><div style="display: flex; justify-content: space-between; font-size: 10px; color: #8870a8; margin-bottom: 4px;"><span>до ${nr.level >= MAX_LEVEL ? '«Вершины»' : `уровня ${nr.level}`}</span><span>${nr.xp - xp} XP</span></div><div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;"><div style="height: 100%; width: ${rankPct}%; background: linear-gradient(90deg,#8b1a1a,#c4621d); box-shadow: 0 0 8px rgba(139,26,26,0.5);"></div></div></div>` : ''}
+    ${nr ? `<div><div style="display: flex; justify-content: space-between; font-size: 10px; color: rgba(255,255,255,0.65); margin-bottom: 4px;"><span>до ${nr.level >= MAX_LEVEL ? '«Вершины»' : `уровня ${nr.level}`}</span><span>${nr.xp - xp} XP</span></div><div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;"><div style="height: 100%; width: ${rankPct}%; background: linear-gradient(90deg,#8b1a1a,#c4621d); box-shadow: 0 0 8px rgba(139,26,26,0.5);"></div></div></div>` : ''}
     <div style="display: flex; gap: 14px; margin-top: 12px; font-size: 12px; color: #b0a0d0; flex-wrap: wrap;">
       <span>🔥 ${streak} ${plural(streak, 'день', 'дня', 'дней')}</span>
       <span>✓ ${state.history.length}</span>

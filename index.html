@@ -3040,21 +3040,20 @@ function renderApp() {
     banner = `<div style="background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(167,139,250,0.1)); border-bottom: 1px solid rgba(0,229,255,0.3); padding: 14px 18px; display: flex; align-items: center; gap: 12px; animation: slide-down 0.4s;"><div style="font-size: 24px; flex-shrink: 0; text-shadow: 0 0 8px rgba(0,229,255,0.6);">💾</div><div style="flex: 1; min-width: 0;"><div style="font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 2px;">Сделай бэкап</div><div style="font-size: 11px; color: #b0a0d0; line-height: 1.4;">${subText}.</div></div><button onclick="window.__app.backupAndMark()" style="background: linear-gradient(135deg, #00E5FF, #A78BFA); color: #000; border: none; border-radius: 10px; padding: 10px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; flex-shrink: 0; box-shadow: 0 0 16px rgba(0,229,255,0.5);">↓ Скачать</button><button onclick="window.__app.dismissBanner()" title="Скрыть до завтра" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #b0a0d0; cursor: pointer; padding: 0; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; flex-shrink: 0;">✕</button></div>`;
   }
 
-  const header = `<div style="padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); position:relative; overflow:hidden;">
-    <div style="position:absolute;inset:0;background-image:var(--guts-bg);background-size:cover;background-position:center 22%;opacity:0.45;"></div>
+  const header = `<div style="padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); position:relative; overflow:hidden; min-height: 120px;">
+    <div style="position:absolute;inset:0;background-image:var(--guts-bg);background-size:cover;background-position:center 28%;opacity:0.65;"></div>
+    <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(10,6,18,0.15) 0%, rgba(10,6,18,0.55) 100%);"></div>
     <div style="position:relative;z-index:1;">
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
-      <div>
-        <div style="font-size: 10px; letter-spacing: 0.25em; color: #8b4a18; text-transform: uppercase; font-weight: 600;">${todayStr}</div>
-        <div style="font-size: 18px; font-weight: 700; margin-top: 4px; color: #e8d5a8; font-family: Georgia,serif; letter-spacing: 0.08em; text-transform: uppercase;">${r.name}</div>
-      </div>
-      <div style="text-align: right;">
-        <div style="font-size: 14px; letter-spacing: 0.2em; color: rgba(255,255,255,0.85); text-transform: uppercase; font-weight: 700; font-family: Georgia, serif;">ВОЛЯ</div>
-        <div style="font-size: 26px; font-weight: 700; color: #c4621d; font-family: Georgia, serif; text-shadow: 0 0 12px rgba(196,98,29,0.8);">${xp}</div>
-      </div>
+    <div style="margin-bottom: 10px;">
+      <div style="font-size: 10px; letter-spacing: 0.25em; color: #8b4a18; text-transform: uppercase; font-weight: 600;">${todayStr}</div>
+      <div style="font-size: 18px; font-weight: 700; margin-top: 4px; color: #e8d5a8; font-family: Georgia,serif; letter-spacing: 0.08em; text-transform: uppercase;">${r.name}</div>
     </div>
-    ${nr ? `<div><div style="display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.9); margin-bottom: 4px; font-family: Georgia, serif;"><span>до ${nr.level >= MAX_LEVEL ? '«Вершины»' : `уровня ${nr.level}`}</span><span style="font-weight:600;">${nr.xp - xp} XP</span></div><div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;"><div style="height: 100%; width: ${rankPct}%; background: linear-gradient(90deg,#8b1a1a,#c4621d); box-shadow: 0 0 8px rgba(139,26,26,0.5);"></div></div></div>` : ''}
-    <div style="display: flex; gap: 14px; margin-top: 12px; font-size: 12px; color: #b0a0d0; flex-wrap: wrap;">
+    ${nr ? `<div style="height: 4px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 10px;"><div style="height: 100%; width: ${rankPct}%; background: linear-gradient(90deg,#8b1a1a,#c4621d); box-shadow: 0 0 8px rgba(139,26,26,0.5);"></div></div>` : ''}
+    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 10px;">
+      <div style="font-size: 14px; letter-spacing: 0.2em; color: rgba(255,255,255,0.85); text-transform: uppercase; font-weight: 700; font-family: Georgia, serif;">ВОЛЯ</div>
+      <div style="font-size: 26px; font-weight: 700; color: #c4621d; font-family: Georgia, serif; text-shadow: 0 0 12px rgba(196,98,29,0.8);">${xp}</div>
+    </div>
+    <div style="display: flex; gap: 14px; font-size: 12px; color: #b0a0d0; flex-wrap: wrap;">
       <span>🔥 ${streak} ${plural(streak, 'день', 'дня', 'дней')}</span>
       <span>✓ ${state.history.length}</span>
       <span style="color:#8a9a7a;">◷ ${th.toFixed(1)} ч</span>

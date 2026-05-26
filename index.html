@@ -3048,11 +3048,11 @@ function renderApp() {
     <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(10,6,18,0.0) 40%, rgba(10,6,18,0.75) 100%);"></div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;min-height:170px;">
       <div style="font-size:18px;font-weight:700;color:#e8d5a8;font-family:Georgia,serif;letter-spacing:0.08em;text-transform:uppercase;">${r.name}</div>
-      <div style="display:flex;gap:8px;font-size:13px;flex-wrap:wrap;margin-top:8px;font-weight:700;">
-        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,144,64,0.4);padding:4px 10px;border-radius:12px;color:#ffb070;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔥 ${streak} ${plural(streak, 'день', 'дня', 'дней')}</span>
-        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(232,213,168,0.3);padding:4px 10px;border-radius:12px;color:#e8d5a8;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">✓ ${state.history.length}</span>
-        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(184,212,160,0.3);padding:4px 10px;border-radius:12px;color:#b8d4a0;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">◷ ${th.toFixed(1)} ч</span>
-        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,144,64,0.4);padding:4px 10px;border-radius:12px;color:#ff9040;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">⚔ ${Object.keys(state.achievementsUnlocked).length}/${ACHIEVEMENTS.length}</span>
+      <div style="display:flex;gap:6px;font-size:11px;flex-wrap:wrap;margin-top:8px;font-weight:700;">
+        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,144,64,0.4);padding:2px 7px;border-radius:10px;color:#ffb070;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">🔥 ${streak} ${plural(streak, 'день', 'дня', 'дней')}</span>
+        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(232,213,168,0.3);padding:2px 7px;border-radius:10px;color:#e8d5a8;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">✓ ${state.history.length}</span>
+        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(184,212,160,0.3);padding:2px 7px;border-radius:10px;color:#b8d4a0;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">◷ ${th.toFixed(1)} ч</span>
+        <span style="background:rgba(0,0,0,0.55);border:1px solid rgba(255,144,64,0.4);padding:2px 7px;border-radius:10px;color:#ff9040;backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);">⚔ ${Object.keys(state.achievementsUnlocked).length}/${ACHIEVEMENTS.length}</span>
       </div>
       <div style="height:62px;"></div>
       <div style="text-align:right;margin-bottom:4px;">

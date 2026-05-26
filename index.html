@@ -1363,6 +1363,7 @@ html[data-theme="berserk"] [style*="rgba(0,229,255,0.3)"] {
 <body>
 <div id="app-root"></div>
 <div id="tab-bar-fixed"></div>
+<div id="modal-root"></div>
 
 <script>
 const STORAGE_KEY = 'life_tree_local_v2';
@@ -3090,9 +3091,13 @@ function renderApp() {
   let skillModal = '';
   if (view.skillId) skillModal = renderSkillModal();
 
-  root.innerHTML = banner + header + whyBlock + `<div style="padding: 18px;">${content}</div>` + modal + skillModal;
+  root.innerHTML = banner + header + whyBlock + `<div style="padding: 18px;">${content}</div>`;
 
-  // Лочим скролл фона когда открыта модалка (иначе iOS Safari скроллит её, а не модалку)
+  // Модалки рендерим в отдельный корень вне #app-root (иначе на iOS position:fixed подрезается)
+  const modalRoot = document.getElementById('modal-root');
+  if (modalRoot) modalRoot.innerHTML = modal + skillModal;
+
+  // Лочим скролл фона когда открыта модалка
   const hasModalOpen = !!(view.sphereId || view.stageId || view.achId || view.skillId);
   document.body.classList.toggle('modal-open', hasModalOpen);
 }

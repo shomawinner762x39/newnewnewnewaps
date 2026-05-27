@@ -4218,10 +4218,43 @@ function makeWarriorSVG(lv, faceData) {
     + '</svg>';
 }
 
+// ── АНИМАЦИЯ ТКАНИ НА ВЕТРУ ────────────────────────────────────
+// ax, ay = точка крепления (откуда ткань свисает)
+function makeClothAnimation(ax, ay) {
+  var s = '<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:118px;height:210px;pointer-events:none;overflow:visible;">';
+  // Keyframes определяем глобально (в SVG <style>)
+  s += '<defs><style>'
+    + '@keyframes clothF1{0%,100%{transform:skewX(0deg) translateX(0)}28%{transform:skewX(3.8deg) translateX(2.5px)}68%{transform:skewX(-2.5deg) translateX(-1.5px)}}'
+    + '@keyframes clothF2{0%,100%{transform:skewX(0deg)}38%{transform:skewX(-4.8deg) translateX(-2.8px)}82%{transform:skewX(2.8deg) translateX(1.2px)}}'
+    + '@keyframes clothF3{0%,100%{transform:skewX(0deg) translateX(0)}20%{transform:skewX(5.5deg) translateX(3.2px)}54%{transform:skewX(-3deg) translateX(-1.2px)}}'
+    + '</style></defs>';
+  // 3 слоя ткани с разной задержкой → натуральное развевание
+  var to = 'transform-origin:'+ax+'px '+ay+'px;';
+  s += '<path style="'+to+'animation:clothF1 2.05s ease-in-out infinite" d="'
+    +'M'+(ax-6)+' '+ay+' Q'+(ax-5)+' '+(ay+20)+' '+(ax-7)+' '+(ay+42)+' Q'+(ax-5)+' '+(ay+60)+' '+(ax)+' '+(ay+74)
+    +' L'+(ax+11)+' '+(ay+72)+' Q'+(ax+6)+' '+(ay+58)+' '+(ax+7)+' '+(ay+40)+' Q'+(ax+8)+' '+(ay+18)+' '+(ax+6)+' '+ay+'Z'
+    +'" fill="#a87025" opacity="0.9"/>';
+  s += '<path style="'+to+'animation:clothF2 1.72s ease-in-out infinite 0.28s" d="'
+    +'M'+(ax-4)+' '+ay+' Q'+(ax-3)+' '+(ay+21)+' '+(ax-5)+' '+(ay+43)+' Q'+(ax-3)+' '+(ay+61)+' '+(ax+1)+' '+(ay+75)
+    +' L'+(ax+9)+' '+(ay+73)+' Q'+(ax+4)+' '+(ay+59)+' '+(ax+5)+' '+(ay+41)+' Q'+(ax+6)+' '+(ay+19)+' '+(ax+4)+' '+ay+'Z'
+    +'" fill="#d4a030" opacity="0.78"/>';
+  s += '<path style="'+to+'animation:clothF3 2.38s ease-in-out infinite 0.14s" d="'
+    +'M'+(ax-2)+' '+ay+' Q'+(ax-1)+' '+(ay+22)+' '+(ax-3)+' '+(ay+44)+' Q'+(ax-1)+' '+(ay+62)+' '+(ax+2)+' '+(ay+76)
+    +' L'+(ax+7)+' '+(ay+74)+' Q'+(ax+3)+' '+(ay+60)+' '+(ax+4)+' '+(ay+42)+' Q'+(ax+5)+' '+(ay+20)+' '+(ax+3)+' '+ay+'Z'
+    +'" fill="#e8ba42" opacity="0.52"/>';
+  // Световой блик на краю ткани
+  s += '<path style="'+to+'animation:clothF1 2.05s ease-in-out infinite" d="'
+    +'M'+(ax-5)+' '+ay+' Q'+(ax-4)+' '+(ay+25)+' '+(ax-6)+' '+(ay+50)+' Q'+(ax-4)+' '+(ay+66)+' '+(ax)+' '+(ay+74)
+    +'" stroke="#f5cc5a" stroke-width="1.5" fill="none" opacity="0.44" stroke-linecap="round"/>';
+  s += '</svg>';
+  return s;
+}
+
 function renderCharacterCard() {
   if (!state.stagesUnlocked) state.stagesUnlocked = {};
   const lv = ['s1','s2','s3','s4','s5','s6'].filter(function(k){ return state.stagesUnlocked[k]; }).length;
   const faceData = state.characterFace || null;
+  const charArt  = state.characterArt  || null;
 
   const CHAR_LEVELS = [
     { name: 'Мальчик',  sub: 'До первой крови',    color: '#a09080' },
@@ -4245,6 +4278,22 @@ function renderCharacterCard() {
 
   const charSVG = makeWarriorSVG(lv, faceData);
 
+  // ── Отображение персонажа (арт или SVG) ──────────────────────
+  var charDisplay;
+  if (charArt) {
+    // Пользователь загрузил своё изображение — показываем его с тканью
+    charDisplay = '<div style="position:relative;width:118px;height:210px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.6);">'
+      + '<img src="'+charArt+'" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;"/>'
+      + makeClothAnimation(76, 38)
+      + '</div>';
+  } else {
+    // SVG-персонаж + ткань от lv1
+    charDisplay = '<div style="position:relative;flex-shrink:0;">'
+      + charSVG
+      + (lv >= 1 ? makeClothAnimation(96, 46) : '')
+      + '</div>';
+  }
+
   const statBars = [
     ['СИЛ',STR,'#c4621d','⚔'],
     ['ВЫН',END,'#4a9a4a','\u{1F6E1}'],
@@ -4266,10 +4315,15 @@ function renderCharacterCard() {
     + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 60%,' + cl.color + '0a,transparent 55%);pointer-events:none;"></div>'
     + '<div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,' + cl.color + '50,transparent);"></div>'
     + '<div style="display:flex;gap:14px;align-items:flex-start;position:relative;">'
-    + '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;">'
-    + charSVG
+    + '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;">'
+    + charDisplay
+    + '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'
     + '<input type="file" id="face-upload-inp" accept="image/*" style="display:none;" onchange="window.__app.uploadFace(this)"/>'
-    + '<button onclick="document.getElementById(\'face-upload-inp\').click()" style="font-size:9px;color:#6a5a8a;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:3px 9px;cursor:pointer;letter-spacing:0.08em;white-space:nowrap;">📷 моё лицо</button>'
+    + '<button onclick="document.getElementById(\'face-upload-inp\').click()" style="font-size:8px;color:#6a5a8a;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:5px;padding:3px 7px;cursor:pointer;white-space:nowrap;">📷 лицо</button>'
+    + '<input type="file" id="char-art-inp" accept="image/*" style="display:none;" onchange="window.__app.uploadCharacterArt(this)"/>'
+    + '<button onclick="document.getElementById(\'char-art-inp\').click()" style="font-size:8px;color:#c9a84c;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:5px;padding:3px 7px;cursor:pointer;white-space:nowrap;">🖼 арт</button>'
+    + (charArt ? '<button onclick="window.__app.clearCharacterArt()" style="font-size:8px;color:#8a5a5a;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:3px 6px;cursor:pointer;">✕</button>' : '')
+    + '</div>'
     + '</div>'
     + '<div style="flex:1;min-width:0;padding-top:2px;">'
     + '<div style="font-size:8px;color:' + cl.color + ';letter-spacing:0.3em;text-transform:uppercase;font-weight:700;margin-bottom:2px;">⚔ ранг</div>'
@@ -6645,6 +6699,35 @@ window.__app = {
     };
     reader.readAsDataURL(file);
   },
+
+  // ── Загрузка пользовательского арта персонажа ──────────────
+  uploadCharacterArt: function(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        // Ресайз до 400×700 max (сохраняем пропорции), сжимаем JPEG 88%
+        var maxW = 400, maxH = 700;
+        var scale = Math.min(maxW / img.width, maxH / img.height, 1);
+        var W = Math.round(img.width * scale);
+        var H = Math.round(img.height * scale);
+        var canvas = document.createElement('canvas');
+        canvas.width = W; canvas.height = H;
+        canvas.getContext('2d').drawImage(img, 0, 0, W, H);
+        state.characterArt = canvas.toDataURL('image/jpeg', 0.88);
+        save(); render();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  },
+  clearCharacterArt: function() {
+    state.characterArt = null;
+    save(); render();
+  },
+
   openStage: id => { view.stageId = id; render(); },
   editGoal: (sphereId) => {
     if (view.editingGoalSphere === sphereId) {

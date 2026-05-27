@@ -3163,12 +3163,13 @@ function renderApp() {
     _lastTabRendered = view.tab;
     const tabBarEl = document.getElementById('tab-bar-fixed');
     if (tabBarEl) {
-      tabBarEl.innerHTML = `<div style="background: rgba(10,6,18,0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; padding: 10px 0 0; padding-bottom: max(14px, env(safe-area-inset-bottom)); width: 100%;"><div style="max-width: 720px; margin: 0 auto; display: flex; width: 100%;">${[{ id: 'tree', label: 'Древо', icon: '✦' }, { id: 'goals', label: 'Цели', icon: '◎' }, { id: 'path', label: 'Путь', icon: '◈' }, { id: 'kb', label: 'База', icon: '📚' }, { id: 'history', label: 'Хроника', icon: '☰' }].map(t => `<button onclick="window.__app.tab('${t.id}')" style="flex: 1; background: none; border: none; padding: 6px 4px; cursor: pointer; color: ${view.tab === t.id ? '#A78BFA' : '#5a4a78'};"><div style="font-size: 18px; margin-bottom: 4px; ${view.tab === t.id ? 'text-shadow: 0 0 12px rgba(167,139,250,0.8);' : ''}">${t.icon}</div><div style="font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: ${view.tab === t.id ? '700' : '500'};">${t.label}</div></button>`).join('')}</div></div>`;
+      tabBarEl.innerHTML = `<div style="background: rgba(10,6,18,0.97); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,0.06); display: flex; padding: 10px 0 0; padding-bottom: max(14px, env(safe-area-inset-bottom)); width: 100%;"><div style="max-width: 720px; margin: 0 auto; display: flex; width: 100%;">${[{ id: 'tree', label: 'Древо', icon: '✦' }, { id: 'path', label: 'Путь', icon: '◈' }, { id: 'kb', label: 'База', icon: '📚' }, { id: 'history', label: 'Хроника', icon: '☰' }].map(t => `<button onclick="window.__app.tab('${t.id}')" style="flex: 1; background: none; border: none; padding: 6px 4px; cursor: pointer; color: ${view.tab === t.id ? '#A78BFA' : '#5a4a78'};"><div style="font-size: 18px; margin-bottom: 4px; ${view.tab === t.id ? 'text-shadow: 0 0 12px rgba(167,139,250,0.8);' : ''}">${t.icon}</div><div style="font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: ${view.tab === t.id ? '700' : '500'};">${t.label}</div></button>`).join('')}</div></div>`;
     }
   }
 
   let modal = '';
-  if (view.sphereId) modal = renderSphereModal();
+  if (view.goalsModal) modal = renderGoalsModal();
+  else if (view.sphereId) modal = renderSphereModal();
   else if (view.stageId) modal = renderStageModal();
   else if (view.achId) modal = renderAchievementModal();
   // Модал навыка отдельно (поверх sphere модала)
@@ -3198,6 +3199,12 @@ function renderApp() {
 
 function renderTree() {
   let html = '';
+  // Шапка с кнопкой «Цели»
+  html += `<div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;">
+    <button onclick="window.__app.openGoalsModal()" style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.22);border-radius:20px;color:#A78BFA;font-size:11px;font-weight:600;letter-spacing:0.12em;cursor:pointer;">
+      <span style="font-size:13px;">◎</span> ЦЕЛИ
+    </button>
+  </div>`;
   html += '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">';
 
   SPHERES.forEach(s => {
@@ -3445,6 +3452,22 @@ function renderGoals() {
   });
 
   return html;
+}
+
+// Модалка «Цели» — открывается кнопкой из Древо
+function renderGoalsModal() {
+  const content = renderGoals();
+  return `<div onclick="window.__app.closeGoalsModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:1000;display:flex;flex-direction:column;justify-content:flex-end;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);">
+    <div onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#110d1f,#0a0612);border-radius:20px 20px 0 0;border-top:1px solid rgba(167,139,250,0.25);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom);">
+      <!-- Шапка -->
+      <div style="display:flex;align-items:center;padding:16px 18px 12px;border-bottom:1px solid rgba(255,255,255,0.05);flex-shrink:0;">
+        <div style="font-size:10px;letter-spacing:0.3em;color:#A78BFA;text-transform:uppercase;font-weight:700;flex:1;">◎ &nbsp;Цели</div>
+        <button onclick="window.__app.closeGoalsModal()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#8870a8;font-size:13px;padding:5px 12px;cursor:pointer;">✕ Закрыть</button>
+      </div>
+      <!-- Контент со скроллом -->
+      <div style="overflow-y:auto;padding:16px 18px;-webkit-overflow-scrolling:touch;">${content}</div>
+    </div>
+  </div>`;
 }
 
 // Сон как отдельная строка в Пути (рядом со сферами).
@@ -6036,6 +6059,8 @@ window.__app = {
   setAnswer: (sid, qid, val) => { state.context[sid][qid] = val; save(); },
   finishOnboarding: () => { state.onboardingDone = true; state.startedAt = today(); state.stagesUnlocked = { s0: today() }; checkAchievements(); save(); render(); },
   tab: t => { view.tab = t; render(); },
+  openGoalsModal: () => { view.goalsModal = true; view.editingGoalSphere = null; render(); },
+  closeGoalsModal: () => { view.goalsModal = false; view.editingGoalSphere = null; render(); },
   openSphere: id => { view.sphereId = id; view.contextVisible = false; render(); },
   openStage: id => { view.stageId = id; render(); },
   editGoal: (sphereId) => {

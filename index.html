@@ -2071,6 +2071,7 @@ function makeInitial() {
     prefilledFlags: JSON.parse(JSON.stringify(PREFILLED_FLAGS)),
     tasks: buildMandatoryTasks(),
     history: [], stagesUnlocked: {}, achievementsUnlocked: {}, stageReflections: {}, stageContracts: {}, why: '', berserkPortraits: {},
+    sleep: { entries: [], lastTap: Date.now(), lastPromptDate: null, goalHours: 8 },
     dismissedMandatory: [],
     startedAt: today(), lastBackup: null, bannerDismissedDate: null,
     finance: {
@@ -2530,6 +2531,10 @@ function load() {
   // Тело
   if (!state.body) state.body = { height: null, measurements: [] };
   if (!state.body.measurements) state.body.measurements = [];
+  // Сон
+  if (!state.sleep) state.sleep = { entries: [], lastTap: Date.now(), lastPromptDate: null, goalHours: 8 };
+  if (!state.sleep.entries) state.sleep.entries = [];
+  if (!state.sleep.goalHours) state.sleep.goalHours = 8;
   // Время молитв
   if (!state.prayerTimes) state.prayerTimes = { lat: -33.4489, lon: -70.6693, city: 'Сантьяго', cache: {} };
   if (!state.prayerTimes.cache) state.prayerTimes.cache = {};
@@ -2945,6 +2950,46 @@ function shouldShowBackupBanner() {
 
 function dismissBanner() { state.bannerDismissedDate = today(); save(); render(); }
 
+// ═══ ТРЕКЕР СНА ═══════════════════════════════════════════════════════════
+function fmtHM(ts) { const d = new Date(ts); return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'); }
+function fmtDur(hours) { const h = Math.floor(hours); const m = Math.round((hours - h) * 60); return h + 'ч ' + String(m).padStart(2,'0') + 'м'; }
+function sleepEntryForDate(dateISO) {
+  return (state.sleep?.entries || []).find(e => e.date === dateISO);
+}
+function sleepHoursThisMonth() {
+  const monthStr = today().slice(0,7);
+  return (state.sleep?.entries || []).filter(e => e.date.startsWith(monthStr)).reduce((s,e) => s + (e.hours||0), 0);
+}
+function sleepAvgWeek() {
+  const now = new Date();
+  const week = (state.sleep?.entries || []).filter(e => {
+    const d = new Date(e.date);
+    return (now - d) <= 7 * 86400000;
+  });
+  if (week.length === 0) return 0;
+  return week.reduce((s,e) => s + (e.hours||0), 0) / week.length;
+}
+// Проверяем, нужно ли утром предложить запись сна
+function checkSleepPrompt() {
+  if (!state.sleep) return null;
+  const now = new Date();
+  const nowMs = now.getTime();
+  const hr = now.getHours();
+  // только после 5 утра
+  if (hr < 5 || hr > 14) return null;
+  const todayISO = today();
+  // если уже спрашивали сегодня или уже есть запись на сегодня — пропускаем
+  if (state.sleep.lastPromptDate === todayISO) return null;
+  if (sleepEntryForDate(todayISO)) return null;
+  const lastTap = state.sleep.lastTap || 0;
+  if (!lastTap) return null;
+  const gapMs = nowMs - lastTap;
+  const gapHours = gapMs / 3600000;
+  // Похоже на сон: 4-14 часов без активности
+  if (gapHours < 4 || gapHours > 14) return null;
+  return { bedtime: lastTap, wake: nowMs, hours: +gapHours.toFixed(2) };
+}
+
 function escapeHtml(s) { if (!s) return ''; return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 
 function render() {
@@ -3067,6 +3112,20 @@ function renderApp() {
     const subText = daysSinceLast === null ? 'Ты ещё ни разу не сохранял бэкап' : daysSinceLast === 1 ? 'Прошёл 1 день с последнего бэкапа' : `Прошло ${daysSinceLast} ${plural(daysSinceLast, 'день', 'дня', 'дней')} с последнего бэкапа`;
     banner = `<div style="background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(167,139,250,0.1)); border-bottom: 1px solid rgba(0,229,255,0.3); padding: 14px 18px; display: flex; align-items: center; gap: 12px; animation: slide-down 0.4s;"><div style="font-size: 24px; flex-shrink: 0; text-shadow: 0 0 8px rgba(0,229,255,0.6);">💾</div><div style="flex: 1; min-width: 0;"><div style="font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 2px;">Сделай бэкап</div><div style="font-size: 11px; color: #b0a0d0; line-height: 1.4;">${subText}.</div></div><button onclick="window.__app.backupAndMark()" style="background: linear-gradient(135deg, #00E5FF, #A78BFA); color: #000; border: none; border-radius: 10px; padding: 10px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; flex-shrink: 0; box-shadow: 0 0 16px rgba(0,229,255,0.5);">↓ Скачать</button><button onclick="window.__app.dismissBanner()" title="Скрыть до завтра" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #b0a0d0; cursor: pointer; padding: 0; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; flex-shrink: 0;">✕</button></div>`;
   }
+  // 🌙 Утренний баннер сна
+  const sleepPrompt = checkSleepPrompt();
+  if (sleepPrompt) {
+    banner += `<div style="background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(10,6,40,0.5)); border-bottom: 1px solid rgba(167,139,250,0.35); padding: 14px 18px; display: flex; align-items: center; gap: 12px; animation: slide-down 0.4s;">
+      <div style="font-size: 26px; flex-shrink: 0; text-shadow: 0 0 12px rgba(167,139,250,0.7);">🌙</div>
+      <div style="flex: 1; min-width: 0;">
+        <div style="font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 2px;">Похоже, ты спал ~${fmtDur(sleepPrompt.hours)}</div>
+        <div style="font-size: 11px; color: #b0a0d0; line-height: 1.4;">с ${fmtHM(sleepPrompt.bedtime)} до ${fmtHM(sleepPrompt.wake)} · записать?</div>
+      </div>
+      <button onclick="window.__app.sleepAcceptPrompt()" style="background: linear-gradient(135deg, #A78BFA, #FF4DD8); color: #fff; border: none; border-radius: 10px; padding: 9px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; flex-shrink: 0;">✓ Да</button>
+      <button onclick="window.__app.sleepEditPrompt()" title="Изменить" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #e8d5a8; cursor: pointer; padding: 0; width: 36px; height: 36px; border-radius: 50%; font-size: 13px; flex-shrink: 0;">✎</button>
+      <button onclick="window.__app.sleepDismissPrompt()" title="Не сегодня" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #b0a0d0; cursor: pointer; padding: 0; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; flex-shrink: 0;">✕</button>
+    </div>`;
+  }
 
   const header = `<div style="padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); position:relative; overflow:hidden;">
     <div style="position:absolute;inset:0;background-image:var(--guts-bg);background-size:cover;background-position:center 28%;opacity:0.7;"></div>
@@ -3125,6 +3184,16 @@ function renderApp() {
   // Лочим скролл фона когда открыта модалка
   const hasModalOpen = !!(view.sphereId || view.stageId || view.achId || view.skillId);
   document.body.classList.toggle('modal-open', hasModalOpen);
+
+  // Обновляем последний тап для трекера сна (если прошло >1 минуты с прошлого)
+  if (state && state.sleep) {
+    const now = Date.now();
+    if (!state.sleep.lastTap || (now - state.sleep.lastTap) > 60000) {
+      state.sleep.lastTap = now;
+      // тихий save без рендера — иначе цикл
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+    }
+  }
 }
 
 function renderTree() {
@@ -3387,6 +3456,26 @@ function renderPathStages() {
     + '<div style="font-size:10px;letter-spacing:0.3em;color:#A78BFA;text-transform:uppercase;font-weight:700;">Карта пути · 3 года</div>'
     + '<p style="font-size:12px;color:#6a5a8a;margin:5px 0 0;">Этап откроется когда все сферы дотянутся</p>'
     + '</div>';
+
+  // 🌙 Сводка по сну (часы за месяц)
+  {
+    const monthHours = sleepHoursThisMonth();
+    const avg7 = sleepAvgWeek();
+    const goal = state.sleep?.goalHours || 8;
+    const monthEntries = (state.sleep?.entries || []).filter(e => e.date.startsWith(today().slice(0,7))).length;
+    if (monthHours > 0 || monthEntries > 0) {
+      html += `<div style="background:linear-gradient(135deg,rgba(167,139,250,0.08),rgba(10,6,40,0.4));border:1px solid rgba(167,139,250,0.25);border-radius:14px;padding:14px 16px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div style="font-size:28px;text-shadow:0 0 12px rgba(167,139,250,0.6);">🌙</div>
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:10px;letter-spacing:0.2em;color:#A78BFA;text-transform:uppercase;font-weight:700;">Сон за месяц</div>
+            <div style="font-size:22px;color:#fff;font-weight:700;line-height:1;margin-top:2px;">${monthHours.toFixed(1)} ч</div>
+            <div style="font-size:10px;color:#8870a8;margin-top:3px;">${monthEntries} ${plural(monthEntries,'ночь','ночи','ночей')} · ср. ${avg7 > 0 ? fmtDur(avg7) : '—'} · цель ${goal}ч</div>
+          </div>
+        </div>
+      </div>`;
+    }
+  }
 
   // Карточка текущего этапа
   if (currentIdx > 0 && currentIdx < PATH.length) {
@@ -4494,12 +4583,128 @@ function renderSkillModal() {
 
 // === ПАНЕЛЬ ФИНАНСОВ (только для сферы money) ===
 // === ПАНЕЛЬ ТЕЛА (только для сферы body) — замеры веса и обхватов ===
+function renderSleepBlock(s) {
+  const sleepOpen = !!view.expandedGroups?.['body_sleep'];
+  const todayISO = today();
+  const todayEntry = sleepEntryForDate(todayISO);
+  const avg7 = sleepAvgWeek();
+  const monthHours = sleepHoursThisMonth();
+  const goal = state.sleep?.goalHours || 8;
+  const todayPct = todayEntry ? Math.min(100, Math.round((todayEntry.hours / goal) * 100)) : 0;
+
+  let summary = todayEntry
+    ? `<span style="color:#A78BFA;font-weight:700;">${fmtDur(todayEntry.hours)}</span> сегодня`
+    : `<span style="color:#6a5a8a;">нет записи</span>`;
+  if (avg7 > 0) summary += ` · ср. за 7д <span style="color:#fff;font-weight:600;">${fmtDur(avg7)}</span>`;
+
+  let html = `<button onclick="window.__app.toggleGroup('body_sleep')" style="width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;background:${sleepOpen?'rgba(167,139,250,0.1)':'rgba(255,255,255,0.03)'};border:1px solid ${sleepOpen?'rgba(167,139,250,0.35)':'rgba(255,255,255,0.07)'};border-radius:${sleepOpen?'12px 12px 0 0':'12px'};cursor:pointer;text-align:left;margin-bottom:${sleepOpen?'0':'8px'};">
+    <span style="font-size:18px;">🌙</span>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;color:#fff;font-weight:600;">Сон</div>
+      <div style="font-size:10px;color:#8870a8;margin-top:2px;">${summary}</div>
+    </div>
+    <div style="font-size:11px;color:#A78BFA;flex-shrink:0;">${sleepOpen ? '▾' : '▸'}</div>
+  </button>`;
+
+  if (sleepOpen) {
+    html += `<div style="background:rgba(167,139,250,0.04);border:1px solid rgba(167,139,250,0.2);border-top:none;border-radius:0 0 12px 12px;padding:14px;margin-bottom:8px;">`;
+
+    // Сегодня
+    if (todayEntry) {
+      html += `<div style="background:rgba(167,139,250,0.08);border-radius:10px;padding:12px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-size:10px;letter-spacing:0.2em;color:#A78BFA;text-transform:uppercase;font-weight:700;">Сегодня</div>
+          <div style="display:flex;gap:6px;">
+            <button onclick="window.__app.sleepOpenForm('${todayISO}')" style="background:transparent;border:1px solid rgba(255,255,255,0.1);color:#b0a0d0;cursor:pointer;padding:3px 8px;border-radius:6px;font-size:10px;">✎</button>
+            <button onclick="window.__app.sleepDeleteEntry('${todayISO}')" style="background:transparent;border:1px solid rgba(255,61,113,0.3);color:#FF3D71;cursor:pointer;padding:3px 8px;border-radius:6px;font-size:10px;">✕</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+          <div style="font-size:32px;font-weight:800;color:#fff;line-height:1;">${fmtDur(todayEntry.hours)}</div>
+          <div style="font-size:11px;color:#8870a8;">${todayEntry.bedtime} → ${todayEntry.wake}</div>
+        </div>
+        <div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;"><div style="height:100%;width:${todayPct}%;background:linear-gradient(90deg,#A78BFA,#FF4DD8);"></div></div>
+        <div style="font-size:9px;color:#6a5a8a;margin-top:4px;">${todayPct}% от цели (${goal}ч)</div>
+      </div>`;
+    } else {
+      html += `<button onclick="window.__app.sleepOpenForm('${todayISO}')" style="width:100%;padding:14px;background:rgba(167,139,250,0.08);border:1px dashed rgba(167,139,250,0.4);border-radius:10px;color:#A78BFA;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;margin-bottom:12px;">+ Записать сегодняшний сон</button>`;
+    }
+
+    // Форма редактирования
+    if (view.sleepEditing) {
+      const f = view.sleepEditing;
+      html += `<div style="background:rgba(0,0,0,0.3);border:1px solid rgba(167,139,250,0.3);border-radius:10px;padding:12px;margin-bottom:12px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-size:10px;letter-spacing:0.2em;color:#A78BFA;text-transform:uppercase;font-weight:700;">Запись сна</div>
+          <button onclick="window.__app.sleepEditClose()" style="background:transparent;border:none;color:#8870a8;cursor:pointer;font-size:16px;">✕</button>
+        </div>
+        <label style="display:block;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">Дата</label>
+        <input type="date" max="${todayISO}" value="${f.date}" onchange="window.__app.sleepEditSet('date',this.value)" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:13px;outline:none;margin-bottom:8px;color-scheme:dark;" />
+        <div style="display:flex;gap:8px;margin-bottom:10px;">
+          <div style="flex:1;">
+            <label style="display:block;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">🌙 Лёг</label>
+            <input type="time" value="${f.bedtime}" onchange="window.__app.sleepEditSet('bedtime',this.value)" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
+          </div>
+          <div style="flex:1;">
+            <label style="display:block;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">☀ Встал</label>
+            <input type="time" value="${f.wake}" onchange="window.__app.sleepEditSet('wake',this.value)" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
+          </div>
+        </div>
+        <button onclick="window.__app.sleepEditSave()" style="width:100%;padding:10px;background:#A78BFA;border:none;border-radius:8px;color:#000;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">✓ Сохранить</button>
+      </div>`;
+    }
+
+    // Статистика
+    html += `<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;">Ср. за 7д</div>
+        <div style="font-size:18px;color:#fff;font-weight:700;margin-top:4px;">${avg7 > 0 ? fmtDur(avg7) : '—'}</div>
+      </div>
+      <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:10px;padding:10px;text-align:center;">
+        <div style="font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;">Этот месяц</div>
+        <div style="font-size:18px;color:#fff;font-weight:700;margin-top:4px;">${monthHours.toFixed(1)} ч</div>
+      </div>
+    </div>`;
+
+    // График за 7 дней
+    const days7 = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const iso = d.toISOString().slice(0,10);
+      const e = sleepEntryForDate(iso);
+      days7.push({ date: iso, hours: e ? e.hours : 0, dow: d.getDay() });
+    }
+    const maxH = Math.max(goal, ...days7.map(d => d.hours), 1);
+    const DOW = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+    html += `<div style="margin-bottom:10px;">
+      <div style="font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">7 дней</div>
+      <div style="display:flex;gap:4px;align-items:flex-end;height:80px;">${days7.map(d => {
+        const h = d.hours > 0 ? Math.max(8, (d.hours / maxH) * 76) : 4;
+        const color = d.hours === 0 ? 'rgba(255,255,255,0.08)' : (d.hours >= goal ? '#10E891' : (d.hours >= goal * 0.85 ? '#A78BFA' : '#FFAA00'));
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;"><div style="width:100%;height:${h}px;background:${color};border-radius:3px;opacity:${d.hours > 0 ? 1 : 0.4};"></div><div style="font-size:8px;color:#6a5a8a;">${DOW[d.dow]}</div><div style="font-size:9px;color:${d.hours > 0 ? '#fff' : '#5a4a78'};">${d.hours > 0 ? d.hours.toFixed(1) : '—'}</div></div>`;
+      }).join('')}</div>
+    </div>`;
+
+    // Цель
+    html += `<div style="display:flex;align-items:center;gap:8px;font-size:10px;color:#8870a8;">
+      <span>Цель:</span>
+      <input type="number" min="4" max="12" step="0.5" value="${goal}" onchange="window.__app.sleepGoalSet(this.value)" style="width:60px;padding:4px 6px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:12px;outline:none;text-align:center;" />
+      <span>часов в сутки</span>
+    </div>`;
+
+    html += `</div>`;
+  }
+  return html;
+}
+
 function renderBodyPanel(sphere) {
   const s = sphere;
   const nutritionOpen = !!view.expandedGroups?.['body_nutrition'];
   const measuresOpen  = !!view.expandedGroups?.['body_measures'];
 
   let html = '';
+  // Сон — вверху панели Тела
+  html += renderSleepBlock(s);
 
   // Питание — выпадающий блок
   html += `<button onclick="window.__app.toggleGroup('body_nutrition')" style="width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;background:${nutritionOpen?'rgba(255,61,113,0.1)':'rgba(255,255,255,0.03)'};border:1px solid ${nutritionOpen?'rgba(255,61,113,0.35)':'rgba(255,255,255,0.07)'};border-radius:${nutritionOpen?'12px 12px 0 0':'12px'};cursor:pointer;text-align:left;margin-bottom:${nutritionOpen?'0':'8px'}">
@@ -5553,6 +5758,74 @@ window.__app = {
     render();
   },
   jumpToDate: d => { view.historyJumpDate = d || null; render(); },
+  // ── Сон ──────────────────────────────────────────────────────────────────
+  sleepAcceptPrompt: () => {
+    const p = checkSleepPrompt();
+    if (!p) { state.sleep.lastPromptDate = today(); save(); render(); return; }
+    state.sleep.entries.push({
+      date: today(),
+      bedtime: fmtHM(p.bedtime),
+      wake: fmtHM(p.wake),
+      hours: p.hours,
+      auto: true
+    });
+    state.sleep.lastPromptDate = today();
+    save(); render();
+    showToast('🌙 Сон записан: ' + fmtDur(p.hours), '#A78BFA');
+  },
+  sleepEditPrompt: () => {
+    const p = checkSleepPrompt();
+    const today_ = today();
+    view.sleepEditing = {
+      date: today_,
+      bedtime: p ? fmtHM(p.bedtime) : '23:00',
+      wake: p ? fmtHM(p.wake) : '07:00'
+    };
+    state.sleep.lastPromptDate = today_;
+    save(); render();
+  },
+  sleepDismissPrompt: () => {
+    state.sleep.lastPromptDate = today();
+    save(); render();
+  },
+  sleepOpenForm: (dateISO) => {
+    const existing = sleepEntryForDate(dateISO || today());
+    view.sleepEditing = existing
+      ? { date: existing.date, bedtime: existing.bedtime, wake: existing.wake, editingExisting: true }
+      : { date: dateISO || today(), bedtime: '23:00', wake: '07:00' };
+    render();
+  },
+  sleepEditSet: (field, val) => {
+    if (!view.sleepEditing) return;
+    view.sleepEditing[field] = val;
+    render();
+  },
+  sleepEditClose: () => { view.sleepEditing = null; render(); },
+  sleepEditSave: () => {
+    const f = view.sleepEditing;
+    if (!f || !f.date || !f.bedtime || !f.wake) return;
+    // Считаем часы
+    const [bh, bm] = f.bedtime.split(':').map(Number);
+    const [wh, wm] = f.wake.split(':').map(Number);
+    let bedMin = bh * 60 + bm;
+    let wakeMin = wh * 60 + wm;
+    if (wakeMin <= bedMin) wakeMin += 24 * 60; // через полночь
+    const hours = +((wakeMin - bedMin) / 60).toFixed(2);
+    // Удаляем старую запись на эту дату если есть
+    state.sleep.entries = state.sleep.entries.filter(e => e.date !== f.date);
+    state.sleep.entries.push({ date: f.date, bedtime: f.bedtime, wake: f.wake, hours, manual: true });
+    view.sleepEditing = null;
+    save(); render();
+    showToast('🌙 ' + fmtDur(hours), '#A78BFA');
+  },
+  sleepDeleteEntry: (dateISO) => {
+    state.sleep.entries = state.sleep.entries.filter(e => e.date !== dateISO);
+    save(); render();
+  },
+  sleepGoalSet: (h) => {
+    state.sleep.goalHours = +h || 8;
+    save(); render();
+  },
   // ── Ретро-добавление в Хронику ───────────────────────────────────────────
   retroOpen: (preDate) => {
     const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);

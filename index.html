@@ -3767,7 +3767,7 @@ function _oldRenderSleepDropdown(s) {
 
 // === WARRIOR CHARACTER CARD ===
 function makeWarriorSVG(lv, faceData) {
-  // lv 0-6: Мальчик → Наёмник → Боец → Воин → Берсерк → Легенда → СТРАННИК
+  // lv 0-6: Мальчик → Наёмник → Боец → Воин → Берсерк → Легенда → ЧЁРНЫЙ МЕЧНИК
   var lv1=lv>=1, lv2=lv>=2, lv3=lv>=3, lv4=lv>=4, lv5=lv>=5, lv6=lv>=6;
   // COMPAT stubs so code below can reference these names
   const hasMuscles    = lv2;
@@ -4263,7 +4263,7 @@ function renderCharacterCard() {
     { name: 'Воин',      sub: 'Шрамы и сталь',      color: '#c4621d' },
     { name: 'Берсерк',   sub: 'Броня духа',         color: '#d04020' },
     { name: 'Легенда',  sub: 'Имя знают все',      color: '#e05020' },
-    { name: 'СТРАННИК', sub: 'Нет пути назад',     color: '#ff6030' },
+    { name: 'ЧЁРНЫЙ МЕЧНИК', sub: 'Нет пути назад', color: '#ff6030' },
   ];
   const cl = CHAR_LEVELS[Math.min(lv, 6)];
 

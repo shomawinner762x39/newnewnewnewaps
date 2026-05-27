@@ -3768,7 +3768,8 @@ function _oldRenderSleepDropdown(s) {
 // === WARRIOR CHARACTER CARD ===
 function makeWarriorSVG(lv, faceData) {
   // lv 0-6: Мальчик → Наёмник → Боец → Воин → Берсерк → Легенда → СТРАННИК
-  const lv1 = lv >= 1, lv2 = lv >= 2, lv3 = lv >= 3, lv4 = lv >= 4, lv5 = lv >= 5, lv6 = lv >= 6;
+  var lv1=lv>=1, lv2=lv>=2, lv3=lv>=3, lv4=lv>=4, lv5=lv>=5, lv6=lv>=6;
+  // COMPAT stubs so code below can reference these names
   const hasMuscles    = lv2;
   const hasScar       = lv3;
   const hasShoulderPl = lv3;
@@ -3777,256 +3778,443 @@ function makeWarriorSVG(lv, faceData) {
   const hasCape       = lv5;
   const hasBerserk    = lv6;
 
-  // ── размеры, растут с уровнем ──────────────────────────────────
-  var cx   = 68;                        // центр X (место для меча справа)
-  var SW   = 32 + lv * 3;              // полуширина плеч  32→50
-  var BW   = 18 + lv * 1.5;            // полуширина пояса 18→27
-  var AW   = 20 + lv * 1.5;            // толщина руки (ЗАПОЛНЕННАЯ форма)
-  var LHW  = 15 + lv * 1;              // полуширина бедра
+  // ── РАЗМЕРЫ (растут с уровнем) ────────────────────────────────
+  var cx  = 68;                         // центр X (меч справа)
+  var SW  = 28 + lv * 3;               // полуширина плеч 28→46
+  var BW  = 15 + lv * 1.5;             // полуширина пояса 15→24
+  var AW  = 9  + lv * 1.5;             // полутолщина руки 9→18
+  var LHW = 12 + lv * 1.2;             // полуширина ноги 12→19
 
-  // ── цвета ──────────────────────────────────────────────────────
-  var skinT = '#d8a87a', skinB = '#a06030';
-  var hairC = '#080604';
-  var eyeC  = '#c4621d';
-  var clothT= '#4a2e10', clothB= '#1e0e04';
-  var leath = '#3a2010';
-  var aD    = '#3c3c4e', aL    = '#9a9aaa', aH = '#d0d0e0';
-  var swC   = '#a0b0c0', swD   = '#28303e';
-  var capeC = '#160202';
-  var bootC = '#0c0400';
-  var beltC = '#2a1808';
+  // ── Y-координаты тела ──────────────────────────────────────────
+  var hCY=36, hRX=20, hRY=23;          // голова: центр, радиусы
+  var nkT=hCY+hRY-3, nkB=nkT+13;      // шея верх/низ
+  var shY=nkB+4;                       // линия плеч
+  var chB=shY+82;                      // низ торса
+  var blT=chB, blB=blT+11;            // пояс
+  var hiB=blB+20;                      // низ бёдер
+  var knY=hiB+38;                      // колено
+  var anY=knY+44;                      // щиколотка
+  var flY=anY+14;                      // пол
 
-  // ── градиенты (SVG defs) ────────────────────────────────────────
-  var defs = '<defs>'
-    + '<linearGradient id="gSk" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="' + skinT + '"/><stop offset="100%" stop-color="' + skinB + '"/></linearGradient>'
-    + '<linearGradient id="gCl" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="' + clothT + '"/><stop offset="100%" stop-color="' + clothB + '"/></linearGradient>'
-    + '<linearGradient id="gAr" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="' + aH + '"/><stop offset="35%" stop-color="' + aL + '"/><stop offset="100%" stop-color="' + aD + '"/></linearGradient>'
-    + '<linearGradient id="gSw" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#c8d8e8"/><stop offset="25%" stop-color="' + swC + '"/><stop offset="100%" stop-color="' + swD + '"/></linearGradient>'
-    + '<linearGradient id="gArmL" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="' + skinB + '"/><stop offset="100%" stop-color="' + skinT + '"/></linearGradient>'
-    + '<linearGradient id="gArmR" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="' + skinT + '"/><stop offset="100%" stop-color="' + skinB + '"/></linearGradient>'
-    + (faceData ? '<clipPath id="fcW"><ellipse cx="' + cx + '" cy="36" rx="19" ry="22"/></clipPath>' : '')
-    + '</defs>';
+  // ── ЦВЕТА ──────────────────────────────────────────────────────
+  var skinHi='#edbe90', skinMid='#c88850', skinSh='#8c4018';
+  var hairC ='#0a0806';
+  var eyeC  = lv6 ? '#ff3a08' : (lv4 ? '#c04818' : '#b05020');
+  var clHi  ='#5c3c18', clMid='#3a2008', clSh='#180a02';
+  var arHi  ='#d8d8e8', arMid='#8888a0', arDk='#2a2a3c';
+  var leath ='#281608';
+  var capeC ='#180204';
+  var bootC ='#0e0604';
+  var beltC ='#1a0e08';
+  var swHi  ='#d0e0f0', swMid='#6888a0', swDk='#101828';
 
-  var g = ''; // main content
+  // ── ГРАДИЕНТЫ ─────────────────────────────────────────────────
+  var defs = '<defs>';
+  // Кожа: радиальный (свет сверху-слева → сфера)
+  defs += '<radialGradient id="gSkH" cx="38%" cy="32%" r="62%">'
+    +'<stop offset="0%" stop-color="'+skinHi+'"/>'
+    +'<stop offset="45%" stop-color="'+skinMid+'"/>'
+    +'<stop offset="100%" stop-color="'+skinSh+'"/>'
+    +'</radialGradient>';
+  // Одежда: линейный сверху вниз
+  defs += '<linearGradient id="gCl" x1="0" y1="0" x2="0.4" y2="1">'
+    +'<stop offset="0%" stop-color="'+clHi+'"/>'
+    +'<stop offset="55%" stop-color="'+clMid+'"/>'
+    +'<stop offset="100%" stop-color="'+clSh+'"/>'
+    +'</linearGradient>';
+  // Левая рука: свет слева (цилиндр)
+  defs += '<linearGradient id="gAL" x1="0" y1="0" x2="1" y2="0">'
+    +'<stop offset="0%" stop-color="'+clHi+'"/>'
+    +'<stop offset="35%" stop-color="'+clMid+'"/>'
+    +'<stop offset="100%" stop-color="'+clSh+'"/>'
+    +'</linearGradient>';
+  // Правая рука: свет справа (зеркало)
+  defs += '<linearGradient id="gAR" x1="0" y1="0" x2="1" y2="0">'
+    +'<stop offset="0%" stop-color="'+clSh+'"/>'
+    +'<stop offset="55%" stop-color="'+clMid+'"/>'
+    +'<stop offset="100%" stop-color="'+clHi+'"/>'
+    +'</linearGradient>';
+  // Нога: свет слева (цилиндр)
+  defs += '<linearGradient id="gLeg" x1="0" y1="0" x2="1" y2="0">'
+    +'<stop offset="0%" stop-color="'+clHi+'"/>'
+    +'<stop offset="40%" stop-color="'+clMid+'"/>'
+    +'<stop offset="100%" stop-color="'+clSh+'"/>'
+    +'</linearGradient>';
+  // Броня
+  defs += '<linearGradient id="gAr" x1="0.1" y1="0" x2="0.5" y2="1">'
+    +'<stop offset="0%" stop-color="'+arHi+'"/>'
+    +'<stop offset="35%" stop-color="'+arMid+'"/>'
+    +'<stop offset="100%" stop-color="'+arDk+'"/>'
+    +'</linearGradient>';
+  // Меч
+  defs += '<linearGradient id="gSw" x1="0" y1="0" x2="1" y2="0">'
+    +'<stop offset="0%" stop-color="'+swHi+'"/>'
+    +'<stop offset="18%" stop-color="'+swMid+'"/>'
+    +'<stop offset="80%" stop-color="'+swMid+'"/>'
+    +'<stop offset="100%" stop-color="'+swDk+'"/>'
+    +'</linearGradient>';
+  if (faceData) {
+    defs += '<clipPath id="fcW"><ellipse cx="'+cx+'" cy="'+hCY+'" rx="'+(hRX-1)+'" ry="'+(hRY-2)+'"/></clipPath>';
+  }
+  defs += '</defs>';
 
-  // ── ПЛАЩ (за персонажем, уровень 5+) ───────────────────────────
+  var g = '';
+
+  // ══════════════════════════════════════════════════════════════
+  // ПЛАЩ (за всем, уровень 5+)
+  // ══════════════════════════════════════════════════════════════
   if (hasCape) {
-    g += '<path d="M' + (cx-SW+8) + ' 82 C' + (cx-SW-40) + ' 135 ' + (cx-SW-35) + ' 200 ' + (cx-SW-18) + ' 262 L' + (cx-SW+22) + ' 262 C' + (cx-SW+8) + ' 200 ' + (cx-SW+4) + ' 135 ' + (cx-SW+8) + ' 82Z" fill="' + capeC + '" stroke="#080102" stroke-width="2"/>';
-    g += '<path d="M' + (cx-SW+6) + ' 86 C' + (cx-SW-20) + ' 140 ' + (cx-SW-16) + ' 196 ' + (cx-SW-6) + ' 248" stroke="rgba(100,20,20,0.22)" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    var cpX=cx-SW+10, cpB=flY-8;
+    g += '<path d="M'+cpX+' '+shY+' C'+(cx-SW-32)+' '+(shY+80)+' '+(cx-SW-28)+' '+(shY+155)+' '+(cx-SW-10)+' '+cpB+' L'+(cx-SW+18)+' '+(cpB-2)+' C'+(cx-SW+10)+' '+(shY+150)+' '+(cx-SW+8)+' '+(shY+78)+' '+cpX+' '+(shY+5)+'Z" fill="'+capeC+'" stroke="#100006" stroke-width="1.5"/>';
+    g += '<path d="M'+(cx-SW+2)+' '+(shY+8)+' C'+(cx-SW-12)+' '+(shY+55)+' '+(cx-SW-14)+' '+(shY+108)+' '+(cx-SW-8)+' '+(shY+148)+'" stroke="rgba(80,12,12,0.35)" stroke-width="2" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M'+(cx-SW+8)+' '+(shY+12)+' C'+(cx-SW-2)+' '+(shY+60)+' '+(cx-SW-2)+' '+(shY+115)+' '+(cx-SW+2)+' '+(shY+155)+'" stroke="rgba(50,8,8,0.22)" stroke-width="1.5" fill="none" stroke-linecap="round"/>';
   }
 
-  // ── DRAGON SLAYER (за спиной) ───────────────────────────────────
+  // ══════════════════════════════════════════════════════════════
+  // DRAGON SLAYER (уровень 4+)  /  малый меч (уровень 1-3)
+  // ══════════════════════════════════════════════════════════════
   if (hasDragon) {
-    var sx = cx + SW + 14;
-    // Клинок
-    g += '<path d="M' + sx + ' -32 L' + (sx+18) + ' -20 L' + (sx+20) + ' 200 L' + sx + ' 202Z" fill="url(#gSw)" stroke="#16202e" stroke-width="1.5"/>';
-    // Ребро блика
-    g += '<line x1="' + (sx+2) + '" y1="-26" x2="' + (sx+2) + '" y2="196" stroke="rgba(230,240,255,0.45)" stroke-width="2"/>';
+    var sx=cx+SW+16;
+    // Полотно клинка
+    g += '<path d="M'+sx+' -36 L'+(sx+20)+' -22 L'+(sx+22)+' 195 L'+sx+' 198Z" fill="url(#gSw)" stroke="#0e1624" stroke-width="1.5"/>';
+    // Центральное ребро
+    g += '<line x1="'+(sx+1)+'" y1="-29" x2="'+(sx+1)+'" y2="191" stroke="rgba(215,238,255,0.52)" stroke-width="1.5"/>';
+    // Боковой блик
+    g += '<line x1="'+sx+'" y1="-32" x2="'+sx+'" y2="193" stroke="rgba(190,215,240,0.28)" stroke-width="0.8"/>';
     // Острие
-    g += '<polygon points="' + sx + ',-32 ' + (sx+18) + ',-20 ' + (sx+9) + ',-50" fill="url(#gSw)" stroke="#16202e" stroke-width="1.5"/>';
+    g += '<polygon points="'+sx+',-36 '+(sx+20)+',-22 '+(sx+10)+',-58" fill="url(#gSw)" stroke="#0e1624" stroke-width="1.5"/>';
     // Крестовина
-    g += '<rect x="' + (sx-12) + '" y="68" width="44" height="13" rx="4" fill="' + aD + '" stroke="' + aL + '" stroke-width="1.2"/>';
-    g += '<line x1="' + (sx-12) + '" y1="74" x2="' + (sx+32) + '" y2="74" stroke="' + aH + '" stroke-width="0.6" opacity="0.4"/>';
+    g += '<rect x="'+(sx-13)+'" y="'+(shY-8)+'" width="48" height="15" rx="5" fill="'+arDk+'" stroke="'+arMid+'" stroke-width="1.5"/>';
+    g += '<line x1="'+(sx-13)+'" y1="'+(shY-1)+'" x2="'+(sx+35)+'" y2="'+(shY-1)+'" stroke="'+arHi+'" stroke-width="0.7" opacity="0.4"/>';
+    // Рукоять
+    g += '<rect x="'+(sx+3)+'" y="'+(shY+7)+'" width="11" height="36" rx="3" fill="'+leath+'" stroke="#100808" stroke-width="1"/>';
+    for (var wi=0;wi<5;wi++) { g += '<line x1="'+(sx+3)+'" y1="'+(shY+11+wi*7)+'" x2="'+(sx+14)+'" y2="'+(shY+11+wi*7)+'" stroke="#3a2010" stroke-width="1.5"/>'; }
   } else if (lv1) {
-    // Малый меч на бедре
-    var sx1 = cx + SW + 10;
-    g += '<path d="M' + sx1 + ' 30 L' + (sx1+12) + ' 35 L' + (sx1+14) + ' 148 L' + sx1 + ' 150Z" fill="url(#gSw)" stroke="#16202e" stroke-width="1.5"/>';
-    g += '<polygon points="' + sx1 + ',30 ' + (sx1+12) + ',35 ' + (sx1+6) + ',14" fill="' + swC + '" stroke="#16202e" stroke-width="1.5"/>';
-    g += '<rect x="' + (sx1-6) + '" y="78" width="24" height="7" rx="2" fill="' + aD + '" stroke="' + aL + '" stroke-width="1"/>';
+    var sx1=cx+SW+12;
+    g += '<path d="M'+sx1+' 26 L'+(sx1+13)+' 33 L'+(sx1+15)+' 148 L'+sx1+' 150Z" fill="url(#gSw)" stroke="#0e1624" stroke-width="1.5"/>';
+    g += '<polygon points="'+sx1+',26 '+(sx1+13)+',33 '+(sx1+6)+',10" fill="'+swMid+'" stroke="#0e1624" stroke-width="1.5"/>';
+    g += '<rect x="'+(sx1-6)+'" y="'+(shY+8)+'" width="25" height="8" rx="3" fill="'+arDk+'" stroke="'+arMid+'" stroke-width="1"/>';
   }
 
-  // ── НОГИ ───────────────────────────────────────────────────────
-  // Левое бедро (заполненная форма, слегка конусная)
-  g += '<path d="M' + (cx-LHW-2) + ' 175 C' + (cx-LHW-4) + ' 215 ' + (cx-LHW-4) + ' 240 ' + (cx-LHW-3) + ' 268 L' + (cx+1) + ' 268 C' + (cx) + ' 240 ' + (cx) + ' 215 ' + (cx) + ' 175Z" fill="url(#gCl)" stroke="#080402" stroke-width="2"/>';
-  // Правое бедро
-  g += '<path d="M' + (cx+LHW+2) + ' 175 C' + (cx+LHW+4) + ' 215 ' + (cx+LHW+4) + ' 240 ' + (cx+LHW+3) + ' 268 L' + (cx-1) + ' 268 C' + (cx) + ' 240 ' + (cx) + ' 215 ' + (cx) + ' 175Z" fill="url(#gCl)" stroke="#080402" stroke-width="2"/>';
-  // Блик на ноге
-  g += '<path d="M' + (cx-LHW+2) + ' 178 C' + (cx-LHW) + ' 215 ' + (cx-LHW) + ' 238 ' + (cx-LHW+1) + ' 260" stroke="rgba(60,30,5,0.4)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
-  g += '<path d="M' + (cx+LHW-2) + ' 178 C' + (cx+LHW) + ' 215 ' + (cx+LHW) + ' 238 ' + (cx+LHW-1) + ' 260" stroke="rgba(60,30,5,0.4)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  // ══════════════════════════════════════════════════════════════
+  // НОГИ (бедро + голень = два сегмента, цилиндрический градиент)
+  // ══════════════════════════════════════════════════════════════
+  // === ЛЕВАЯ НОГА ===
+  var lLi=cx-LHW-2, lLo=cx-2;           // внеш/внутр края бедра
+  // Бедро
+  g += '<path d="M'+lLi+' '+hiB+' C'+(lLi-4)+' '+(hiB+20)+' '+(lLi-5)+' '+(knY-15)+' '+(lLi-3)+' '+knY+' L'+(lLo+4)+' '+knY+' C'+(lLo+2)+' '+(knY-15)+' '+(lLo+2)+' '+(hiB+20)+' '+lLo+' '+hiB+'Z" fill="url(#gLeg)" stroke="#080402" stroke-width="2"/>';
+  // Голень
+  g += '<path d="M'+(lLi-3)+' '+knY+' C'+(lLi-5)+' '+(knY+18)+' '+(lLi-7)+' '+(anY-15)+' '+(lLi-6)+' '+anY+' L'+(lLo+6)+' '+anY+' C'+(lLo+4)+' '+(anY-15)+' '+(lLo+4)+' '+(knY+18)+' '+(lLo+4)+' '+knY+'Z" fill="url(#gLeg)" stroke="#080402" stroke-width="2"/>';
+  // Блик (свет слева)
+  g += '<path d="M'+(lLi+2)+' '+(hiB+4)+' C'+lLi+' '+(hiB+30)+' '+(lLi-1)+' '+(knY+20)+' '+(lLi-2)+' '+(anY-10)+'" stroke="rgba(85,45,12,0.32)" stroke-width="3" fill="none" stroke-linecap="round"/>';
+
+  // === ПРАВАЯ НОГА ===
+  var rLi=cx+2, rLo=cx+LHW+2;
+  g += '<path d="M'+rLi+' '+hiB+' C'+(rLi-2)+' '+(hiB+20)+' '+(rLi-2)+' '+(knY-15)+' '+(rLi-3)+' '+knY+' L'+(rLo+5)+' '+knY+' C'+(rLo+4)+' '+(knY-15)+' '+(rLo+5)+' '+(hiB+20)+' '+rLo+' '+hiB+'Z" fill="url(#gLeg)" stroke="#080402" stroke-width="2"/>';
+  g += '<path d="M'+(rLi-3)+' '+knY+' C'+(rLi-3)+' '+(knY+18)+' '+(rLi-4)+' '+(anY-15)+' '+(rLi-3)+' '+anY+' L'+(rLo+5)+' '+anY+' C'+(rLo+5)+' '+(anY-15)+' '+(rLo+6)+' '+(knY+18)+' '+(rLo+5)+' '+knY+'Z" fill="url(#gLeg)" stroke="#080402" stroke-width="2"/>';
+  // Тень (справа)
+  g += '<path d="M'+(rLo-2)+' '+(hiB+4)+' C'+rLo+' '+(hiB+30)+' '+(rLo+1)+' '+(knY+20)+' '+rLo+' '+(anY-10)+'" stroke="rgba(0,0,0,0.28)" stroke-width="3" fill="none" stroke-linecap="round"/>';
+
+  // Чашечки коленей
+  var lKcx=Math.round((lLi+lLo)/2)+1, rKcx=Math.round((rLi+rLo)/2)+2;
+  var kR=Math.round(LHW/2)+2;
+  g += '<ellipse cx="'+lKcx+'" cy="'+knY+'" rx="'+kR+'" ry="8" fill="'+clMid+'" stroke="#080402" stroke-width="1.5"/>';
+  g += '<ellipse cx="'+rKcx+'" cy="'+knY+'" rx="'+kR+'" ry="8" fill="'+clMid+'" stroke="#080402" stroke-width="1.5"/>';
+  // Блик коленей
+  g += '<ellipse cx="'+lKcx+'" cy="'+(knY-2)+'" rx="'+(kR-2)+'" ry="4" fill="rgba(90,50,15,0.3)"/>';
+  g += '<ellipse cx="'+rKcx+'" cy="'+(knY-2)+'" rx="'+(kR-2)+'" ry="4" fill="rgba(90,50,15,0.3)"/>';
 
   // Наколенники (уровень 3+)
-  if (hasShoulderPl) {
-    g += '<ellipse cx="' + (cx-LHW/2-4) + '" cy="236" rx="' + (LHW-2) + '" ry="9" fill="url(#gAr)" stroke="' + aL + '" stroke-width="1"/>';
-    g += '<ellipse cx="' + (cx+LHW/2+4) + '" cy="236" rx="' + (LHW-2) + '" ry="9" fill="url(#gAr)" stroke="' + aL + '" stroke-width="1"/>';
+  if (lv3) {
+    g += '<ellipse cx="'+lKcx+'" cy="'+knY+'" rx="'+(kR+2)+'" ry="9" fill="url(#gAr)" stroke="'+arMid+'" stroke-width="1.2"/>';
+    g += '<ellipse cx="'+lKcx+'" cy="'+(knY-3)+'" rx="'+(kR-1)+'" ry="5" fill="'+arHi+'" opacity="0.22"/>';
+    g += '<ellipse cx="'+rKcx+'" cy="'+knY+'" rx="'+(kR+2)+'" ry="9" fill="url(#gAr)" stroke="'+arMid+'" stroke-width="1.2"/>';
+    g += '<ellipse cx="'+rKcx+'" cy="'+(knY-3)+'" rx="'+(kR-1)+'" ry="5" fill="'+arHi+'" opacity="0.22"/>';
   }
 
   // Ботинки
-  g += '<path d="M' + (cx-LHW-8) + ' 264 Q' + (cx-LHW-14) + ' 280 ' + (cx-3) + ' 286 L' + (cx+3) + ' 286 Q' + (cx-4) + ' 274 ' + (cx-2) + ' 264Z" fill="' + bootC + '" stroke="#080402" stroke-width="2"/>';
-  g += '<path d="M' + (cx+LHW+8) + ' 264 Q' + (cx+LHW+14) + ' 280 ' + (cx+3) + ' 286 L' + (cx-3) + ' 286 Q' + (cx+4) + ' 274 ' + (cx+2) + ' 264Z" fill="' + bootC + '" stroke="#080402" stroke-width="2"/>';
+  g += '<path d="M'+(lLi-5)+' '+anY+' Q'+(lLi-13)+' '+(flY-4)+' '+(lLi-22)+' '+flY+' L'+(lLo+6)+' '+flY+' Q'+(lLo+4)+' '+(anY+8)+' '+(lLo+4)+' '+anY+'Z" fill="'+bootC+'" stroke="#080402" stroke-width="2"/>';
   // Блик на ботинке
-  if (lv3) {
-    g += '<path d="M' + (cx-LHW-6) + ' 266 Q' + (cx-LHW-10) + ' 272 ' + (cx-LHW-6) + ' 278" stroke="rgba(80,40,10,0.35)" stroke-width="2" fill="none" stroke-linecap="round"/>';
-    g += '<path d="M' + (cx+LHW+6) + ' 266 Q' + (cx+LHW+10) + ' 272 ' + (cx+LHW+6) + ' 278" stroke="rgba(80,40,10,0.35)" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  g += '<path d="M'+(lLi-3)+' '+(anY+3)+' Q'+(lLi-7)+' '+(anY+10)+' '+(lLi-8)+' '+(flY-6)+'" stroke="rgba(55,28,8,0.38)" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  g += '<path d="M'+(rLo+5)+' '+anY+' Q'+(rLo+4)+' '+(anY+8)+' '+(rLo+4)+' '+anY+' L'+(rLo+5)+' '+anY+'Z" fill="none"/>'; // dummy
+  g += '<path d="M'+(rLi-4)+' '+anY+' Q'+(rLi-4)+' '+(anY+8)+' '+(rLi-6)+' '+flY+' L'+(rLo+22)+' '+flY+' Q'+(rLo+12)+' '+(flY-2)+' '+(rLo+6)+' '+anY+'Z" fill="'+bootC+'" stroke="#080402" stroke-width="2"/>';
+  g += '<path d="M'+(rLo+4)+' '+(anY+3)+' Q'+(rLo+7)+' '+(anY+10)+' '+(rLo+6)+' '+(flY-6)+'" stroke="rgba(55,28,8,0.35)" stroke-width="2" fill="none" stroke-linecap="round"/>';
+  // Пряжки (уровень 2+)
+  if (lv2) {
+    g += '<rect x="'+(lLi-9)+'" y="'+(anY+5)+'" width="12" height="7" rx="2" fill="#3a2810" stroke="#6a4820" stroke-width="0.8"/>';
+    g += '<rect x="'+(rLo)+'" y="'+(anY+5)+'" width="12" height="7" rx="2" fill="#3a2810" stroke="#6a4820" stroke-width="0.8"/>';
   }
 
-  // ── ТОРС ───────────────────────────────────────────────────────
-  // Основной трапезоид с округлыми плечами
-  g += '<path d="M' + (cx-SW) + ' 84 Q' + (cx-SW-2) + ' 76 ' + (cx-SW+8) + ' 73 Q' + cx + ' 68 ' + (cx+SW-8) + ' 73 Q' + (cx+SW+2) + ' 76 ' + (cx+SW) + ' 84 L' + (cx+BW) + ' 174 L' + (cx-BW) + ' 174Z" fill="url(#gCl)" stroke="#080402" stroke-width="2.5"/>';
+  // ══════════════════════════════════════════════════════════════
+  // ТОРС (трапеция + слои освещения)
+  // ══════════════════════════════════════════════════════════════
+  var tL=cx-SW, tR=cx+SW, bL=cx-BW, bR=cx+BW;
+  // Основа
+  g += '<path d="M'+tL+' '+shY+' Q'+(tL-2)+' '+(shY-6)+' '+(tL+8)+' '+(shY-9)+' Q'+cx+' '+(shY-14)+' '+(tR-8)+' '+(shY-9)+' Q'+(tR+2)+' '+(shY-6)+' '+tR+' '+shY+' L'+bR+' '+chB+' L'+bL+' '+chB+'Z" fill="url(#gCl)" stroke="#080402" stroke-width="2.5"/>';
+  // Тень справа (объём)
+  g += '<path d="M'+tR+' '+shY+' Q'+(tR-3)+' '+(shY+22)+' '+(tR-4)+' '+(shY+55)+' L'+(bR-2)+' '+chB+' L'+bR+' '+chB+'Z" fill="rgba(0,0,0,0.32)"/>';
+  // Блик слева (объём)
+  g += '<path d="M'+tL+' '+shY+' Q'+(tL+3)+' '+(shY+22)+' '+(tL+5)+' '+(shY+50)+' L'+(bL+4)+' '+chB+' L'+bL+' '+chB+'Z" fill="rgba(88,50,18,0.28)"/>';
 
-  // Базовая одежда — ВСЕГДА (даже lv0): простая туника
-  // Вертикальная линия-складка центр
-  g += '<line x1="' + cx + '" y1="75" x2="' + cx + '" y2="174" stroke="rgba(10,5,0,0.4)" stroke-width="1.5"/>';
-  // Горизонтальная линия груди
-  g += '<path d="M' + (cx-SW+10) + ' 105 Q' + cx + ' 100 ' + (cx+SW-10) + ' 105" stroke="rgba(10,5,0,0.35)" stroke-width="1.5" fill="none"/>';
-  // Складки бёдер
-  g += '<line x1="' + (cx-BW+4) + '" y1="155" x2="' + (cx-BW+8) + '" y2="174" stroke="rgba(10,5,0,0.3)" stroke-width="1"/>';
-  g += '<line x1="' + (cx+BW-4) + '" y1="155" x2="' + (cx+BW-8) + '" y2="174" stroke="rgba(10,5,0,0.3)" stroke-width="1"/>';
+  // Складки туники (всегда видны)
+  g += '<line x1="'+cx+'" y1="'+(shY-10)+'" x2="'+cx+'" y2="'+chB+'" stroke="rgba(8,3,0,0.42)" stroke-width="1.5"/>';
+  g += '<path d="M'+(tL+12)+' '+(shY+26)+' Q'+cx+' '+(shY+22)+' '+(tR-12)+' '+(shY+26)+'" stroke="rgba(8,3,0,0.38)" stroke-width="1.5" fill="none"/>';
+  g += '<path d="M'+(tL+8)+' '+(shY+42)+' Q'+(cx-10)+' '+(shY+60)+' '+(bL+5)+' '+chB+'" stroke="rgba(8,3,0,0.22)" stroke-width="1" fill="none"/>';
+  g += '<path d="M'+(tR-8)+' '+(shY+42)+' Q'+(cx+10)+' '+(shY+60)+' '+(bR-5)+' '+chB+'" stroke="rgba(8,3,0,0.22)" stroke-width="1" fill="none"/>';
 
-  // Кожаные ремни-сбруя (уровень 1+)
+  // Кожаная сбруя (уровень 1+)
   if (lv1) {
-    g += '<path d="M' + (cx-SW+4) + ' 83 Q' + cx + ' 78 ' + (cx+SW-4) + ' 83" stroke="' + leath + '" stroke-width="5" fill="none" stroke-linecap="round"/>';
-    g += '<path d="M' + (cx-SW+8) + ' 86 Q' + cx + ' 112 ' + (cx+SW-8) + ' 160" stroke="' + leath + '" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
-    g += '<path d="M' + (cx+SW-8) + ' 86 Q' + cx + ' 112 ' + (cx-SW+8) + ' 160" stroke="' + leath + '" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>';
+    g += '<path d="M'+(tL+6)+' '+(shY-2)+' Q'+cx+' '+(shY+14)+' '+(tR-6)+' '+(shY-2)+'" stroke="'+leath+'" stroke-width="5" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M'+(tL+10)+' '+(shY+8)+' Q'+cx+' '+(shY+52)+' '+(tR-10)+' '+(chB-10)+'" stroke="'+leath+'" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M'+(tR-10)+' '+(shY+8)+' Q'+cx+' '+(shY+52)+' '+(tL+10)+' '+(chB-10)+'" stroke="'+leath+'" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.55"/>';
   }
 
-  // Мышцы (уровень 2-3 без нагрудника)
+  // Мышцы (уровень 2-3, без нагрудника)
   if (lv2 && !lv4) {
-    g += '<path d="M' + (cx-SW+8) + ' 88 Q' + (cx-5) + ' 102 ' + cx + ' 100" stroke="rgba(40,15,0,0.55)" stroke-width="2.5" fill="none"/>';
-    g += '<path d="M' + (cx+SW-8) + ' 88 Q' + (cx+5) + ' 102 ' + cx + ' 100" stroke="rgba(40,15,0,0.55)" stroke-width="2.5" fill="none"/>';
-    g += '<ellipse cx="' + cx + '" cy="138" rx="12" ry="8" fill="none" stroke="rgba(40,15,0,0.4)" stroke-width="2"/>';
-    g += '<path d="M' + (cx-8) + ' 115 L' + (cx-8) + ' 132" stroke="rgba(40,15,0,0.3)" stroke-width="1.5"/>';
-    g += '<path d="M' + (cx+8) + ' 115 L' + (cx+8) + ' 132" stroke="rgba(40,15,0,0.3)" stroke-width="1.5"/>';
+    g += '<path d="M'+(tL+10)+' '+(shY+10)+' Q'+(cx-5)+' '+(shY+26)+' '+cx+' '+(shY+24)+'" stroke="rgba(28,10,2,0.55)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M'+(tR-10)+' '+(shY+10)+' Q'+(cx+5)+' '+(shY+26)+' '+cx+' '+(shY+24)+'" stroke="rgba(28,10,2,0.55)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+    g += '<ellipse cx="'+cx+'" cy="'+(shY+60)+'" rx="12" ry="8" fill="none" stroke="rgba(28,10,2,0.4)" stroke-width="1.8"/>';
+    g += '<line x1="'+cx+'" y1="'+(shY+44)+'" x2="'+cx+'" y2="'+(shY+70)+'" stroke="rgba(28,10,2,0.32)" stroke-width="1.5"/>';
+    g += '<path d="M'+(cx-9)+' '+(shY+48)+' L'+(cx-9)+' '+(shY+67)+'" stroke="rgba(28,10,2,0.28)" stroke-width="1.5" stroke-linecap="round"/>';
+    g += '<path d="M'+(cx+9)+' '+(shY+48)+' L'+(cx+9)+' '+(shY+67)+'" stroke="rgba(28,10,2,0.28)" stroke-width="1.5" stroke-linecap="round"/>';
   }
 
-  // Нагрудная броня (уровень 4+)
+  // Нагрудник (уровень 4+)
   if (hasChestArmor) {
-    g += '<path d="M' + (cx-SW+5) + ' 82 L' + (cx-BW+4) + ' 170 L' + (cx+BW-4) + ' 170 L' + (cx+SW-5) + ' 82 L' + cx + ' 92Z" fill="url(#gAr)" stroke="' + aL + '" stroke-width="1" opacity="0.9"/>';
-    g += '<line x1="' + cx + '" y1="92" x2="' + cx + '" y2="170" stroke="' + aH + '" stroke-width="0.8" opacity="0.3"/>';
-    g += '<path d="M' + (cx-SW+8) + ' 92 L' + (cx-BW+6) + ' 168" stroke="' + aH + '" stroke-width="0.6" opacity="0.2"/>';
-    g += '<path d="M' + (cx+SW-8) + ' 92 L' + (cx+BW-6) + ' 168" stroke="' + aH + '" stroke-width="0.6" opacity="0.2"/>';
-    // Нижний край нагрудника
-    g += '<path d="M' + (cx-BW+4) + ' 170 Q' + cx + ' 178 ' + (cx+BW-4) + ' 170" stroke="' + aL + '" stroke-width="1.5" fill="none"/>';
+    g += '<path d="M'+(tL+6)+' '+(shY-2)+' L'+(bL+5)+' '+(chB-2)+' L'+(bR-5)+' '+(chB-2)+' L'+(tR-6)+' '+(shY-2)+' L'+cx+' '+(shY+8)+'Z" fill="url(#gAr)" stroke="'+arMid+'" stroke-width="1.2" opacity="0.92"/>';
+    // Блик нагрудника
+    g += '<path d="M'+(tL+8)+' '+shY+' L'+(bL+7)+' '+(chB-6)+'" stroke="'+arHi+'" stroke-width="1" opacity="0.38"/>';
+    g += '<path d="M'+(tR-8)+' '+shY+' L'+(bR-7)+' '+(chB-6)+'" stroke="'+arHi+'" stroke-width="0.6" opacity="0.18"/>';
+    g += '<line x1="'+cx+'" y1="'+(shY+8)+'" x2="'+cx+'" y2="'+(chB-2)+'" stroke="'+arHi+'" stroke-width="0.8" opacity="0.22"/>';
+    g += '<path d="M'+(bL+5)+' '+(chB-2)+' Q'+cx+' '+(chB+7)+' '+(bR-5)+' '+(chB-2)+'" stroke="'+arMid+'" stroke-width="1.5" fill="none"/>';
+    // Пятно блика на нагруднике (имитирует сферу)
+    g += '<ellipse cx="'+(cx-8)+'" cy="'+(shY+18)+'" rx="12" ry="8" fill="'+arHi+'" opacity="0.1"/>';
   }
 
-  // Берсерк-шипы (уровень 6)
+  // Шипы берсерка (уровень 6)
   if (hasBerserk) {
-    g += '<polygon points="' + (cx-SW) + ',78 ' + (cx-SW-24) + ',55 ' + (cx-SW+4) + ',96" fill="' + aD + '" stroke="' + aL + '" stroke-width="0.8"/>';
-    g += '<polygon points="' + (cx+SW) + ',78 ' + (cx+SW+24) + ',55 ' + (cx+SW-4) + ',96" fill="' + aD + '" stroke="' + aL + '" stroke-width="0.8"/>';
-    g += '<path d="M' + (cx-SW+4) + ' 74 L' + cx + ' 62 L' + (cx+SW-4) + ' 74" fill="' + aD + '" stroke="' + aL + '" stroke-width="1"/>';
-    g += '<polygon points="' + cx + ',58 ' + (cx-10) + ',72 ' + (cx+10) + ',72" fill="' + aD + '" stroke="' + aL + '" stroke-width="0.7"/>';
+    g += '<polygon points="'+tL+','+shY+' '+(tL-30)+','+(shY-30)+' '+(tL+5)+','+(shY+16)+'" fill="'+arDk+'" stroke="'+arMid+'" stroke-width="0.8"/>';
+    g += '<polygon points="'+tR+','+shY+' '+(tR+30)+','+(shY-30)+' '+(tR-5)+','+(shY+16)+'" fill="'+arDk+'" stroke="'+arMid+'" stroke-width="0.8"/>';
+    g += '<path d="M'+(tL+6)+' '+(shY-9)+' L'+cx+' '+(shY-22)+' L'+(tR-6)+' '+(shY-9)+'" fill="'+arDk+'" stroke="'+arMid+'" stroke-width="1"/>';
+    g += '<polygon points="'+cx+','+(shY-22)+' '+(cx-10)+','+(shY-8)+' '+(cx+10)+','+(shY-8)+'" fill="'+arDk+'" stroke="'+arMid+'" stroke-width="0.7"/>';
   }
 
-  // ── РЕМЕНЬ ─────────────────────────────────────────────────────
-  g += '<rect x="' + (cx-BW) + '" y="172" width="' + (BW*2) + '" height="10" rx="3" fill="' + beltC + '" stroke="#080402" stroke-width="1.5"/>';
-  g += '<rect x="' + (cx-7) + '" y="171" width="14" height="12" rx="2" fill="#5a4820" stroke="#8a7030" stroke-width="1"/>';
+  // ══════════════════════════════════════════════════════════════
+  // РЕМЕНЬ
+  // ══════════════════════════════════════════════════════════════
+  g += '<rect x="'+bL+'" y="'+blT+'" width="'+(BW*2)+'" height="'+(blB-blT)+'" rx="4" fill="'+beltC+'" stroke="#0c0806" stroke-width="1.5"/>';
+  g += '<rect x="'+(cx-8)+'" y="'+(blT-1)+'" width="16" height="'+(blB-blT+2)+'" rx="3" fill="#4a3818" stroke="#8a6828" stroke-width="1.2"/>';
+  g += '<rect x="'+(cx-5)+'" y="'+(blT+2)+'" width="10" height="'+(blB-blT-4)+'" rx="1.5" fill="none" stroke="#c9a84c" stroke-width="1"/>';
 
-  // ── РУКИ — заполненные фигуры, не stroke-линии ─────────────────
-  var aHalf = AW / 2;
-  // ЛЕВАЯ РУКА: широкая у плеча, сужается к запястью, изгиб наружу и вниз
-  var armFill = '#4a2e10'; // чуть светлее чем торс — чтобы не сливался с фоном
-  var lAx1 = cx-SW, lAy1 = 82;           // верх плеча (внутр)
-  var lAx2 = cx-SW-20, lAy2 = 135;       // локоть
-  var lAx3 = cx-SW-18, lAy3 = 178;       // запястье (внутр)
-  g += '<path d="'
-    + 'M' + lAx1 + ' ' + lAy1
-    + ' C' + (lAx1-aHalf*0.3) + ' ' + (lAy1+10) + ' ' + (lAx2-aHalf*0.5) + ' ' + (lAy2-20) + ' ' + (lAx3-6) + ' ' + lAy3
-    + ' L' + (lAx3+8) + ' ' + (lAy3+3)
-    + ' C' + (lAx2+aHalf*0.8) + ' ' + (lAy2-16) + ' ' + (lAx1+aHalf) + ' ' + (lAy1+8) + ' ' + (lAx1+6) + ' ' + (lAy1+2)
-    + 'Z" fill="' + armFill + '" stroke="#080402" stroke-width="2"/>';
-  // Блик на руке
-  g += '<path d="M' + (lAx1+2) + ' ' + (lAy1+5) + ' C' + (lAx2+3) + ' ' + (lAy2-15) + ' ' + (lAx3+3) + ' ' + (lAy3-15) + ' ' + (lAx3+5) + ' ' + (lAy3-2) + '" stroke="rgba(80,40,10,0.4)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
-  // Кожаная перевязь на руке (lv1+)
-  if (lv1) g += '<path d="M' + (lAx1-2) + ' ' + (lAy1+14) + ' C' + (lAx2-1) + ' ' + (lAy2-12) + ' ' + (lAx3+2) + ' ' + (lAy3-22) + ' ' + (lAx3+6) + ' ' + (lAy3-18) + '" stroke="' + leath + '" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.7"/>';
-  // Кисть левой
-  g += '<ellipse cx="' + (lAx3-3) + '" cy="' + (lAy3+9) + '" rx="9" ry="10" fill="url(#gSk)" stroke="#080402" stroke-width="2"/>';
-
-  // ПРАВАЯ РУКА: зеркально, немного другой изгиб
-  var rAx1 = cx+SW, rAy1 = 82;
-  var rAx2 = cx+SW+20, rAy2 = 135;
-  var rAx3 = cx+SW+18, rAy3 = 178;
-  g += '<path d="'
-    + 'M' + rAx1 + ' ' + rAy1
-    + ' C' + (rAx1+aHalf*0.3) + ' ' + (rAy1+10) + ' ' + (rAx2+aHalf*0.5) + ' ' + (rAy2-20) + ' ' + (rAx3+6) + ' ' + rAy3
-    + ' L' + (rAx3-8) + ' ' + (rAy3+3)
-    + ' C' + (rAx2-aHalf*0.8) + ' ' + (rAy2-16) + ' ' + (rAx1-aHalf) + ' ' + (rAy1+8) + ' ' + (rAx1-6) + ' ' + (rAy1+2)
-    + 'Z" fill="' + armFill + '" stroke="#080402" stroke-width="2"/>';
-  g += '<path d="M' + (rAx1-2) + ' ' + (rAy1+5) + ' C' + (rAx2-3) + ' ' + (rAy2-15) + ' ' + (rAx3-3) + ' ' + (rAy3-15) + ' ' + (rAx3-5) + ' ' + (rAy3-2) + '" stroke="rgba(100,60,20,0.5)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
-  if (lv1) g += '<path d="M' + (rAx1+2) + ' ' + (rAy1+14) + ' C' + (rAx2+1) + ' ' + (rAy2-12) + ' ' + (rAx3-2) + ' ' + (rAy3-22) + ' ' + (rAx3-6) + ' ' + (rAy3-18) + '" stroke="' + leath + '" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.7"/>';
-  // Кисть правой (чуть светлее — световая сторона)
-  g += '<ellipse cx="' + (rAx3+3) + '" cy="' + (rAy3+9) + '" rx="9" ry="10" fill="url(#gSk)" stroke="#080402" stroke-width="2"/>';
-
-  // Наручи (уровень 4+)
-  if (hasChestArmor) {
-    g += '<path d="M' + (lAx3-8) + ' ' + (lAy3-18) + ' C' + (lAx3-12) + ' ' + (lAy3-6) + ' ' + (lAx3-10) + ' ' + lAy3 + ' ' + (lAx3-4) + ' ' + (lAy3+6) + ' L' + (lAx3+8) + ' ' + (lAy3+4) + ' C' + (lAx3+6) + ' ' + lAy3 + ' ' + (lAx3+4) + ' ' + (lAy3-8) + ' ' + (lAx3+4) + ' ' + (lAy3-16) + 'Z" fill="' + aD + '" stroke="' + aL + '" stroke-width="1"/>';
-    g += '<path d="M' + (rAx3+8) + ' ' + (rAy3-18) + ' C' + (rAx3+12) + ' ' + (rAy3-6) + ' ' + (rAx3+10) + ' ' + rAy3 + ' ' + (rAx3+4) + ' ' + (rAy3+6) + ' L' + (rAx3-8) + ' ' + (rAy3+4) + ' C' + (rAx3-6) + ' ' + rAy3 + ' ' + (rAx3-4) + ' ' + (rAy3-8) + ' ' + (rAx3-4) + ' ' + (rAy3-16) + 'Z" fill="' + aD + '" stroke="' + aL + '" stroke-width="1"/>';
-  }
-
-  // Наплечники (уровень 3+)
-  if (hasShoulderPl) {
-    // Правый (большой)
-    g += '<ellipse cx="' + (cx+SW+6) + '" cy="83" rx="' + (13+lv) + '" ry="' + (10+lv*0.6) + '" fill="url(#gAr)" stroke="' + aL + '" stroke-width="1.3"/>';
-    g += '<path d="M' + (cx+SW+2) + ' 76 Q' + (cx+SW+12) + ' 81 ' + (cx+SW+16) + ' 87" stroke="' + aH + '" stroke-width="1.5" fill="none" opacity="0.5"/>';
-    // Левый (меньше)
-    g += '<ellipse cx="' + (cx-SW-6) + '" cy="85" rx="' + (11+lv) + '" ry="' + (8+lv*0.5) + '" fill="url(#gAr)" stroke="' + aL + '" stroke-width="1.3"/>';
-    g += '<path d="M' + (cx-SW-2) + ' 78 Q' + (cx-SW-12) + ' 83 ' + (cx-SW-14) + ' 89" stroke="' + aH + '" stroke-width="1.5" fill="none" opacity="0.5"/>';
-  }
-
-  // Воротник/горжет (уровень 3+)
+  // ══════════════════════════════════════════════════════════════
+  // ГОРЖЕТ/ВОРОТНИК (уровень 3+)
+  // ══════════════════════════════════════════════════════════════
   if (lv3) {
-    g += '<path d="M' + (cx-SW+4) + ' 78 Q' + cx + ' 70 ' + (cx+SW-4) + ' 78" stroke="' + aD + '" stroke-width="6" stroke-linecap="round" fill="none"/>';
-    g += '<path d="M' + (cx-SW+4) + ' 78 Q' + cx + ' 70 ' + (cx+SW-4) + ' 78" stroke="' + aL + '" stroke-width="1.5" stroke-linecap="round" fill="none" opacity="0.5"/>';
+    g += '<path d="M'+(tL+6)+' '+(shY-4)+' Q'+cx+' '+(shY-14)+' '+(tR-6)+' '+(shY-4)+'" stroke="'+arDk+'" stroke-width="8" stroke-linecap="round" fill="none"/>';
+    g += '<path d="M'+(tL+6)+' '+(shY-4)+' Q'+cx+' '+(shY-14)+' '+(tR-6)+' '+(shY-4)+'" stroke="'+arMid+'" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.48"/>';
   }
 
-  // ── ШЕЯ ────────────────────────────────────────────────────────
-  g += '<rect x="' + (cx-9) + '" y="61" width="18" height="18" rx="5" fill="url(#gSk)" stroke="#080402" stroke-width="2"/>';
+  // ══════════════════════════════════════════════════════════════
+  // ЛЕВАЯ РУКА (два сегмента с локтем, цилиндрический градиент)
+  // ══════════════════════════════════════════════════════════════
+  var lAsh=cx-SW, lAshY=shY;
+  var lAel=cx-SW-20, lAelY=shY+54;
+  var lAwr=cx-SW-16, lAwrY=shY+100;
 
-  // ── ГОЛОВА ─────────────────────────────────────────────────────
+  // Верхнее плечо
+  g += '<path d="M'+lAsh+' '+(lAshY-2)
+    +' C'+(lAsh-AW*0.6)+' '+(lAshY+8)+' '+(lAel-AW*0.5)+' '+(lAelY-18)+' '+(lAel-AW*0.3)+' '+lAelY
+    +' L'+(lAel+AW*0.9)+' '+(lAelY+4)
+    +' C'+(lAel+AW*0.6)+' '+(lAelY-15)+' '+(lAsh+AW*0.9)+' '+(lAshY+7)+' '+(lAsh+AW*0.2)+' '+(lAshY+2)
+    +'Z" fill="url(#gAL)" stroke="#080402" stroke-width="2"/>';
+  // Блик плеча (свет слева)
+  g += '<path d="M'+(lAsh+2)+' '+(lAshY+4)+' C'+(lAel+4)+' '+(lAelY-15)+' '+(lAel+3)+' '+(lAelY-3)+' '+(lAel+5)+' '+lAelY+'" stroke="rgba(82,46,12,0.48)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+
+  // Предплечье
+  g += '<path d="M'+(lAel-AW*0.3)+' '+lAelY
+    +' C'+(lAel-AW*0.5)+' '+(lAelY+12)+' '+(lAwr-AW*0.4)+' '+(lAwrY-14)+' '+(lAwr-5)+' '+lAwrY
+    +' L'+(lAwr+7)+' '+(lAwrY+3)
+    +' C'+(lAwr+AW*0.5)+' '+(lAwrY-12)+' '+(lAel+AW*0.9)+' '+(lAelY+10)+' '+(lAel+AW*0.9)+' '+(lAelY+4)
+    +'Z" fill="url(#gAL)" stroke="#080402" stroke-width="2"/>';
+
+  // Кожаная обмотка (уровень 1+)
+  if (lv1) {
+    g += '<path d="M'+(lAsh-2)+' '+(lAshY+8)+' C'+(lAel-2)+' '+(lAelY-14)+' '+lAwr+' '+(lAwrY-14)+' '+(lAwr+4)+' '+(lAwrY-8)+'" stroke="'+leath+'" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.68"/>';
+  }
+
+  // Наруч (уровень 4+)
+  if (hasChestArmor) {
+    g += '<path d="M'+(lAwr-8)+' '+(lAwrY-14)+' C'+(lAwr-11)+' '+(lAwrY-5)+' '+(lAwr-10)+' '+(lAwrY+4)+' '+(lAwr-4)+' '+(lAwrY+10)+' L'+(lAwr+8)+' '+(lAwrY+8)+' C'+(lAwr+7)+' '+(lAwrY)+' '+(lAwr+5)+' '+(lAwrY-7)+' '+(lAwr+6)+' '+(lAwrY-13)+'Z" fill="url(#gAr)" stroke="'+arMid+'" stroke-width="1.2"/>';
+  }
+
+  // Кисть левой
+  g += '<ellipse cx="'+(lAwr-2)+'" cy="'+(lAwrY+12)+'" rx="9" ry="11" fill="url(#gSkH)" stroke="#080402" stroke-width="2"/>';
+  // Суставы
+  g += '<path d="M'+(lAwr-8)+' '+(lAwrY+9)+' Q'+(lAwr-2)+' '+(lAwrY+6)+' '+(lAwr+4)+' '+(lAwrY+9)+'" stroke="rgba(75,28,4,0.5)" stroke-width="1.2" fill="none"/>';
+
+  // ══════════════════════════════════════════════════════════════
+  // ПРАВАЯ РУКА (зеркально, с ArmR-градиентом)
+  // ══════════════════════════════════════════════════════════════
+  var rAsh=cx+SW, rAshY=shY;
+  var rAel=cx+SW+20, rAelY=shY+54;
+  var rAwr=cx+SW+16, rAwrY=shY+100;
+
+  // Верхнее плечо
+  g += '<path d="M'+rAsh+' '+(rAshY-2)
+    +' C'+(rAsh+AW*0.6)+' '+(rAshY+8)+' '+(rAel+AW*0.5)+' '+(rAelY-18)+' '+(rAel+AW*0.3)+' '+rAelY
+    +' L'+(rAel-AW*0.9)+' '+(rAelY+4)
+    +' C'+(rAel-AW*0.6)+' '+(rAelY-15)+' '+(rAsh-AW*0.9)+' '+(rAshY+7)+' '+(rAsh-AW*0.2)+' '+(rAshY+2)
+    +'Z" fill="url(#gAR)" stroke="#080402" stroke-width="2"/>';
+  // Тень плеча (свет не с правой стороны)
+  g += '<path d="M'+(rAsh-2)+' '+(rAshY+4)+' C'+(rAel-4)+' '+(rAelY-15)+' '+(rAel-3)+' '+(rAelY-3)+' '+(rAel-5)+' '+rAelY+'" stroke="rgba(0,0,0,0.28)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+
+  // Предплечье
+  g += '<path d="M'+(rAel+AW*0.3)+' '+rAelY
+    +' C'+(rAel+AW*0.5)+' '+(rAelY+12)+' '+(rAwr+AW*0.4)+' '+(rAwrY-14)+' '+(rAwr+5)+' '+rAwrY
+    +' L'+(rAwr-7)+' '+(rAwrY+3)
+    +' C'+(rAwr-AW*0.5)+' '+(rAwrY-12)+' '+(rAel-AW*0.9)+' '+(rAelY+10)+' '+(rAel-AW*0.9)+' '+(rAelY+4)
+    +'Z" fill="url(#gAR)" stroke="#080402" stroke-width="2"/>';
+
+  if (lv1) {
+    g += '<path d="M'+(rAsh+2)+' '+(rAshY+8)+' C'+(rAel+2)+' '+(rAelY-14)+' '+rAwr+' '+(rAwrY-14)+' '+(rAwr-4)+' '+(rAwrY-8)+'" stroke="'+leath+'" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.68"/>';
+  }
+
+  // Наруч правый (уровень 4+)
+  if (hasChestArmor) {
+    g += '<path d="M'+(rAwr+8)+' '+(rAwrY-14)+' C'+(rAwr+11)+' '+(rAwrY-5)+' '+(rAwr+10)+' '+(rAwrY+4)+' '+(rAwr+4)+' '+(rAwrY+10)+' L'+(rAwr-8)+' '+(rAwrY+8)+' C'+(rAwr-7)+' '+(rAwrY)+' '+(rAwr-5)+' '+(rAwrY-7)+' '+(rAwr-6)+' '+(rAwrY-13)+'Z" fill="url(#gAr)" stroke="'+arMid+'" stroke-width="1.2"/>';
+  }
+
+  // Кисть правой
+  g += '<ellipse cx="'+(rAwr+2)+'" cy="'+(rAwrY+12)+'" rx="9" ry="11" fill="url(#gSkH)" stroke="#080402" stroke-width="2"/>';
+  g += '<path d="M'+(rAwr-4)+' '+(rAwrY+9)+' Q'+(rAwr+2)+' '+(rAwrY+6)+' '+(rAwr+8)+' '+(rAwrY+9)+'" stroke="rgba(75,28,4,0.5)" stroke-width="1.2" fill="none"/>';
+
+  // ══════════════════════════════════════════════════════════════
+  // НАПЛЕЧНИКИ (уровень 3+) — органичная форма
+  // ══════════════════════════════════════════════════════════════
+  if (hasShoulderPl) {
+    // Правый наплечник (большой)
+    var rpx=cx+SW+7;
+    g += '<path d="M'+(rpx-13)+' '+(shY-3)+' Q'+rpx+' '+(shY-20)+' '+(rpx+20)+' '+(shY-8)+' Q'+(rpx+24)+' '+(shY+10)+' '+(rpx+16)+' '+(shY+26)+' Q'+rpx+' '+(shY+28)+' '+(rpx-14)+' '+(shY+18)+'Z" fill="url(#gAr)" stroke="'+arMid+'" stroke-width="1.5"/>';
+    // Блик наплечника
+    g += '<path d="M'+(rpx-6)+' '+(shY-1)+' Q'+rpx+' '+(shY-15)+' '+(rpx+10)+' '+(shY-6)+'" stroke="'+arHi+'" stroke-width="2" fill="none" opacity="0.52" stroke-linecap="round"/>';
+    // Заклёпки
+    g += '<circle cx="'+(rpx+5)+'" cy="'+(shY+4)+'" r="2" fill="'+arMid+'" stroke="'+arHi+'" stroke-width="0.5"/>';
+    g += '<circle cx="'+(rpx+2)+'" cy="'+(shY+15)+'" r="1.5" fill="'+arMid+'" stroke="'+arHi+'" stroke-width="0.5"/>';
+
+    // Левый наплечник (меньше)
+    var lpx=cx-SW-7;
+    g += '<path d="M'+(lpx+13)+' '+(shY-3)+' Q'+lpx+' '+(shY-18)+' '+(lpx-18)+' '+(shY-6)+' Q'+(lpx-20)+' '+(shY+9)+' '+(lpx-13)+' '+(shY+22)+' Q'+lpx+' '+(shY+24)+' '+(lpx+12)+' '+(shY+16)+'Z" fill="url(#gAr)" stroke="'+arMid+'" stroke-width="1.5"/>';
+    g += '<path d="M'+(lpx+4)+' '+(shY-1)+' Q'+lpx+' '+(shY-13)+' '+(lpx-8)+' '+(shY-4)+'" stroke="'+arHi+'" stroke-width="2" fill="none" opacity="0.52" stroke-linecap="round"/>';
+    g += '<circle cx="'+(lpx-4)+'" cy="'+(shY+4)+'" r="2" fill="'+arMid+'" stroke="'+arHi+'" stroke-width="0.5"/>';
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // ШЕЯ
+  // ══════════════════════════════════════════════════════════════
+  var nW=9;
+  g += '<path d="M'+(cx-nW)+' '+nkT+' Q'+(cx-nW-2)+' '+(nkT+6)+' '+(cx-nW)+' '+nkB+' L'+(cx+nW)+' '+nkB+' Q'+(cx+nW+2)+' '+(nkT+6)+' '+(cx+nW)+' '+nkT+'Z" fill="url(#gSkH)" stroke="#080402" stroke-width="2"/>';
+  // Тень шеи справа
+  g += '<path d="M'+(cx+3)+' '+nkT+' Q'+(cx+nW+1)+' '+(nkT+4)+' '+(cx+nW)+' '+nkB+' L'+(cx+3)+' '+nkB+'Z" fill="rgba(0,0,0,0.32)"/>';
+
+  // ══════════════════════════════════════════════════════════════
+  // ГОЛОВА
+  // ══════════════════════════════════════════════════════════════
   // Волосы (за головой)
-  g += '<path d="M' + (cx-21) + ' 30 Q' + (cx-26) + ' 14 ' + (cx-14) + ' 6 Q' + cx + ' 0 ' + (cx+14) + ' 6 Q' + (cx+26) + ' 14 ' + (cx+21) + ' 30" fill="' + hairC + '"/>';
-  g += '<path d="M' + (cx-18) + ' 12 Q' + (cx-24) + ' 2 ' + (cx-14) + ' -4" stroke="' + hairC + '" stroke-width="6" stroke-linecap="round" fill="none"/>';
-  g += '<path d="M' + (cx+10) + ' 8 Q' + (cx+20) + ' -2 ' + (cx+14) + ' -8" stroke="' + hairC + '" stroke-width="5" stroke-linecap="round" fill="none"/>';
-  g += '<path d="M' + (cx-8) + ' 4 Q' + (cx-10) + ' -6 ' + (cx-2) + ' -8" stroke="' + hairC + '" stroke-width="4" stroke-linecap="round" fill="none"/>';
-
-  // Голова
-  g += '<ellipse cx="' + cx + '" cy="36" rx="22" ry="26" fill="' + clothT + '" stroke="#080402" stroke-width="2.5"/>';
+  g += '<path d="M'+(cx-hRX-2)+' '+hCY+' Q'+(cx-hRX-10)+' '+(hCY-hRY+2)+' '+(cx-14)+' '+(hCY-hRY-5)+' Q'+cx+' '+(hCY-hRY-12)+' '+(cx+14)+' '+(hCY-hRY-5)+' Q'+(cx+hRX+10)+' '+(hCY-hRY+2)+' '+(cx+hRX+2)+' '+hCY+'" fill="'+hairC+'"/>';
 
   if (faceData) {
-    // Фото с cel-shading эффектом
-    g += '<image href="' + faceData + '" x="' + (cx-19) + '" y="12" width="38" height="48" clip-path="url(#fcW)" preserveAspectRatio="xMidYMid slice"/>';
-    // Волосы поверх фото
-    g += '<path d="M' + (cx-21) + ' 26 Q' + (cx-24) + ' 12 ' + (cx-12) + ' 5 Q' + cx + ' 0 ' + (cx+12) + ' 5 Q' + (cx+24) + ' 12 ' + (cx+21) + ' 26" fill="' + hairC + '"/>';
-    g += '<path d="M' + (cx-16) + ' 10 Q' + (cx-22) + ' 0 ' + (cx-12) + ' -5" stroke="' + hairC + '" stroke-width="5" stroke-linecap="round" fill="none"/>';
-    g += '<path d="M' + (cx+8) + ' 7 Q' + (cx+18) + ' -2 ' + (cx+12) + ' -8" stroke="' + hairC + '" stroke-width="4" stroke-linecap="round" fill="none"/>';
-    if (hasScar) g += '<path d="M' + (cx+4) + ' 24 L' + (cx+9) + ' 46" stroke="#7a1a0a" stroke-width="2.2" stroke-linecap="round" opacity="0.8"/>';
+    // === РЕЖИМ ФОТО ===
+    g += '<image href="'+faceData+'" x="'+(cx-hRX)+'" y="'+(hCY-hRY)+'" width="'+(hRX*2)+'" height="'+(hRY*2)+'" clip-path="url(#fcW)" preserveAspectRatio="xMidYMid slice"/>';
+    g += '<ellipse cx="'+cx+'" cy="'+hCY+'" rx="'+hRX+'" ry="'+hRY+'" fill="none" stroke="#080402" stroke-width="2.5"/>';
+    // Чёлка поверх фото
+    g += '<path d="M'+(cx-hRX-3)+' '+(hCY-2)+' Q'+(cx-hRX-7)+' '+(hCY-hRY+2)+' '+(cx-10)+' '+(hCY-hRY-2)+' Q'+cx+' '+(hCY-hRY-9)+' '+(cx+10)+' '+(hCY-hRY-2)+' Q'+(cx+hRX+7)+' '+(hCY-hRY+2)+' '+(cx+hRX+3)+' '+(hCY-2)+'" fill="'+hairC+'"/>';
+    g += '<path d="M'+(cx-14)+' '+(hCY-hRY)+' Q'+(cx-20)+' '+(hCY-hRY-10)+' '+(cx-12)+' '+(hCY-hRY-16)+'" stroke="'+hairC+'" stroke-width="5" stroke-linecap="round" fill="none"/>';
+    g += '<path d="M'+(cx+8)+' '+(hCY-hRY+2)+' Q'+(cx+16)+' '+(hCY-hRY-8)+' '+(cx+12)+' '+(hCY-hRY-14)+'" stroke="'+hairC+'" stroke-width="4" stroke-linecap="round" fill="none"/>';
+    if (hasScar) g += '<path d="M'+(cx+3)+' '+(hCY-10)+' Q'+(cx+6)+' '+hCY+' '+(cx+9)+' '+(hCY+14)+'" stroke="#7a1a0a" stroke-width="2.5" stroke-linecap="round" opacity="0.85"/>';
+
   } else {
-    // Рисованное лицо
-    g += '<ellipse cx="' + cx + '" cy="39" rx="17" ry="20" fill="url(#gSk)"/>';
-    // Брови — суровые, нависающие
-    g += '<path d="M' + (cx-17) + ' 26 L' + (cx-4) + ' 29" stroke="' + hairC + '" stroke-width="2.8" stroke-linecap="round"/>';
-    g += '<path d="M' + (cx+17) + ' 26 L' + (cx+4) + ' 29" stroke="' + hairC + '" stroke-width="2.8" stroke-linecap="round"/>';
-    // Глаза — Гатс стайл (миндалевидные, острые)
-    g += '<path d="M' + (cx-16) + ' 34 Q' + (cx-9) + ' 29 ' + (cx-3) + ' 34 Q' + (cx-9) + ' 38 ' + (cx-16) + ' 34Z" fill="' + eyeC + '" stroke="#080402" stroke-width="1.5"/>';
-    g += '<path d="M' + (cx+3) + ' 34 Q' + (cx+10) + ' 29 ' + (cx+16) + ' 34 Q' + (cx+10) + ' 38 ' + (cx+3) + ' 34Z" fill="' + eyeC + '" stroke="#080402" stroke-width="1.5"/>';
-    // Зрачки
-    g += '<ellipse cx="' + (cx-9) + '" cy="33.5" rx="3" ry="3.5" fill="#060204"/>';
-    g += '<ellipse cx="' + (cx+10) + '" cy="33.5" rx="3" ry="3.5" fill="#060204"/>';
-    // Блик в глазу
-    g += '<circle cx="' + (cx-8) + '" cy="32" r="1.3" fill="rgba(255,255,255,0.65)"/>';
-    g += '<circle cx="' + (cx+11) + '" cy="32" r="1.3" fill="rgba(255,255,255,0.65)"/>';
-    // Нос
-    g += '<path d="M' + (cx-2) + ' 44 Q' + cx + ' 50 ' + (cx+2) + ' 44" stroke="#906030" stroke-width="1.5" fill="none" stroke-linecap="round"/>';
-    // Рот (суровый)
-    g += '<path d="M' + (cx-7) + ' 55 L' + (cx+7) + ' 55" stroke="#7a4020" stroke-width="1.8" stroke-linecap="round"/>';
-    // Скулы
-    g += '<path d="M' + (cx-18) + ' 42 Q' + (cx-14) + ' 50 ' + (cx-10) + ' 52" stroke="rgba(160,80,30,0.25)" stroke-width="2" fill="none" stroke-linecap="round"/>';
-    if (hasScar) g += '<path d="M' + (cx+4) + ' 24 L' + (cx+9) + ' 46" stroke="#7a1a0a" stroke-width="2.2" stroke-linecap="round" opacity="0.8"/>';
-    // Волосы поверх лица (чёлка Гатса)
-    g += '<path d="M' + (cx-21) + ' 28 Q' + (cx-23) + ' 14 ' + (cx-12) + ' 6 Q' + cx + ' 1 ' + (cx+12) + ' 6 Q' + (cx+23) + ' 14 ' + (cx+21) + ' 28" fill="' + hairC + '"/>';
-    g += '<path d="M' + (cx-14) + ' 10 Q' + (cx-20) + ' 0 ' + (cx-10) + ' -5" stroke="' + hairC + '" stroke-width="5" stroke-linecap="round" fill="none"/>';
-    g += '<path d="M' + (cx+8) + ' 8 Q' + (cx+18) + ' -1 ' + (cx+12) + ' -8" stroke="' + hairC + '" stroke-width="4" stroke-linecap="round" fill="none"/>';
+    // === РИСОВАННОЕ ЛИЦО (манга-стиль) ===
+    // Лицо: радиальный градиент = сфера!
+    g += '<ellipse cx="'+cx+'" cy="'+hCY+'" rx="'+hRX+'" ry="'+hRY+'" fill="url(#gSkH)" stroke="#080402" stroke-width="2.5"/>';
+    // Тень правой стороны (даёт объём)
+    g += '<path d="M'+(cx+5)+' '+(hCY-hRY+4)+' Q'+(cx+hRX+3)+' '+hCY+' '+(cx+hRX-2)+' '+(hCY+hRY-4)+' Q'+(cx+4)+' '+(hCY+hRY-2)+' '+(cx+5)+' '+(hCY-hRY+4)+'Z" fill="rgba(0,0,0,0.26)"/>';
+    // Блик щеки (выпуклость)
+    g += '<ellipse cx="'+(cx-5)+'" cy="'+(hCY+hRY-8)+'" rx="7" ry="5" fill="rgba(220,155,75,0.16)"/>';
+
+    // Брови — нависающие, суровые (стиль Гатса)
+    var brY=hCY-10;
+    g += '<path d="M'+(cx-hRX+2)+' '+brY+' Q'+(cx-7)+' '+(brY+4)+' '+(cx-2)+' '+(brY+5)+'" stroke="'+hairC+'" stroke-width="3.8" stroke-linecap="round" fill="none"/>';
+    g += '<path d="M'+(cx+hRX-2)+' '+brY+' Q'+(cx+7)+' '+(brY+4)+' '+(cx+2)+' '+(brY+5)+'" stroke="'+hairC+'" stroke-width="3.8" stroke-linecap="round" fill="none"/>';
+
+    // Глаза (миндалевидные, с белком/радужкой/зрачком/бликом)
+    var eyY=hCY-1;
+    var eLx=cx-9, eRx=cx+9;
+    // Левый глаз
+    g += '<path d="M'+(eLx-7)+' '+eyY+' Q'+eLx+' '+(eyY-5)+' '+(eLx+6)+' '+eyY+' Q'+eLx+' '+(eyY+5)+' '+(eLx-7)+' '+eyY+'Z" fill="#e2d2c0" stroke="#080402" stroke-width="1.5"/>';
+    g += '<ellipse cx="'+(eLx-0.5)+'" cy="'+eyY+'" rx="3.5" ry="4" fill="'+eyeC+'"/>';
+    g += '<ellipse cx="'+(eLx-0.5)+'" cy="'+eyY+'" rx="2" ry="2.5" fill="#050203"/>';
+    g += '<circle cx="'+(eLx-1.5)+'" cy="'+(eyY-1.5)+'" r="1.3" fill="rgba(255,255,255,0.78)"/>';
+    // Правый глаз
+    g += '<path d="M'+(eRx-6)+' '+eyY+' Q'+eRx+' '+(eyY-5)+' '+(eRx+7)+' '+eyY+' Q'+eRx+' '+(eyY+5)+' '+(eRx-6)+' '+eyY+'Z" fill="#e2d2c0" stroke="#080402" stroke-width="1.5"/>';
+    g += '<ellipse cx="'+(eRx+0.5)+'" cy="'+eyY+'" rx="3.5" ry="4" fill="'+eyeC+'"/>';
+    g += '<ellipse cx="'+(eRx+0.5)+'" cy="'+eyY+'" rx="2" ry="2.5" fill="#050203"/>';
+    g += '<circle cx="'+eRx+'" cy="'+(eyY-1.5)+'" r="1.3" fill="rgba(255,255,255,0.78)"/>';
+
+    // Нос (характерный гатс-стиль — коса)
+    var noseY=hCY+9;
+    g += '<path d="M'+(cx-1)+' '+(noseY-3)+' Q'+(cx+5)+' '+noseY+' '+(cx+3)+' '+(noseY+4)+'" stroke="#8c5828" stroke-width="1.8" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M'+(cx-4)+' '+(noseY+4)+' Q'+cx+' '+(noseY+7)+' '+(cx+7)+' '+(noseY+4)+'" stroke="#8c5828" stroke-width="1.5" fill="none" stroke-linecap="round"/>';
+
+    // Рот (суровый, сжатый)
+    var mouY=hCY+17;
+    g += '<path d="M'+(cx-8)+' '+mouY+' Q'+(cx-2)+' '+(mouY-1)+' '+cx+' '+mouY+' Q'+(cx+5)+' '+(mouY+2)+' '+(cx+9)+' '+mouY+'" stroke="#7a3e1c" stroke-width="2" fill="none" stroke-linecap="round"/>';
+
+    // Скула
+    g += '<path d="M'+(cx-hRX+3)+' '+(hCY+5)+' Q'+(cx-hRX+7)+' '+(hCY+10)+' '+(cx-hRX+12)+' '+(hCY+11)+'" stroke="rgba(140,70,18,0.28)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+
+    // Шрам (уровень 3+)
+    if (hasScar) {
+      g += '<path d="M'+(cx+3)+' '+(hCY-10)+' Q'+(cx+7)+' '+hCY+' '+(cx+9)+' '+(hCY+14)+'" stroke="#7a1a0a" stroke-width="2.8" stroke-linecap="round" opacity="0.88"/>';
+      g += '<path d="M'+(cx+2)+' '+(hCY-8)+' Q'+(cx+5)+' '+hCY+' '+(cx+7)+' '+(hCY+12)+'" stroke="rgba(200,70,35,0.22)" stroke-width="1.2" stroke-linecap="round"/>';
+    }
+
+    // Чёлка поверх лица
+    g += '<path d="M'+(cx-hRX-2)+' '+(hCY-2)+' Q'+(cx-hRX-6)+' '+(hCY-hRY+2)+' '+(cx-10)+' '+(hCY-hRY-2)+' Q'+cx+' '+(hCY-hRY-9)+' '+(cx+10)+' '+(hCY-hRY-2)+' Q'+(cx+hRX+6)+' '+(hCY-hRY+2)+' '+(cx+hRX+2)+' '+(hCY-2)+'" fill="'+hairC+'"/>';
+    // Пряди
+    g += '<path d="M'+(cx-12)+' '+(hCY-hRY)+' Q'+(cx-18)+' '+(hCY-hRY-10)+' '+(cx-10)+' '+(hCY-hRY-16)+'" stroke="'+hairC+'" stroke-width="5" stroke-linecap="round" fill="none"/>';
+    g += '<path d="M'+(cx+8)+' '+(hCY-hRY+2)+' Q'+(cx+16)+' '+(hCY-hRY-8)+' '+(cx+10)+' '+(hCY-hRY-14)+'" stroke="'+hairC+'" stroke-width="4" stroke-linecap="round" fill="none"/>';
+    g += '<path d="M'+(cx-3)+' '+(hCY-hRY-2)+' Q'+(cx-5)+' '+(hCY-hRY-12)+' '+cx+' '+(hCY-hRY-14)+'" stroke="'+hairC+'" stroke-width="3.5" stroke-linecap="round" fill="none"/>';
+    // Блик на волосах
+    g += '<path d="M'+(cx-9)+' '+(hCY-hRY)+' Q'+(cx-3)+' '+(hCY-hRY-6)+' '+(cx+5)+' '+(hCY-hRY-2)+'" stroke="rgba(45,32,18,0.48)" stroke-width="2" fill="none" stroke-linecap="round"/>';
+
+    // Знак берсерка на лбу (уровень 6)
+    if (hasBerserk) {
+      g += '<path d="M'+cx+' '+(hCY-hRY+6)+' Q'+(cx+8)+' '+(hCY-8)+' '+(cx+4)+' '+(hCY-2)+' Q'+cx+' '+(hCY+2)+' '+(cx-4)+' '+(hCY-2)+' Q'+(cx-8)+' '+(hCY-8)+' '+cx+' '+(hCY-hRY+6)+'Z" fill="rgba(180,28,8,0.68)" stroke="#8a1606" stroke-width="0.8"/>';
+    }
   }
 
-  // ── АУРА у ног (уровень 5+) ─────────────────────────────────────
-  var aura = lv5 ? '<ellipse cx="' + cx + '" cy="284" rx="40" ry="7" fill="rgba(160,30,10,0.22)"/><ellipse cx="' + cx + '" cy="284" rx="22" ry="4" fill="rgba(200,50,20,0.28)"/>' : '';
+  // ══════════════════════════════════════════════════════════════
+  // АУРА у ног (уровень 5+)
+  // ══════════════════════════════════════════════════════════════
+  var aura = '';
+  if (lv5) {
+    aura = '<ellipse cx="'+cx+'" cy="'+(flY+6)+'" rx="48" ry="8" fill="rgba(160,28,8,0.2)"/>'
+         + '<ellipse cx="'+cx+'" cy="'+(flY+4)+'" rx="26" ry="5" fill="rgba(200,48,18,0.26)"/>';
+    if (lv6) aura += '<ellipse cx="'+cx+'" cy="'+(flY+8)+'" rx="62" ry="10" fill="rgba(200,48,8,0.1)"/>';
+  }
 
-  // ── Фильтр и анимация ───────────────────────────────────────────
-  var glowFilter = lv6 ? 'drop-shadow(0 0 14px rgba(210,60,15,0.7)) drop-shadow(0 10px 24px rgba(0,0,0,0.85))' : 'drop-shadow(0 10px 22px rgba(0,0,0,0.75))';
+  // ══════════════════════════════════════════════════════════════
+  // ФИНАЛЬНЫЙ SVG
+  // ══════════════════════════════════════════════════════════════
+  var glowFilter = lv6
+    ? 'drop-shadow(0 0 18px rgba(220,55,12,0.75)) drop-shadow(0 0 8px rgba(200,38,8,0.5)) drop-shadow(0 12px 28px rgba(0,0,0,0.9))'
+    : 'drop-shadow(0 10px 24px rgba(0,0,0,0.8))';
 
-  return '<svg viewBox="0 0 160 295" width="118" height="210" style="display:block;filter:' + glowFilter + ';">'
-    + '<style>@keyframes wBr{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-2.5px) scaleY(1.015)}}.wC{transform-origin:' + cx + 'px 160px;animation:wBr 4s ease-in-out infinite}</style>'
+  return '<svg viewBox="0 0 160 295" width="118" height="210" style="display:block;filter:'+glowFilter+';">'
+    + '<style>@keyframes wBr{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-3px) scaleY(1.012)}}.wC{transform-origin:'+cx+'px 155px;animation:wBr 4s ease-in-out infinite}</style>'
     + defs
     + aura
-    + '<g class="wC">' + g + '</g>'
+    + '<g class="wC">'+g+'</g>'
     + '</svg>';
 }
 

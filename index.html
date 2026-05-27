@@ -3447,17 +3447,95 @@ function renderGoals() {
   return html;
 }
 
-// Виджет сна — выпадает под строкой Тело в Пути, в том же стиле строки
+// Виджет сна — выпадает под строкой Тело в Пути.
+// ТОЛЬКО ПРОСМОТР помесячной статистики, без записи/правки. Запись делается в Древо → Тело.
 function renderSleepDropdown(s) {
+  const goal = state.sleep?.goalHours || 8;
+  const entries = state.sleep?.entries || [];
+  const todayISO = today();
+
+  // Собираем статистику за последние 6 месяцев
+  const monthMap = {};
+  entries.forEach(e => {
+    const ym = e.date.slice(0, 7);
+    if (!monthMap[ym]) monthMap[ym] = { hours: 0, nights: 0 };
+    monthMap[ym].hours += (e.hours || 0);
+    monthMap[ym].nights += 1;
+  });
+
+  const now = new Date();
+  const months = [];
+  for (let i = 0; i < 6; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const ym = d.toISOString().slice(0, 7);
+    const m = monthMap[ym] || { hours: 0, nights: 0 };
+    months.push({
+      ym,
+      label: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'][d.getMonth()] + ' ' + d.getFullYear(),
+      hours: m.hours,
+      nights: m.nights,
+      avg: m.nights > 0 ? m.hours / m.nights : 0,
+      isCurrent: i === 0
+    });
+  }
+
+  const currentMonth = months[0];
+  const goalMonth = goal * 30; // целевые часы за месяц
+
+  let out = `<div style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.05);border-left:3px solid ${s.color};border-top:none;border-radius:0 0 8px 8px;padding:12px;margin-top:-1px;">
+    <div style="font-size:9px;letter-spacing:0.2em;color:${s.color};text-transform:uppercase;font-weight:700;margin-bottom:10px;">🌙 Сон · по месяцам</div>`;
+
+  // Большая цифра — текущий месяц
+  out += `<div style="background:rgba(167,139,250,0.06);border:1px solid ${s.color}30;border-radius:8px;padding:12px;margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">
+      <div style="font-size:9px;letter-spacing:0.2em;color:#8870a8;text-transform:uppercase;font-weight:600;">${currentMonth.label} · сейчас</div>
+      <div style="font-size:9px;color:#6a5a8a;">${currentMonth.nights} ${plural(currentMonth.nights,'ночь','ночи','ночей')}</div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:8px;">
+      <div style="font-size:28px;font-weight:800;color:#fff;line-height:1;">${currentMonth.hours.toFixed(1)} ч</div>
+      ${currentMonth.avg > 0 ? `<div style="font-size:11px;color:#8870a8;">ср. ${fmtDur(currentMonth.avg)}</div>` : ''}
+    </div>
+    <div style="height:3px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-top:8px;">
+      <div style="height:100%;width:${Math.min(100,(currentMonth.hours/goalMonth)*100)}%;background:${s.color};"></div>
+    </div>
+    <div style="font-size:9px;color:#6a5a8a;margin-top:3px;">цель ~${goalMonth.toFixed(0)} ч (${goal}ч × 30)</div>
+  </div>`;
+
+  // История по 6 месяцам
+  if (months.some(m => m.hours > 0)) {
+    out += `<div style="font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:6px;">История 6 месяцев</div>`;
+    const maxH = Math.max(...months.map(m => m.hours), goalMonth);
+    out += `<div style="display:flex;flex-direction:column;gap:5px;">${months.map(m => {
+      const pct = maxH > 0 ? (m.hours / maxH) * 100 : 0;
+      const color = m.hours >= goalMonth ? '#10E891' : (m.hours >= goalMonth * 0.85 ? s.color : (m.hours > 0 ? '#FFAA00' : 'rgba(255,255,255,0.1)'));
+      return `<div style="display:flex;align-items:center;gap:8px;font-size:11px;">
+        <div style="width:64px;flex-shrink:0;color:${m.isCurrent?'#fff':'#8870a8'};font-weight:${m.isCurrent?'700':'500'};">${m.label.split(' ')[0]}</div>
+        <div style="flex:1;height:8px;background:rgba(255,255,255,0.04);border-radius:4px;overflow:hidden;">
+          <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;"></div>
+        </div>
+        <div style="width:55px;flex-shrink:0;text-align:right;color:${m.hours>0?'#fff':'#5a4a78'};font-weight:${m.isCurrent?'700':'500'};">${m.hours > 0 ? m.hours.toFixed(0)+' ч' : '—'}</div>
+      </div>`;
+    }).join('')}</div>`;
+  }
+
+  out += `<div style="font-size:9px;color:#5a4a78;font-style:italic;text-align:center;margin-top:10px;">Запись часов — в Древо → Тело → 🌙 Сон</div>`;
+
+  out += `</div>`;
+  return out;
+}
+
+// (старая функция, не используется — оставлена для совместимости)
+function _oldRenderSleepDropdown(s) {
+  const goal = state.sleep?.goalHours || 8;
+  const entries = state.sleep?.entries || [];
+  const todayISO = today();
   const monthHours = sleepHoursThisMonth();
   const avg7 = sleepAvgWeek();
-  const goal = state.sleep?.goalHours || 8;
   const monthEntries = (state.sleep?.entries || []).filter(e => e.date.startsWith(today().slice(0,7))).length;
-  const todayISO = today();
   const todayEntry = sleepEntryForDate(todayISO);
 
   let out = '';
-  if (true) {
+  if (false) {
     out += `<div onclick="event.stopPropagation()" style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.05);border-left:3px solid ${s.color};border-top:none;border-radius:0 0 8px 8px;padding:11px;margin-top:-1px;">`;
     out += `<div style="font-size:9px;letter-spacing:0.2em;color:${s.color};text-transform:uppercase;font-weight:700;margin-bottom:8px;">🌙 Сон · ${monthHours.toFixed(1)}ч за месяц${avg7>0?' · ср. '+fmtDur(avg7):''}</div>`;
 

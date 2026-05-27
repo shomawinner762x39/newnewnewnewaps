@@ -3788,7 +3788,7 @@ function makeWarriorSVG(lv, faceData) {
   var skinT = '#d8a87a', skinB = '#a06030';
   var hairC = '#080604';
   var eyeC  = '#c4621d';
-  var clothT= '#2e1a08', clothB= '#100804';
+  var clothT= '#4a2e10', clothB= '#1e0e04';
   var leath = '#3a2010';
   var aD    = '#3c3c4e', aL    = '#9a9aaa', aH = '#d0d0e0';
   var swC   = '#a0b0c0', swD   = '#28303e';
@@ -3913,6 +3913,7 @@ function makeWarriorSVG(lv, faceData) {
   // ── РУКИ — заполненные фигуры, не stroke-линии ─────────────────
   var aHalf = AW / 2;
   // ЛЕВАЯ РУКА: широкая у плеча, сужается к запястью, изгиб наружу и вниз
+  var armFill = '#4a2e10'; // чуть светлее чем торс — чтобы не сливался с фоном
   var lAx1 = cx-SW, lAy1 = 82;           // верх плеча (внутр)
   var lAx2 = cx-SW-20, lAy2 = 135;       // локоть
   var lAx3 = cx-SW-18, lAy3 = 178;       // запястье (внутр)
@@ -3921,7 +3922,7 @@ function makeWarriorSVG(lv, faceData) {
     + ' C' + (lAx1-aHalf*0.3) + ' ' + (lAy1+10) + ' ' + (lAx2-aHalf*0.5) + ' ' + (lAy2-20) + ' ' + (lAx3-6) + ' ' + lAy3
     + ' L' + (lAx3+8) + ' ' + (lAy3+3)
     + ' C' + (lAx2+aHalf*0.8) + ' ' + (lAy2-16) + ' ' + (lAx1+aHalf) + ' ' + (lAy1+8) + ' ' + (lAx1+6) + ' ' + (lAy1+2)
-    + 'Z" fill="' + clothT + '" stroke="#080402" stroke-width="2"/>';
+    + 'Z" fill="' + armFill + '" stroke="#080402" stroke-width="2"/>';
   // Блик на руке
   g += '<path d="M' + (lAx1+2) + ' ' + (lAy1+5) + ' C' + (lAx2+3) + ' ' + (lAy2-15) + ' ' + (lAx3+3) + ' ' + (lAy3-15) + ' ' + (lAx3+5) + ' ' + (lAy3-2) + '" stroke="rgba(80,40,10,0.4)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
   // Кожаная перевязь на руке (lv1+)
@@ -3938,7 +3939,7 @@ function makeWarriorSVG(lv, faceData) {
     + ' C' + (rAx1+aHalf*0.3) + ' ' + (rAy1+10) + ' ' + (rAx2+aHalf*0.5) + ' ' + (rAy2-20) + ' ' + (rAx3+6) + ' ' + rAy3
     + ' L' + (rAx3-8) + ' ' + (rAy3+3)
     + ' C' + (rAx2-aHalf*0.8) + ' ' + (rAy2-16) + ' ' + (rAx1-aHalf) + ' ' + (rAy1+8) + ' ' + (rAx1-6) + ' ' + (rAy1+2)
-    + 'Z" fill="' + clothT + '" stroke="#080402" stroke-width="2"/>';
+    + 'Z" fill="' + armFill + '" stroke="#080402" stroke-width="2"/>';
   g += '<path d="M' + (rAx1-2) + ' ' + (rAy1+5) + ' C' + (rAx2-3) + ' ' + (rAy2-15) + ' ' + (rAx3-3) + ' ' + (rAy3-15) + ' ' + (rAx3-5) + ' ' + (rAy3-2) + '" stroke="rgba(100,60,20,0.5)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
   if (lv1) g += '<path d="M' + (rAx1+2) + ' ' + (rAy1+14) + ' C' + (rAx2+1) + ' ' + (rAy2-12) + ' ' + (rAx3-2) + ' ' + (rAy3-22) + ' ' + (rAx3-6) + ' ' + (rAy3-18) + '" stroke="' + leath + '" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.7"/>';
   // Кисть правой (чуть светлее — световая сторона)

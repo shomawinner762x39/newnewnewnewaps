@@ -4292,10 +4292,9 @@ function renderCharacterCard() {
   // ── Отображение персонажа (арт или SVG) ──────────────────────
   var charDisplay;
   if (charArt) {
-    // Пользователь загрузил своё изображение — показываем его с тканью
+    // Арт — чистое изображение без оверлеев
     charDisplay = '<div style="position:relative;width:118px;height:210px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.6);">'
       + '<img src="'+charArt+'" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;"/>'
-      + makeClothAnimation(76, 38)
       + '</div>';
   } else {
     // SVG-персонаж + ткань от lv1

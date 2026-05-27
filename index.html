@@ -4253,8 +4253,9 @@ function makeClothAnimation(ax, ay) {
 function renderCharacterCard() {
   if (!state.stagesUnlocked) state.stagesUnlocked = {};
   const lv = ['s1','s2','s3','s4','s5','s6'].filter(function(k){ return state.stagesUnlocked[k]; }).length;
-  const faceData = state.characterFace || null;
-  const charArt  = state.characterArt  || null;
+  const faceData = null; // лицо убрано — используем арт по уровням
+  const artLevels = state.characterArtLevels || [];
+  const charArt   = artLevels[lv] || null; // арт для текущего уровня
 
   const CHAR_LEVELS = [
     { name: 'Мальчик',  sub: 'До первой крови',    color: '#a09080' },
@@ -4318,11 +4319,9 @@ function renderCharacterCard() {
     + '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;">'
     + charDisplay
     + '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'
-    + '<input type="file" id="face-upload-inp" accept="image/*" style="display:none;" onchange="window.__app.uploadFace(this)"/>'
-    + '<button onclick="document.getElementById(\'face-upload-inp\').click()" style="font-size:8px;color:#6a5a8a;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:5px;padding:3px 7px;cursor:pointer;white-space:nowrap;">📷 лицо</button>'
-    + '<input type="file" id="char-art-inp" accept="image/*" style="display:none;" onchange="window.__app.uploadCharacterArt(this)"/>'
-    + '<button onclick="document.getElementById(\'char-art-inp\').click()" style="font-size:8px;color:#c9a84c;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:5px;padding:3px 7px;cursor:pointer;white-space:nowrap;">🖼 арт</button>'
-    + (charArt ? '<button onclick="window.__app.clearCharacterArt()" style="font-size:8px;color:#8a5a5a;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:3px 6px;cursor:pointer;">✕</button>' : '')
+    + '<input type="file" id="char-art-inp" accept="image/*" style="display:none;" onchange="window.__app.uploadCharacterArt(this,' + lv + ')"/>'
+    + '<button onclick="document.getElementById(\'char-art-inp\').click()" style="font-size:8px;color:#c9a84c;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:5px;padding:3px 9px;cursor:pointer;white-space:nowrap;">🖼 арт · lv' + lv + '</button>'
+    + (charArt ? '<button onclick="window.__app.clearCharacterArt(' + lv + ')" style="font-size:8px;color:#8a5a5a;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:3px 6px;cursor:pointer;">✕</button>' : '')
     + '</div>'
     + '</div>'
     + '<div style="flex:1;min-width:0;padding-top:2px;">'
@@ -6700,15 +6699,15 @@ window.__app = {
     reader.readAsDataURL(file);
   },
 
-  // ── Загрузка пользовательского арта персонажа ──────────────
-  uploadCharacterArt: function(input) {
+  // ── Загрузка арта персонажа для конкретного уровня (0-6) ───
+  uploadCharacterArt: function(input, lv) {
     var file = input.files[0];
     if (!file) return;
     var reader = new FileReader();
     reader.onload = function(e) {
       var img = new Image();
       img.onload = function() {
-        // Ресайз до 400×700 max (сохраняем пропорции), сжимаем JPEG 88%
+        // Ресайз до 400×700 max, JPEG 88%
         var maxW = 400, maxH = 700;
         var scale = Math.min(maxW / img.width, maxH / img.height, 1);
         var W = Math.round(img.width * scale);
@@ -6716,15 +6715,16 @@ window.__app = {
         var canvas = document.createElement('canvas');
         canvas.width = W; canvas.height = H;
         canvas.getContext('2d').drawImage(img, 0, 0, W, H);
-        state.characterArt = canvas.toDataURL('image/jpeg', 0.88);
+        if (!state.characterArtLevels) state.characterArtLevels = [];
+        state.characterArtLevels[lv] = canvas.toDataURL('image/jpeg', 0.88);
         save(); render();
       };
       img.src = e.target.result;
     };
     reader.readAsDataURL(file);
   },
-  clearCharacterArt: function() {
-    state.characterArt = null;
+  clearCharacterArt: function(lv) {
+    if (state.characterArtLevels) state.characterArtLevels[lv] = null;
     save(); render();
   },
 

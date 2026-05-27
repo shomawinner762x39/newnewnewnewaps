@@ -3765,12 +3765,197 @@ function _oldRenderSleepDropdown(s) {
   return out;
 }
 
+// === WARRIOR CHARACTER CARD ===
+function makeWarriorSVG(lv, faceData) {
+  const hasMuscles    = lv >= 2;
+  const hasScar       = lv >= 3;
+  const hasShoulderPl = lv >= 3;
+  const hasChestArmor = lv >= 4;
+  const hasDragon     = lv >= 4;
+  const hasCape       = lv >= 5;
+  const hasBerserk    = lv >= 6;
+
+  const tW = 20 + lv * 2.2;
+  const aW = 9 + lv * 0.9;
+  const cx = 46;
+
+  const C = {
+    skin:'#c4956a', hair:'#0a0804', eye:'#c4621d', cloth:'#1e0e04',
+    leather:'#3a2010', armorD:'#3a3a4a', armorL:'#7a7a8a',
+    sword:'#8a9aaa', swordD:'#3a4050', cape:'#2a0505', boot:'#120500', belt:'#2a1a08'
+  };
+
+  const dragonSVG = hasDragon ? (
+    '<rect x="' + (cx+tW/2+4) + '" y="-8" width="13" height="120" rx="2" fill="' + C.swordD + '" stroke="' + C.sword + '" stroke-width="0.8"/>'
+    + '<polygon points="' + (cx+tW/2+4) + ',-8 ' + (cx+tW/2+10.5) + ',-22 ' + (cx+tW/2+17) + ',-8" fill="' + C.sword + '"/>'
+    + '<rect x="' + (cx+tW/2+5) + '" y="-8" width="3" height="120" fill="' + C.sword + '" opacity="0.25"/>'
+    + '<rect x="' + (cx+tW/2-2) + '" y="44" width="26" height="5" rx="1" fill="' + C.armorD + '"/>'
+  ) : lv >= 1 ? (
+    '<rect x="' + (cx+tW/2+5) + '" y="15" width="9" height="88" rx="2" fill="' + C.swordD + '" stroke="' + C.sword + '" stroke-width="0.7"/>'
+    + '<polygon points="' + (cx+tW/2+5) + ',15 ' + (cx+tW/2+9.5) + ',4 ' + (cx+tW/2+14) + ',15" fill="' + C.sword + '"/>'
+    + '<rect x="' + (cx+tW/2-2) + '" y="48" width="20" height="4" rx="1" fill="' + C.armorD + '"/>'
+  ) : '';
+
+  const capeSVG = hasCape ? (
+    '<path d="M' + (cx-tW/2+4) + ' 52 Q' + (cx-tW/2-18) + ' 95 ' + (cx-tW/2-8) + ' 155" stroke="' + C.cape + '" stroke-width="20" stroke-linecap="round" fill="none" opacity="0.9"/>'
+    + '<path d="M' + (cx-tW/2+2) + ' 52 Q' + (cx-tW/2-10) + ' 100 ' + (cx-tW/2-3) + ' 158" stroke="rgba(80,20,20,0.4)" stroke-width="10" stroke-linecap="round" fill="none"/>'
+  ) : '';
+
+  const shoulderSVG = hasShoulderPl ? (
+    '<ellipse cx="' + (cx+tW/2+3) + '" cy="54" rx="9" ry="7" fill="' + C.armorD + '" stroke="' + C.armorL + '" stroke-width="0.6"/>'
+    + '<ellipse cx="' + (cx-tW/2-3) + '" cy="56" rx="7" ry="6" fill="' + C.armorD + '" stroke="' + C.armorL + '" stroke-width="0.5"/>'
+  ) : '';
+
+  const chestSVG = hasChestArmor ? (
+    '<path d="M' + (cx-tW/2+3) + ' 56 L' + (cx-tW/2+5) + ' 102 L' + (cx+tW/2-5) + ' 102 L' + (cx+tW/2-3) + ' 56 Z" fill="' + C.armorD + '" stroke="' + C.armorL + '" stroke-width="0.5" opacity="0.85"/>'
+    + '<line x1="' + cx + '" y1="56" x2="' + cx + '" y2="102" stroke="' + C.armorL + '" stroke-width="0.4" opacity="0.4"/>'
+    + '<path d="M' + (cx-tW/2+3) + ' 56 L' + cx + ' 62 L' + (cx+tW/2-3) + ' 56" fill="' + C.armorL + '" opacity="0.2"/>'
+  ) : '';
+
+  const berserkSVG = hasBerserk ? (
+    '<polygon points="' + (cx-tW/2-2) + ',62 ' + (cx-tW/2-16) + ',52 ' + (cx-tW/2-2) + ',72" fill="' + C.armorD + '" opacity="0.95"/>'
+    + '<polygon points="' + (cx+tW/2+2) + ',62 ' + (cx+tW/2+16) + ',52 ' + (cx+tW/2+2) + ',72" fill="' + C.armorD + '" opacity="0.95"/>'
+    + '<path d="M' + (cx-tW/2+3) + ' 50 L' + cx + ' 44 L' + (cx+tW/2-3) + ' 50" fill="' + C.armorD + '" stroke="' + C.armorL + '" stroke-width="0.6"/>'
+  ) : '';
+
+  const scarSVG = hasScar ? '<path d="M' + (cx-2) + ' 18 L' + (cx+2) + ' 30" stroke="#7a1a0a" stroke-width="1.5" stroke-linecap="round" opacity="0.75"/>' : '';
+  const auraSVG = lv >= 5 ? '<ellipse cx="' + cx + '" cy="205" rx="28" ry="5" fill="rgba(196,50,20,0.18)"/>' : '';
+
+  const faceClip = faceData ? (
+    '<defs><clipPath id="faceClipW"><circle cx="' + cx + '" cy="25" r="14"/></clipPath></defs>'
+    + '<image href="' + faceData + '" x="' + (cx-14) + '" y="11" width="28" height="28" clip-path="url(#faceClipW)" preserveAspectRatio="xMidYMid slice"/>'
+  ) : '';
+
+  const headContent = faceData ? (
+    '<ellipse cx="' + cx + '" cy="25" rx="16" ry="18" fill="' + C.cloth + '" stroke="' + C.leather + '" stroke-width="0.8"/>'
+    + '<path d="M' + (cx-14) + ' 18 Q' + (cx-16) + ' 7 ' + (cx-8) + ' 4 Q' + cx + ' 1 ' + (cx+8) + ' 4 Q' + (cx+16) + ' 7 ' + (cx+14) + ' 18" fill="' + C.hair + '"/>'
+    + faceClip + scarSVG
+  ) : (
+    '<ellipse cx="' + cx + '" cy="24" rx="16" ry="18" fill="' + C.cloth + '" stroke="' + C.leather + '" stroke-width="0.8"/>'
+    + '<path d="M' + (cx-14) + ' 18 Q' + (cx-16) + ' 6 ' + (cx-7) + ' 3 Q' + cx + ' 0 ' + (cx+7) + ' 3 Q' + (cx+16) + ' 6 ' + (cx+14) + ' 18" fill="' + C.hair + '"/>'
+    + '<path d="M' + (cx-14) + ' 18 Q' + (cx-19) + ' 12 ' + (cx-11) + ' 6" fill="' + C.hair + '"/>'
+    + '<path d="M' + (cx+14) + ' 18 Q' + (cx+19) + ' 12 ' + (cx+11) + ' 6" fill="' + C.hair + '"/>'
+    + '<ellipse cx="' + cx + '" cy="27" rx="12" ry="13" fill="' + C.skin + '"/>'
+    + '<circle cx="' + (cx-4.5) + '" cy="25" r="2.8" fill="' + C.eye + '"/>'
+    + '<circle cx="' + (cx+4.5) + '" cy="25" r="2.8" fill="' + C.eye + '"/>'
+    + '<circle cx="' + (cx-4) + '" cy="24.5" r="1.2" fill="rgba(0,0,0,0.7)"/>'
+    + '<circle cx="' + (cx+5) + '" cy="24.5" r="1.2" fill="rgba(0,0,0,0.7)"/>'
+    + '<path d="M' + (cx-8) + ' 21 L' + (cx-2) + ' 22.5" stroke="' + C.hair + '" stroke-width="1.5" stroke-linecap="round"/>'
+    + '<path d="M' + (cx+8) + ' 21 L' + (cx+2) + ' 22.5" stroke="' + C.hair + '" stroke-width="1.5" stroke-linecap="round"/>'
+    + '<path d="M' + (cx-3) + ' 33 L' + (cx+3) + ' 33" stroke="' + C.skin + '" stroke-width="0.8" stroke-linecap="round" opacity="0.5"/>'
+    + scarSVG
+  );
+
+  return '<svg viewBox="0 0 110 215" width="90" height="185" style="display:block;filter:drop-shadow(0 6px 18px rgba(196,98,29,0.22));">'
+    + '<style>@keyframes wBreathe{0%,100%{transform:scaleY(1)}50%{transform:scaleY(1.012) translateY(-1.5px)}}.wBody{transform-origin:' + cx + 'px 120px;animation:wBreathe 3.8s ease-in-out infinite}</style>'
+    + auraSVG + capeSVG + dragonSVG
+    + '<g class="wBody">'
+    + headContent
+    + '<rect x="' + (cx-5) + '" y="41" width="10" height="10" rx="2" fill="' + C.skin + '"/>'
+    + '<path d="M' + (cx-tW/2) + ' 51 Q' + cx + ' 47 ' + (cx+tW/2) + ' 51" stroke="' + C.leather + '" stroke-width="3" fill="none" stroke-linecap="round"/>'
+    + '<path d="M' + (cx-tW/2) + ' 52 Q' + (cx-tW/2-2) + ' 80 ' + (cx-tW/2) + ' 108 L' + (cx+tW/2) + ' 108 Q' + (cx+tW/2+2) + ' 80 ' + (cx+tW/2) + ' 52 Z" fill="' + C.cloth + '" stroke="' + C.leather + '" stroke-width="0.6"/>'
+    + chestSVG + berserkSVG
+    + (hasMuscles ? '<path d="M' + (cx-tW/2+4) + ' 62 Q' + (cx-2) + ' 70 ' + cx + ' 68" stroke="' + C.leather + '" stroke-width="0.9" fill="none" opacity="0.45"/><path d="M' + (cx+tW/2-4) + ' 62 Q' + (cx+2) + ' 70 ' + cx + ' 68" stroke="' + C.leather + '" stroke-width="0.9" fill="none" opacity="0.45"/><ellipse cx="' + cx + '" cy="88" rx="7" ry="4.5" fill="none" stroke="' + C.leather + '" stroke-width="0.7" opacity="0.3"/>' : '')
+    + '<rect x="' + (cx-tW/2+2) + '" y="106" width="' + (tW-4) + '" height="7" rx="2" fill="' + C.belt + '"/>'
+    + '<rect x="' + (cx-3) + '" y="105" width="6" height="9" rx="1" fill="#4a3818"/>'
+    + '<path d="M' + (cx-tW/2) + ' 56 Q' + (cx-tW/2-10) + ' 82 ' + (cx-tW/2-8) + ' 114" stroke="' + (hasMuscles?'#b08060':'#a07050') + '" stroke-width="' + aW + '" stroke-linecap="round" fill="none"/>'
+    + '<circle cx="' + (cx-tW/2-8) + '" cy="116" r="5" fill="' + C.skin + '"/>'
+    + '<path d="M' + (cx+tW/2) + ' 56 Q' + (cx+tW/2+10) + ' 82 ' + (cx+tW/2+8) + ' 114" stroke="' + (hasMuscles?'#b08060':'#a07050') + '" stroke-width="' + aW + '" stroke-linecap="round" fill="none"/>'
+    + '<circle cx="' + (cx+tW/2+8) + '" cy="116" r="5" fill="' + C.skin + '"/>'
+    + (hasChestArmor ? '<path d="M' + (cx-tW/2-4) + ' 94 Q' + (cx-tW/2-10) + ' 100 ' + (cx-tW/2-9) + ' 110" stroke="' + C.armorD + '" stroke-width="6" stroke-linecap="round" fill="none"/><path d="M' + (cx+tW/2+4) + ' 94 Q' + (cx+tW/2+10) + ' 100 ' + (cx+tW/2+9) + ' 110" stroke="' + C.armorD + '" stroke-width="6" stroke-linecap="round" fill="none"/>' : '')
+    + shoulderSVG
+    + '<path d="M' + (cx-9) + ' 113 Q' + (cx-11) + ' 158 ' + (cx-12) + ' 198" stroke="' + C.cloth + '" stroke-width="15" stroke-linecap="round" fill="none"/>'
+    + '<path d="M' + (cx+9) + ' 113 Q' + (cx+11) + ' 158 ' + (cx+12) + ' 198" stroke="' + C.cloth + '" stroke-width="15" stroke-linecap="round" fill="none"/>'
+    + (hasShoulderPl ? '<ellipse cx="' + (cx-12) + '" cy="156" rx="7" ry="4" fill="' + C.armorD + '" stroke="' + C.armorL + '" stroke-width="0.4"/><ellipse cx="' + (cx+12) + '" cy="156" rx="7" ry="4" fill="' + C.armorD + '" stroke="' + C.armorL + '" stroke-width="0.4"/>' : '')
+    + '<path d="M' + (cx-19) + ' 194 Q' + (cx-22) + ' 205 ' + (cx-9) + ' 210 L' + (cx-4) + ' 210 Q' + (cx-2) + ' 204 ' + (cx-7) + ' 196" fill="' + C.boot + '"/>'
+    + '<path d="M' + (cx+19) + ' 194 Q' + (cx+22) + ' 205 ' + (cx+9) + ' 210 L' + (cx+4) + ' 210 Q' + (cx+2) + ' 204 ' + (cx+7) + ' 196" fill="' + C.boot + '"/>'
+    + '</g></svg>';
+}
+
+function renderCharacterCard() {
+  if (!state.stagesUnlocked) state.stagesUnlocked = {};
+  const lv = ['s1','s2','s3','s4','s5','s6'].filter(function(k){ return state.stagesUnlocked[k]; }).length;
+  const faceData = state.characterFace || null;
+
+  const CHAR_LEVELS = [
+    { name: 'Мальчик',  sub: 'До первой крови',    color: '#a09080' },
+    { name: 'Наёмник',  sub: 'Первые привычки', color: '#b0956a' },
+    { name: 'Боец',      sub: 'Тело крепнет',       color: '#c48040' },
+    { name: 'Воин',      sub: 'Шрамы и сталь',      color: '#c4621d' },
+    { name: 'Берсерк',   sub: 'Броня духа',         color: '#d04020' },
+    { name: 'Легенда',  sub: 'Имя знают все',      color: '#e05020' },
+    { name: 'СТРАННИК', sub: 'Нет пути назад',     color: '#ff6030' },
+  ];
+  const cl = CHAR_LEVELS[Math.min(lv, 6)];
+
+  const totalXP   = SPHERES.reduce(function(s, sp){ return s + sphereXP(sp.id); }, 0);
+  const totalDays = state.startedAt ? Math.floor((Date.now() - new Date(state.startedAt)) / 86400000) : 0;
+  const totalTasks = (state.history || []).filter(function(h){ return h.xp > 0; }).length;
+
+  const STR = Math.min(99, Math.round(5  + lv * 12 + Math.min(totalDays,200)/5));
+  const END = Math.min(99, Math.round(3  + lv * 11 + Math.min(totalDays,200)/6));
+  const WIL = Math.min(99, Math.round(4  + lv * 13 + Math.min(totalTasks,300)/10));
+  const WIS = Math.min(99, Math.round(2  + lv * 10 + Math.min(totalXP,10000)/200));
+
+  const charSVG = makeWarriorSVG(lv, faceData);
+
+  const statBars = [
+    ['СИЛ',STR,'#c4621d','⚔'],
+    ['ВЫН',END,'#4a9a4a','\u{1F6E1}'],
+    ['ВОЛ',WIL,'#8a4aaa','◈'],
+    ['МУД',WIS,'#4a7aaa','◎']
+  ].map(function(arr){
+    const lb = arr[0], v = arr[1], col = arr[2], ic = arr[3];
+    return '<div style="margin-bottom:6px;">'
+      + '<div style="display:flex;justify-content:space-between;margin-bottom:2px;">'
+      + '<span style="font-size:8px;color:#6a5a8a;letter-spacing:0.15em;font-weight:700;">' + ic + ' ' + lb + '</span>'
+      + '<span style="font-size:9px;color:' + col + ';font-weight:700;">' + v + '</span>'
+      + '</div>'
+      + '<div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;">'
+      + '<div style="height:100%;width:' + v + '%;background:' + col + ';border-radius:2px;box-shadow:0 0 5px ' + col + '80;"></div>'
+      + '</div></div>';
+  }).join('');
+
+  return '<div style="background:linear-gradient(160deg,rgba(25,12,5,0.95),rgba(10,5,18,0.95));border:1px solid rgba(196,98,29,0.2);border-radius:18px;padding:16px 14px;margin-bottom:16px;position:relative;overflow:hidden;">'
+    + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 60%,' + cl.color + '0a,transparent 55%);pointer-events:none;"></div>'
+    + '<div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,' + cl.color + '50,transparent);"></div>'
+    + '<div style="display:flex;gap:14px;align-items:flex-start;position:relative;">'
+    + '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:6px;">'
+    + charSVG
+    + '<input type="file" id="face-upload-inp" accept="image/*" style="display:none;" onchange="window.__app.uploadFace(this)"/>'
+    + '<button onclick="document.getElementById(\'face-upload-inp\').click()" style="font-size:9px;color:#6a5a8a;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:6px;padding:3px 9px;cursor:pointer;letter-spacing:0.08em;white-space:nowrap;">📷 моё лицо</button>'
+    + '</div>'
+    + '<div style="flex:1;min-width:0;padding-top:2px;">'
+    + '<div style="font-size:8px;color:' + cl.color + ';letter-spacing:0.3em;text-transform:uppercase;font-weight:700;margin-bottom:2px;">⚔ ранг</div>'
+    + '<div style="font-size:20px;color:' + cl.color + ';font-weight:800;font-family:Georgia,serif;line-height:1.1;text-shadow:0 0 16px ' + cl.color + '55;">' + cl.name + '</div>'
+    + '<div style="font-size:10px;color:#8870a8;margin-bottom:11px;margin-top:1px;">' + cl.sub + '</div>'
+    + statBars
+    + '<div style="margin-top:8px;display:flex;gap:8px;">'
+    + '<div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:6px 8px;text-align:center;">'
+    + '<div style="font-size:14px;color:#c9a84c;font-weight:800;font-family:Georgia,serif;">' + totalDays + '</div>'
+    + '<div style="font-size:8px;color:#6a5a8a;letter-spacing:0.1em;margin-top:1px;">ДНЕЙ</div>'
+    + '</div>'
+    + '<div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:6px 8px;text-align:center;">'
+    + '<div style="font-size:14px;color:#A78BFA;font-weight:800;font-family:Georgia,serif;">' + totalXP + '</div>'
+    + '<div style="font-size:8px;color:#6a5a8a;letter-spacing:0.1em;margin-top:1px;">XP</div>'
+    + '</div>'
+    + '<div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:6px 8px;text-align:center;">'
+    + '<div style="font-size:14px;color:#4a9a7a;font-weight:800;font-family:Georgia,serif;">' + totalTasks + '</div>'
+    + '<div style="font-size:8px;color:#6a5a8a;letter-spacing:0.1em;margin-top:1px;">ЗАДАЧ</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>'
+    + '</div>';
+}
+
 // === ВКЛАДКА «ПУТЬ» — этапы ===
 function renderPathStages() {
   const dp = daysPassed();
   const currentIdx = PATH.findIndex(s => !state.stagesUnlocked[s.id]);
 
-  let html = '<div style="text-align:center;margin-bottom:20px;">'
+  let html = renderCharacterCard();
+  html += '<div style="text-align:center;margin-bottom:20px;">'
     + '<div style="font-size:10px;letter-spacing:0.3em;color:#A78BFA;text-transform:uppercase;font-weight:700;">Карта пути · 3 года</div>'
     + '<p style="font-size:12px;color:#6a5a8a;margin:5px 0 0;">Этап откроется когда все сферы дотянутся</p>'
     + '</div>';
@@ -6060,6 +6245,27 @@ window.__app = {
   openGoalsModal: () => { view.goalsModal = true; view.editingGoalSphere = null; render(); },
   closeGoalsModal: () => { view.goalsModal = false; view.editingGoalSphere = null; render(); },
   openSphere: id => { view.sphereId = id; view.contextVisible = false; render(); },
+  uploadFace: function(input) {
+    var file = input.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e) {
+      var img = new Image();
+      img.onload = function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = 80; canvas.height = 80;
+        var ctx2 = canvas.getContext('2d');
+        var size = Math.min(img.width, img.height);
+        var sx = (img.width - size) / 2;
+        var sy = (img.height - size) / 2;
+        ctx2.drawImage(img, sx, sy, size, size, 0, 0, 80, 80);
+        state.characterFace = canvas.toDataURL('image/jpeg', 0.85);
+        save(); render();
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  },
   openStage: id => { view.stageId = id; render(); },
   editGoal: (sphereId) => {
     if (view.editingGoalSphere === sphereId) {

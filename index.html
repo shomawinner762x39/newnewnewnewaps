@@ -3778,11 +3778,11 @@ function makeWarriorSVG(lv, faceData) {
   const hasBerserk    = lv6;
 
   // ── размеры, растут с уровнем ──────────────────────────────────
-  var cx   = 72;                        // центр X (место для меча справа)
-  var SW   = 26 + lv * 3.5;            // полуширина плеч  26→47
-  var BW   = 16 + lv * 1.8;            // полуширина пояса 16→27
-  var AW   = 12 + lv * 1.4;            // толщина руки
-  var LHW  = 13 + lv * 0.9;            // полуширина бедра
+  var cx   = 68;                        // центр X (место для меча справа)
+  var SW   = 32 + lv * 3;              // полуширина плеч  32→50
+  var BW   = 18 + lv * 1.5;            // полуширина пояса 18→27
+  var AW   = 20 + lv * 1.5;            // толщина руки (ЗАПОЛНЕННАЯ форма)
+  var LHW  = 15 + lv * 1;              // полуширина бедра
 
   // ── цвета ──────────────────────────────────────────────────────
   var skinT = '#d8a87a', skinB = '#a06030';
@@ -3836,10 +3836,13 @@ function makeWarriorSVG(lv, faceData) {
   }
 
   // ── НОГИ ───────────────────────────────────────────────────────
-  // Левое бедро
-  g += '<path d="M' + (cx-LHW-2) + ' 175 Q' + (cx-LHW-5) + ' 228 ' + (cx-LHW-6) + ' 268 L' + (cx+2) + ' 268 Q' + (cx-2) + ' 228 ' + (cx-2) + ' 175Z" fill="url(#gCl)" stroke="#080402" stroke-width="2.5"/>';
+  // Левое бедро (заполненная форма, слегка конусная)
+  g += '<path d="M' + (cx-LHW-2) + ' 175 C' + (cx-LHW-4) + ' 215 ' + (cx-LHW-4) + ' 240 ' + (cx-LHW-3) + ' 268 L' + (cx+1) + ' 268 C' + (cx) + ' 240 ' + (cx) + ' 215 ' + (cx) + ' 175Z" fill="url(#gCl)" stroke="#080402" stroke-width="2"/>';
   // Правое бедро
-  g += '<path d="M' + (cx+LHW+2) + ' 175 Q' + (cx+LHW+5) + ' 228 ' + (cx+LHW+6) + ' 268 L' + (cx+2) + ' 268 Q' + (cx+2) + ' 228 ' + (cx+2) + ' 175Z" fill="url(#gCl)" stroke="#080402" stroke-width="2.5"/>';
+  g += '<path d="M' + (cx+LHW+2) + ' 175 C' + (cx+LHW+4) + ' 215 ' + (cx+LHW+4) + ' 240 ' + (cx+LHW+3) + ' 268 L' + (cx-1) + ' 268 C' + (cx) + ' 240 ' + (cx) + ' 215 ' + (cx) + ' 175Z" fill="url(#gCl)" stroke="#080402" stroke-width="2"/>';
+  // Блик на ноге
+  g += '<path d="M' + (cx-LHW+2) + ' 178 C' + (cx-LHW) + ' 215 ' + (cx-LHW) + ' 238 ' + (cx-LHW+1) + ' 260" stroke="rgba(60,30,5,0.4)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  g += '<path d="M' + (cx+LHW-2) + ' 178 C' + (cx+LHW) + ' 215 ' + (cx+LHW) + ' 238 ' + (cx+LHW-1) + ' 260" stroke="rgba(60,30,5,0.4)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
 
   // Наколенники (уровень 3+)
   if (hasShoulderPl) {
@@ -3857,21 +3860,32 @@ function makeWarriorSVG(lv, faceData) {
   }
 
   // ── ТОРС ───────────────────────────────────────────────────────
-  // Основной трапезоид
-  g += '<path d="M' + (cx-SW) + ' 80 L' + (cx-BW) + ' 174 L' + (cx+BW) + ' 174 L' + (cx+SW) + ' 80 Q' + cx + ' 70 ' + (cx-SW) + ' 80Z" fill="url(#gCl)" stroke="#080402" stroke-width="2.5"/>';
+  // Основной трапезоид с округлыми плечами
+  g += '<path d="M' + (cx-SW) + ' 84 Q' + (cx-SW-2) + ' 76 ' + (cx-SW+8) + ' 73 Q' + cx + ' 68 ' + (cx+SW-8) + ' 73 Q' + (cx+SW+2) + ' 76 ' + (cx+SW) + ' 84 L' + (cx+BW) + ' 174 L' + (cx-BW) + ' 174Z" fill="url(#gCl)" stroke="#080402" stroke-width="2.5"/>';
 
-  // Кожаные ремни (уровень 1+)
+  // Базовая одежда — ВСЕГДА (даже lv0): простая туника
+  // Вертикальная линия-складка центр
+  g += '<line x1="' + cx + '" y1="75" x2="' + cx + '" y2="174" stroke="rgba(10,5,0,0.4)" stroke-width="1.5"/>';
+  // Горизонтальная линия груди
+  g += '<path d="M' + (cx-SW+10) + ' 105 Q' + cx + ' 100 ' + (cx+SW-10) + ' 105" stroke="rgba(10,5,0,0.35)" stroke-width="1.5" fill="none"/>';
+  // Складки бёдер
+  g += '<line x1="' + (cx-BW+4) + '" y1="155" x2="' + (cx-BW+8) + '" y2="174" stroke="rgba(10,5,0,0.3)" stroke-width="1"/>';
+  g += '<line x1="' + (cx+BW-4) + '" y1="155" x2="' + (cx+BW-8) + '" y2="174" stroke="rgba(10,5,0,0.3)" stroke-width="1"/>';
+
+  // Кожаные ремни-сбруя (уровень 1+)
   if (lv1) {
-    g += '<path d="M' + (cx-SW+4) + ' 83 Q' + cx + ' 78 ' + (cx+SW-4) + ' 83" stroke="' + leath + '" stroke-width="4.5" fill="none" stroke-linecap="round"/>';
-    // Диагональный ремень
-    g += '<path d="M' + (cx-SW+8) + ' 86 Q' + cx + ' 112 ' + (cx+SW-8) + ' 160" stroke="' + leath + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M' + (cx-SW+4) + ' 83 Q' + cx + ' 78 ' + (cx+SW-4) + ' 83" stroke="' + leath + '" stroke-width="5" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M' + (cx-SW+8) + ' 86 Q' + cx + ' 112 ' + (cx+SW-8) + ' 160" stroke="' + leath + '" stroke-width="3.5" fill="none" stroke-linecap="round"/>';
+    g += '<path d="M' + (cx+SW-8) + ' 86 Q' + cx + ' 112 ' + (cx-SW+8) + ' 160" stroke="' + leath + '" stroke-width="2" fill="none" stroke-linecap="round" opacity="0.5"/>';
   }
 
   // Мышцы (уровень 2-3 без нагрудника)
   if (lv2 && !lv4) {
-    g += '<path d="M' + (cx-SW+6) + ' 98 Q' + (cx-4) + ' 112 ' + cx + ' 110" stroke="rgba(30,10,0,0.5)" stroke-width="2" fill="none"/>';
-    g += '<path d="M' + (cx+SW-6) + ' 98 Q' + (cx+4) + ' 112 ' + cx + ' 110" stroke="rgba(30,10,0,0.5)" stroke-width="2" fill="none"/>';
-    g += '<ellipse cx="' + cx + '" cy="143" rx="11" ry="7" fill="none" stroke="rgba(30,10,0,0.35)" stroke-width="1.5"/>';
+    g += '<path d="M' + (cx-SW+8) + ' 88 Q' + (cx-5) + ' 102 ' + cx + ' 100" stroke="rgba(40,15,0,0.55)" stroke-width="2.5" fill="none"/>';
+    g += '<path d="M' + (cx+SW-8) + ' 88 Q' + (cx+5) + ' 102 ' + cx + ' 100" stroke="rgba(40,15,0,0.55)" stroke-width="2.5" fill="none"/>';
+    g += '<ellipse cx="' + cx + '" cy="138" rx="12" ry="8" fill="none" stroke="rgba(40,15,0,0.4)" stroke-width="2"/>';
+    g += '<path d="M' + (cx-8) + ' 115 L' + (cx-8) + ' 132" stroke="rgba(40,15,0,0.3)" stroke-width="1.5"/>';
+    g += '<path d="M' + (cx+8) + ' 115 L' + (cx+8) + ' 132" stroke="rgba(40,15,0,0.3)" stroke-width="1.5"/>';
   }
 
   // Нагрудная броня (уровень 4+)
@@ -3896,24 +3910,44 @@ function makeWarriorSVG(lv, faceData) {
   g += '<rect x="' + (cx-BW) + '" y="172" width="' + (BW*2) + '" height="10" rx="3" fill="' + beltC + '" stroke="#080402" stroke-width="1.5"/>';
   g += '<rect x="' + (cx-7) + '" y="171" width="14" height="12" rx="2" fill="#5a4820" stroke="#8a7030" stroke-width="1"/>';
 
-  // ── РУКИ ───────────────────────────────────────────────────────
-  // Левая рука (тёмная сторона)
-  g += '<path d="M' + (cx-SW+2) + ' 84 Q' + (cx-SW-20) + ' 128 ' + (cx-SW-16) + ' 180" stroke="url(#gArmL)" stroke-width="' + AW + '" stroke-linecap="round" fill="none"/>';
-  g += '<path d="M' + (cx-SW) + ' 84 Q' + (cx-SW-22) + ' 128 ' + (cx-SW-18) + ' 178" stroke="#080402" stroke-width="' + (AW+4) + '" stroke-linecap="round" fill="none" opacity="0.35"/>';
-  g += '<path d="M' + (cx-SW+2) + ' 84 Q' + (cx-SW-20) + ' 128 ' + (cx-SW-16) + ' 180" stroke="url(#gArmL)" stroke-width="' + AW + '" stroke-linecap="round" fill="none"/>';
-  g += '<ellipse cx="' + (cx-SW-16) + '" cy="184" rx="8" ry="9" fill="url(#gSk)" stroke="#080402" stroke-width="2"/>';
+  // ── РУКИ — заполненные фигуры, не stroke-линии ─────────────────
+  var aHalf = AW / 2;
+  // ЛЕВАЯ РУКА: широкая у плеча, сужается к запястью, изгиб наружу и вниз
+  var lAx1 = cx-SW, lAy1 = 82;           // верх плеча (внутр)
+  var lAx2 = cx-SW-20, lAy2 = 135;       // локоть
+  var lAx3 = cx-SW-18, lAy3 = 178;       // запястье (внутр)
+  g += '<path d="'
+    + 'M' + lAx1 + ' ' + lAy1
+    + ' C' + (lAx1-aHalf*0.3) + ' ' + (lAy1+10) + ' ' + (lAx2-aHalf*0.5) + ' ' + (lAy2-20) + ' ' + (lAx3-6) + ' ' + lAy3
+    + ' L' + (lAx3+8) + ' ' + (lAy3+3)
+    + ' C' + (lAx2+aHalf*0.8) + ' ' + (lAy2-16) + ' ' + (lAx1+aHalf) + ' ' + (lAy1+8) + ' ' + (lAx1+6) + ' ' + (lAy1+2)
+    + 'Z" fill="' + clothT + '" stroke="#080402" stroke-width="2"/>';
+  // Блик на руке
+  g += '<path d="M' + (lAx1+2) + ' ' + (lAy1+5) + ' C' + (lAx2+3) + ' ' + (lAy2-15) + ' ' + (lAx3+3) + ' ' + (lAy3-15) + ' ' + (lAx3+5) + ' ' + (lAy3-2) + '" stroke="rgba(80,40,10,0.4)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  // Кожаная перевязь на руке (lv1+)
+  if (lv1) g += '<path d="M' + (lAx1-2) + ' ' + (lAy1+14) + ' C' + (lAx2-1) + ' ' + (lAy2-12) + ' ' + (lAx3+2) + ' ' + (lAy3-22) + ' ' + (lAx3+6) + ' ' + (lAy3-18) + '" stroke="' + leath + '" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.7"/>';
+  // Кисть левой
+  g += '<ellipse cx="' + (lAx3-3) + '" cy="' + (lAy3+9) + '" rx="9" ry="10" fill="url(#gSk)" stroke="#080402" stroke-width="2"/>';
 
-  // Правая рука (светлая сторона)
-  g += '<path d="M' + (cx+SW-2) + ' 84 Q' + (cx+SW+20) + ' 128 ' + (cx+SW+16) + ' 180" stroke="#080402" stroke-width="' + (AW+4) + '" stroke-linecap="round" fill="none" opacity="0.35"/>';
-  g += '<path d="M' + (cx+SW-2) + ' 84 Q' + (cx+SW+20) + ' 128 ' + (cx+SW+16) + ' 180" stroke="url(#gArmR)" stroke-width="' + AW + '" stroke-linecap="round" fill="none"/>';
-  g += '<ellipse cx="' + (cx+SW+16) + '" cy="184" rx="8" ry="9" fill="url(#gSk)" stroke="#080402" stroke-width="2"/>';
+  // ПРАВАЯ РУКА: зеркально, немного другой изгиб
+  var rAx1 = cx+SW, rAy1 = 82;
+  var rAx2 = cx+SW+20, rAy2 = 135;
+  var rAx3 = cx+SW+18, rAy3 = 178;
+  g += '<path d="'
+    + 'M' + rAx1 + ' ' + rAy1
+    + ' C' + (rAx1+aHalf*0.3) + ' ' + (rAy1+10) + ' ' + (rAx2+aHalf*0.5) + ' ' + (rAy2-20) + ' ' + (rAx3+6) + ' ' + rAy3
+    + ' L' + (rAx3-8) + ' ' + (rAy3+3)
+    + ' C' + (rAx2-aHalf*0.8) + ' ' + (rAy2-16) + ' ' + (rAx1-aHalf) + ' ' + (rAy1+8) + ' ' + (rAx1-6) + ' ' + (rAy1+2)
+    + 'Z" fill="' + clothT + '" stroke="#080402" stroke-width="2"/>';
+  g += '<path d="M' + (rAx1-2) + ' ' + (rAy1+5) + ' C' + (rAx2-3) + ' ' + (rAy2-15) + ' ' + (rAx3-3) + ' ' + (rAy3-15) + ' ' + (rAx3-5) + ' ' + (rAy3-2) + '" stroke="rgba(100,60,20,0.5)" stroke-width="2.5" fill="none" stroke-linecap="round"/>';
+  if (lv1) g += '<path d="M' + (rAx1+2) + ' ' + (rAy1+14) + ' C' + (rAx2+1) + ' ' + (rAy2-12) + ' ' + (rAx3-2) + ' ' + (rAy3-22) + ' ' + (rAx3-6) + ' ' + (rAy3-18) + '" stroke="' + leath + '" stroke-width="3.5" fill="none" stroke-linecap="round" opacity="0.7"/>';
+  // Кисть правой (чуть светлее — световая сторона)
+  g += '<ellipse cx="' + (rAx3+3) + '" cy="' + (rAy3+9) + '" rx="9" ry="10" fill="url(#gSk)" stroke="#080402" stroke-width="2"/>';
 
   // Наручи (уровень 4+)
   if (hasChestArmor) {
-    g += '<path d="M' + (cx-SW-12) + ' 154 Q' + (cx-SW-22) + ' 164 ' + (cx-SW-18) + ' 176" stroke="' + aD + '" stroke-width="10" stroke-linecap="round" fill="none"/>';
-    g += '<path d="M' + (cx-SW-12) + ' 154 Q' + (cx-SW-22) + ' 164 ' + (cx-SW-18) + ' 176" stroke="' + aL + '" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4"/>';
-    g += '<path d="M' + (cx+SW+12) + ' 154 Q' + (cx+SW+22) + ' 164 ' + (cx+SW+18) + ' 176" stroke="' + aD + '" stroke-width="10" stroke-linecap="round" fill="none"/>';
-    g += '<path d="M' + (cx+SW+12) + ' 154 Q' + (cx+SW+22) + ' 164 ' + (cx+SW+18) + ' 176" stroke="' + aL + '" stroke-width="2" stroke-linecap="round" fill="none" opacity="0.4"/>';
+    g += '<path d="M' + (lAx3-8) + ' ' + (lAy3-18) + ' C' + (lAx3-12) + ' ' + (lAy3-6) + ' ' + (lAx3-10) + ' ' + lAy3 + ' ' + (lAx3-4) + ' ' + (lAy3+6) + ' L' + (lAx3+8) + ' ' + (lAy3+4) + ' C' + (lAx3+6) + ' ' + lAy3 + ' ' + (lAx3+4) + ' ' + (lAy3-8) + ' ' + (lAx3+4) + ' ' + (lAy3-16) + 'Z" fill="' + aD + '" stroke="' + aL + '" stroke-width="1"/>';
+    g += '<path d="M' + (rAx3+8) + ' ' + (rAy3-18) + ' C' + (rAx3+12) + ' ' + (rAy3-6) + ' ' + (rAx3+10) + ' ' + rAy3 + ' ' + (rAx3+4) + ' ' + (rAy3+6) + ' L' + (rAx3-8) + ' ' + (rAy3+4) + ' C' + (rAx3-6) + ' ' + rAy3 + ' ' + (rAx3-4) + ' ' + (rAy3-8) + ' ' + (rAx3-4) + ' ' + (rAy3-16) + 'Z" fill="' + aD + '" stroke="' + aL + '" stroke-width="1"/>';
   }
 
   // Наплечники (уровень 3+)

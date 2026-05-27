@@ -3442,19 +3442,13 @@ function renderGoals() {
     </div>`;
 
     html += '</div>';
-
-    // 🌙 Виджет сна — выпадает под карточкой Тело
-    if (s.id === 'body') {
-      html += renderSleepWidgetCard(s);
-    }
   });
 
   return html;
 }
 
-// Виджет сна как «довесок» к карточке Тело — тот же стиль и размер
-function renderSleepWidgetCard(s) {
-  const open = !!view.expandedGroups?.['goals_sleep'];
+// Виджет сна — выпадает под строкой Тело в Пути, в том же стиле строки
+function renderSleepDropdown(s) {
   const monthHours = sleepHoursThisMonth();
   const avg7 = sleepAvgWeek();
   const goal = state.sleep?.goalHours || 8;
@@ -3462,19 +3456,10 @@ function renderSleepWidgetCard(s) {
   const todayISO = today();
   const todayEntry = sleepEntryForDate(todayISO);
 
-  let out = `<div onclick="window.__app.toggleGroup('goals_sleep')" style="padding:14px;background:linear-gradient(135deg,${s.color}12,${s.color}04);border:1px solid ${s.color}35;border-radius:${open?'14px 14px 0 0':'14px'};margin-bottom:${open?'0':'10px'};margin-top:-4px;cursor:pointer;">
-    <div style="display:flex;align-items:center;gap:10px;">
-      <div style="font-size:22px;color:${s.color};text-shadow:0 0 10px ${s.glow};">🌙</div>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:14px;color:#fff;font-weight:700;">Сон</div>
-        <div style="font-size:11px;color:#8870a8;margin-top:2px;">${monthEntries > 0 ? `${monthHours.toFixed(1)} ч за месяц · ср. ${avg7 > 0 ? fmtDur(avg7) : '—'}` : 'Ещё нет записей'}</div>
-      </div>
-      <div style="font-size:14px;color:${s.color};flex-shrink:0;">${open ? '▾' : '▸'}</div>
-    </div>
-  </div>`;
-
-  if (open) {
-    out += `<div style="padding:14px;background:linear-gradient(135deg,${s.color}08,${s.color}02);border:1px solid ${s.color}35;border-top:none;border-radius:0 0 14px 14px;margin-bottom:10px;">`;
+  let out = '';
+  if (true) {
+    out += `<div onclick="event.stopPropagation()" style="background:rgba(0,0,0,0.35);border:1px solid rgba(255,255,255,0.05);border-left:3px solid ${s.color};border-top:none;border-radius:0 0 8px 8px;padding:11px;margin-top:-1px;">`;
+    out += `<div style="font-size:9px;letter-spacing:0.2em;color:${s.color};text-transform:uppercase;font-weight:700;margin-bottom:8px;">🌙 Сон · ${monthHours.toFixed(1)}ч за месяц${avg7>0?' · ср. '+fmtDur(avg7):''}</div>`;
 
     if (todayEntry) {
       const pct = Math.min(100, Math.round((todayEntry.hours / goal) * 100));
@@ -3614,11 +3599,15 @@ function renderPathStages() {
       const unit = targetType === 'hours' ? 'ч' : '';
       const formatNum = n => targetType === 'hours' ? n.toFixed(1) : Math.round(n);
       const isDone = prog.pct >= 100;
-      html += `<div style="background:rgba(0,0,0,0.25);border:1px solid ${isDone?sp.color+'60':'rgba(255,255,255,0.05)'};border-left:3px solid ${sp.color};border-radius:8px;padding:9px 11px;">
+      const isBody = sp.id === 'body';
+      const sleepOpen = isBody && !!view.expandedGroups?.['path_body_sleep'];
+      const clickAttr = isBody ? `onclick="window.__app.toggleGroup('path_body_sleep')" style="cursor:pointer;` : `style="`;
+      html += `<div ${clickAttr}background:rgba(0,0,0,0.25);border:1px solid ${isDone?sp.color+'60':'rgba(255,255,255,0.05)'};border-left:3px solid ${sp.color};border-radius:${sleepOpen?'8px 8px 0 0':'8px'};padding:9px 11px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;">
           <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
             <span style="font-size:16px;color:${sp.color};text-shadow:0 0 8px ${sp.glow};flex-shrink:0;">${sp.emoji}</span>
             <span style="font-size:12px;color:#fff;font-weight:600;">${sp.name}</span>
+            ${isBody ? `<span style="font-size:10px;color:${sp.color};opacity:0.7;margin-left:4px;">${sleepOpen ? '▾ сон' : '▸ сон'}</span>` : ''}
           </div>
           <div style="font-size:11px;color:${isDone?'#10E891':sp.color};font-weight:700;flex-shrink:0;">${isDone?'✓':Math.round(prog.pct)+'%'}</div>
         </div>
@@ -3627,6 +3616,10 @@ function renderPathStages() {
         </div>
         <div style="font-size:9px;color:#6a5a8a;margin-top:3px;">${formatNum(prog.current)} ${unit} / ${formatNum(prog.target)} ${unit}</div>
       </div>`;
+      // 🌙 Сон — выпадает под строкой Тело
+      if (isBody && sleepOpen) {
+        html += renderSleepDropdown(sp);
+      }
     });
 
     html += '</div></div>';

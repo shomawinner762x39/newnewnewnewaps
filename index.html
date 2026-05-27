@@ -3447,8 +3447,126 @@ function renderGoals() {
   return html;
 }
 
-// Виджет сна — выпадает под строкой Тело в Пути.
-// ТОЛЬКО ПРОСМОТР помесячной статистики, без записи/правки. Запись делается в Древо → Тело.
+// Сон как отдельная строка в Пути (рядом со сферами).
+// ТОЛЬКО ПРОСМОТР помесячной статистики. Запись — в Древо → Тело.
+function renderSleepRowPath() {
+  const open = !!view.expandedGroups?.['path_sleep_row'];
+  const color = '#A78BFA';
+  const glow = 'rgba(167,139,250,0.7)';
+  const goal = state.sleep?.goalHours || 8;
+  const entries = state.sleep?.entries || [];
+
+  // Какой месяц смотрим (по умолчанию текущий)
+  const todayISO = today();
+  const curYM = todayISO.slice(0, 7);
+  const viewYM = view.sleepMonthView || curYM;
+
+  // Статистика по выбранному месяцу
+  const monthEntries = entries.filter(e => e.date.startsWith(viewYM));
+  const monthHours = monthEntries.reduce((s, e) => s + (e.hours || 0), 0);
+  const monthNights = monthEntries.length;
+  const monthAvg = monthNights > 0 ? monthHours / monthNights : 0;
+  const goalMonth = goal * 30;
+  const monthPct = Math.min(100, Math.round((monthHours / goalMonth) * 100));
+
+  // Текущий месяц для шапки строки (всегда показываем сегодняшнее)
+  const curMonthHours = entries.filter(e => e.date.startsWith(curYM)).reduce((s, e) => s + (e.hours || 0), 0);
+
+  let out = `<div onclick="window.__app.toggleGroup('path_sleep_row')" style="background:rgba(0,0,0,0.25);border:1px solid ${open?color+'60':'rgba(255,255,255,0.05)'};border-left:3px solid ${color};border-radius:${open?'8px 8px 0 0':'8px'};padding:9px 11px;cursor:pointer;">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;">
+      <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+        <span style="font-size:16px;color:${color};text-shadow:0 0 8px ${glow};flex-shrink:0;">🌙</span>
+        <span style="font-size:12px;color:#fff;font-weight:600;">Сон</span>
+        <span style="font-size:10px;color:${color};opacity:0.7;">${open ? '▾' : '▸'}</span>
+      </div>
+      <div style="font-size:11px;color:${color};font-weight:700;flex-shrink:0;">${curMonthHours.toFixed(1)} ч</div>
+    </div>
+    <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;">
+      <div style="height:100%;width:${Math.min(100,(curMonthHours/goalMonth)*100)}%;background:${color};"></div>
+    </div>
+    <div style="font-size:9px;color:#6a5a8a;margin-top:3px;">${curMonthHours.toFixed(1)} ч / ${goalMonth.toFixed(0)} ч (этот месяц)</div>
+  </div>`;
+
+  if (!open) return out;
+
+  // Раскрытая часть
+  const [yy, mm] = viewYM.split('-').map(Number);
+  const monthLabel = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'][mm - 1] + ' ' + yy;
+
+  // Можем ли двигаться вперёд (не дальше текущего месяца)
+  const canForward = viewYM < curYM;
+
+  out += `<div onclick="event.stopPropagation()" style="background:rgba(0,0,0,0.4);border:1px solid ${color}40;border-left:3px solid ${color};border-top:none;border-radius:0 0 8px 8px;padding:14px;">`;
+
+  // Переключатель месяца
+  out += `<div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+    <button onclick="window.__app.sleepShiftMonth(-1)" style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:${color};font-size:16px;cursor:pointer;flex-shrink:0;">◀</button>
+    <div style="flex:1;text-align:center;">
+      <div style="font-size:13px;color:#fff;font-weight:700;font-family:Georgia,serif;letter-spacing:0.05em;">${monthLabel}</div>
+      <div style="font-size:9px;color:${color};letter-spacing:0.2em;text-transform:uppercase;margin-top:2px;font-weight:600;">${viewYM === curYM ? 'Текущий' : ''}</div>
+    </div>
+    <button onclick="window.__app.sleepShiftMonth(1)" ${canForward ? '' : 'disabled'} style="width:34px;height:34px;border-radius:50%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:${canForward ? color : '#3a2a58'};font-size:16px;cursor:${canForward ? 'pointer' : 'default'};flex-shrink:0;opacity:${canForward ? 1 : 0.4};">▶</button>
+  </div>`;
+
+  // Большая цифра
+  out += `<div style="text-align:center;margin-bottom:14px;">
+    <div style="font-size:42px;font-weight:800;color:#fff;line-height:1;text-shadow:0 0 22px ${glow};">${monthHours.toFixed(1)}</div>
+    <div style="font-size:11px;color:${color};letter-spacing:0.15em;text-transform:uppercase;margin-top:4px;font-weight:600;">часов сна</div>
+  </div>`;
+
+  // Три карточки
+  out += `<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-bottom:14px;">
+    <div style="background:rgba(167,139,250,0.06);border:1px solid ${color}25;border-radius:8px;padding:9px;text-align:center;">
+      <div style="font-size:8px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;">Ночей</div>
+      <div style="font-size:17px;color:#fff;font-weight:700;margin-top:3px;">${monthNights}</div>
+    </div>
+    <div style="background:rgba(167,139,250,0.06);border:1px solid ${color}25;border-radius:8px;padding:9px;text-align:center;">
+      <div style="font-size:8px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;">Средне</div>
+      <div style="font-size:17px;color:#fff;font-weight:700;margin-top:3px;">${monthAvg > 0 ? fmtDur(monthAvg) : '—'}</div>
+    </div>
+    <div style="background:rgba(167,139,250,0.06);border:1px solid ${color}25;border-radius:8px;padding:9px;text-align:center;">
+      <div style="font-size:8px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;">К цели</div>
+      <div style="font-size:17px;color:${monthPct >= 90 ? '#10E891' : '#fff'};font-weight:700;margin-top:3px;">${monthPct}%</div>
+    </div>
+  </div>`;
+
+  // Прогресс месяца к цели
+  out += `<div style="margin-bottom:14px;">
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:5px;">
+      <span>Месяц к цели</span><span>${goalMonth.toFixed(0)} ч</span>
+    </div>
+    <div style="height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;">
+      <div style="height:100%;width:${monthPct}%;background:linear-gradient(90deg,${color},#FF4DD8);box-shadow:0 0 8px ${glow};"></div>
+    </div>
+  </div>`;
+
+  // Календарь дней месяца
+  if (monthNights > 0) {
+    const daysInMonth = new Date(yy, mm, 0).getDate();
+    out += `<div style="font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:8px;">Дни месяца</div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:14px;">`;
+    for (let d = 1; d <= daysInMonth; d++) {
+      const iso = viewYM + '-' + String(d).padStart(2, '0');
+      const e = entries.find(x => x.date === iso);
+      const h = e?.hours || 0;
+      const c = h === 0 ? 'rgba(255,255,255,0.04)' : (h >= goal ? '#10E891' : (h >= goal * 0.85 ? color : '#FFAA00'));
+      out += `<div title="${iso}: ${h > 0 ? fmtDur(h) : 'нет записи'}" style="aspect-ratio:1;background:${c};border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;color:${h > 0 ? '#fff' : '#3a2a58'};font-weight:${h > 0 ? '700' : '400'};">${d}</div>`;
+    }
+    out += `</div>`;
+  } else {
+    out += `<div style="text-align:center;padding:20px;background:rgba(255,255,255,0.02);border:1px dashed rgba(255,255,255,0.1);border-radius:8px;margin-bottom:14px;">
+      <div style="font-size:11px;color:#6a5a8a;">Нет записей за этот месяц</div>
+    </div>`;
+  }
+
+  // Подсказка
+  out += `<div style="font-size:9px;color:#5a4a78;font-style:italic;text-align:center;padding-top:6px;border-top:1px solid rgba(255,255,255,0.05);">Запись часов — в Древо → Тело → 🌙 Сон</div>`;
+
+  out += `</div>`;
+  return out;
+}
+
+// Старый — больше не используется, оставлен пустой заглушкой
 function renderSleepDropdown(s) {
   const goal = state.sleep?.goalHours || 8;
   const entries = state.sleep?.entries || [];
@@ -3677,15 +3795,11 @@ function renderPathStages() {
       const unit = targetType === 'hours' ? 'ч' : '';
       const formatNum = n => targetType === 'hours' ? n.toFixed(1) : Math.round(n);
       const isDone = prog.pct >= 100;
-      const isBody = sp.id === 'body';
-      const sleepOpen = isBody && !!view.expandedGroups?.['path_body_sleep'];
-      const clickAttr = isBody ? `onclick="window.__app.toggleGroup('path_body_sleep')" style="cursor:pointer;` : `style="`;
-      html += `<div ${clickAttr}background:rgba(0,0,0,0.25);border:1px solid ${isDone?sp.color+'60':'rgba(255,255,255,0.05)'};border-left:3px solid ${sp.color};border-radius:${sleepOpen?'8px 8px 0 0':'8px'};padding:9px 11px;">
+      html += `<div style="background:rgba(0,0,0,0.25);border:1px solid ${isDone?sp.color+'60':'rgba(255,255,255,0.05)'};border-left:3px solid ${sp.color};border-radius:8px;padding:9px 11px;">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;">
           <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
             <span style="font-size:16px;color:${sp.color};text-shadow:0 0 8px ${sp.glow};flex-shrink:0;">${sp.emoji}</span>
             <span style="font-size:12px;color:#fff;font-weight:600;">${sp.name}</span>
-            ${isBody ? `<span style="font-size:10px;color:${sp.color};opacity:0.7;margin-left:4px;">${sleepOpen ? '▾ сон' : '▸ сон'}</span>` : ''}
           </div>
           <div style="font-size:11px;color:${isDone?'#10E891':sp.color};font-weight:700;flex-shrink:0;">${isDone?'✓':Math.round(prog.pct)+'%'}</div>
         </div>
@@ -3694,11 +3808,10 @@ function renderPathStages() {
         </div>
         <div style="font-size:9px;color:#6a5a8a;margin-top:3px;">${formatNum(prog.current)} ${unit} / ${formatNum(prog.target)} ${unit}</div>
       </div>`;
-      // 🌙 Сон — выпадает под строкой Тело
-      if (isBody && sleepOpen) {
-        html += renderSleepDropdown(sp);
-      }
     });
+
+    // 🌙 Сон — отдельная строка после всех сфер
+    html += renderSleepRowPath();
 
     html += '</div></div>';
   }
@@ -5994,6 +6107,17 @@ window.__app = {
   sleepGoalSet: (h) => {
     state.sleep.goalHours = +h || 8;
     save(); render();
+  },
+  sleepShiftMonth: (dir) => {
+    const curYM = today().slice(0, 7);
+    const cur = view.sleepMonthView || curYM;
+    const [y, m] = cur.split('-').map(Number);
+    const d = new Date(y, m - 1 + dir, 1);
+    const newYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+    // не уходим в будущее
+    if (newYM > curYM) return;
+    view.sleepMonthView = newYM;
+    render();
   },
   // ── Ретро-добавление в Хронику ───────────────────────────────────────────
   retroOpen: (preDate) => {

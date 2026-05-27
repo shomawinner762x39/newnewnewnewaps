@@ -4526,7 +4526,7 @@ function renderHistory() {
   });
 
   const years = Object.keys(yearMap).sort().reverse(); // свежие сверху
-  const showYearLevel = years.length > 1;
+  const showYearLevel = true; // всегда оборачиваем месяцы в год
   const curMonth = today().slice(0, 7);
   const curYear = today().slice(0, 4);
 

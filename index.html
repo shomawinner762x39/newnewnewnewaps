@@ -3199,12 +3199,10 @@ function renderApp() {
 
 function renderTree() {
   let html = '';
-  // Шапка с кнопкой «Цели»
-  html += `<div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:10px;">
-    <button onclick="window.__app.openGoalsModal()" style="display:flex;align-items:center;gap:5px;padding:6px 12px;background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.22);border-radius:20px;color:#A78BFA;font-size:11px;font-weight:600;letter-spacing:0.12em;cursor:pointer;">
-      <span style="font-size:13px;">◎</span> ЦЕЛИ
-    </button>
-  </div>`;
+  // Кнопка «Цели» — полная ширина
+  html += `<button onclick="window.__app.openGoalsModal()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;margin-bottom:12px;background:linear-gradient(90deg,rgba(167,139,250,0.07),rgba(167,139,250,0.13),rgba(167,139,250,0.07));border:1px solid rgba(167,139,250,0.28);border-radius:14px;color:#A78BFA;font-size:13px;font-weight:700;letter-spacing:0.22em;cursor:pointer;text-transform:uppercase;font-family:Georgia,serif;">
+    <span style="font-size:16px;opacity:0.85;">◎</span> Цели
+  </button>`;
   html += '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">';
 
   SPHERES.forEach(s => {

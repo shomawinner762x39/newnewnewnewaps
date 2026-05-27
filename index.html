@@ -3935,7 +3935,9 @@ function renderTaskMiniHeatmap(taskKey, color) {
 
 // === ВКЛАДКА «УЧЁТ» ===
 function renderCounters() {
-  const period = view.countersPeriod || 'all';
+  // Допустимые периоды: month, all, custom. Старые значения сбрасываем.
+  if (!['month', 'all', 'custom'].includes(view.countersPeriod)) view.countersPeriod = 'all';
+  const period = view.countersPeriod;
   const filter = view.countersFilter || 'all';
 
   const allRepeating = [];
@@ -3987,7 +3989,7 @@ function renderCounters() {
     return '';
   })();
 
-  html += `<div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">${[['today', 'Сегодня'], ['week', 'Неделя'], ['report', '★ Отчёт'], ['month', 'Месяц'], ['all', 'Всё'], ['custom', 'Свой ↓']].map(([v, l]) => `<button onclick="window.__app.setPeriod('${v}')" style="flex: 1; min-width: 60px; padding: 8px 6px; background: ${period === v ? '#A78BFA' : 'transparent'}; color: ${period === v ? '#000' : '#b0a0d0'}; border: 1px solid ${period === v ? '#A78BFA' : 'rgba(255,255,255,0.1)'}; border-radius: 8px; font-size: 11px; cursor: pointer; font-weight: 600;">${l}</button>`).join('')}</div>`;
+  html += `<div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">${[['month', 'Месяц'], ['all', 'Всё'], ['custom', 'Свой ↓']].map(([v, l]) => `<button onclick="window.__app.setPeriod('${v}')" style="flex: 1; min-width: 80px; padding: 10px 8px; background: ${period === v ? '#A78BFA' : 'transparent'}; color: ${period === v ? '#000' : '#b0a0d0'}; border: 1px solid ${period === v ? '#A78BFA' : 'rgba(255,255,255,0.1)'}; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 600;">${l}</button>`).join('')}</div>`;
 
   html += `<div style="text-align: center; font-size: 11px; color: #A78BFA; margin-bottom: 12px; letter-spacing: 0.05em;">${periodLabel}</div>`;
 

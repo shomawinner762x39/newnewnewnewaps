@@ -4507,20 +4507,48 @@ function renderHistory() {
     }
   }
 
-  const grouped = {};
-  filteredHistory.forEach(h => { if (!grouped[h.date]) grouped[h.date] = []; grouped[h.date].push(h); });
+  // ── Иерархия: Год → Месяц → День ──────────────────────────────────────
+  // Группируем
+  const yearMap = {};
+  filteredHistory.forEach(h => {
+    const yr = h.date.slice(0, 4);
+    const mo = h.date.slice(0, 7);
+    if (!yearMap[yr]) yearMap[yr] = { months: {}, totalXP: 0, totalHours: 0, count: 0 };
+    if (!yearMap[yr].months[mo]) yearMap[yr].months[mo] = { days: {}, totalXP: 0, totalHours: 0, count: 0 };
+    if (!yearMap[yr].months[mo].days[h.date]) yearMap[yr].months[mo].days[h.date] = [];
+    yearMap[yr].months[mo].days[h.date].push(h);
+    yearMap[yr].months[mo].totalXP += h.xp;
+    yearMap[yr].months[mo].totalHours += (h.hours || 0);
+    yearMap[yr].months[mo].count++;
+    yearMap[yr].totalXP += h.xp;
+    yearMap[yr].totalHours += (h.hours || 0);
+    yearMap[yr].count++;
+  });
 
-  Object.keys(grouped).forEach(date => {
-    const items = grouped[date];
+  const years = Object.keys(yearMap).sort().reverse(); // свежие сверху
+  const showYearLevel = years.length > 1;
+  const curMonth = today().slice(0, 7);
+  const curYear = today().slice(0, 4);
+
+  // Если открыт прыжок к дате — раскрываем нужный месяц автоматически
+  if (view.historyJumpDate) {
+    const jumpMonth = view.historyJumpDate.slice(0, 7);
+    const jumpYear = view.historyJumpDate.slice(0, 4);
+    if (!view.expandedGroups) view.expandedGroups = {};
+    view.expandedGroups['history_month_' + jumpMonth] = true;
+    view.expandedGroups['history_year_' + jumpYear] = true;
+    view.expandedGroups['history_day_' + view.historyJumpDate] = true;
+  }
+
+  function renderDayCard(date, items) {
     const totalDayXP = items.reduce((s, h) => s + h.xp, 0);
     const totalDayHours = items.reduce((s, h) => s + (h.hours || 0), 0);
     const dayGroupKey = 'history_day_' + date;
     const isDayOpen = view.expandedGroups && view.expandedGroups[dayGroupKey];
 
-    // Заголовок дня — кнопка
-    html += `<div style="margin-bottom: 8px;">
-      <button onclick="window.__app.toggleGroup('${dayGroupKey}')" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 11px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; cursor: pointer; text-align: left;">
-        <div style="font-size: 14px; color: #A78BFA; flex-shrink: 0;">${isDayOpen ? '▾' : '▸'}</div>
+    let out = `<div style="margin-bottom: 6px;">
+      <button onclick="window.__app.toggleGroup('${dayGroupKey}')" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 13px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 10px; cursor: pointer; text-align: left;">
+        <div style="font-size: 12px; color: #A78BFA; flex-shrink: 0;">${isDayOpen ? '▾' : '▸'}</div>
         <div style="flex: 1; min-width: 0;">
           <div style="font-size: 13px; color: #fff; font-weight: 600;">${formatDateLong(date)}</div>
           <div style="font-size: 10px; color: #8870a8; margin-top: 2px;">${formatDateRelative(date)} · ${WEEKDAYS_SHORT[weekdayMon(parseISO(date))]} · ${items.length} ${plural(items.length, 'действие', 'действия', 'действий')}</div>
@@ -4532,16 +4560,90 @@ function renderHistory() {
       </button>`;
 
     if (isDayOpen) {
-      html += `<div style="margin-top: 4px; padding-left: 6px;">`;
+      out += `<div style="margin-top: 4px; padding-left: 6px;">`;
       items.forEach(h => {
         const sphere = SPHERES.find(s => s.id === h.sphere);
         const isC = view.confirmUndoId === h.id;
         const hL = h.hours ? ` · ${h.hours}ч` : '';
-        html += `<div style="padding: 11px 13px; background: ${isC ? 'rgba(255,61,113,0.1)' : 'rgba(255,255,255,0.03)'}; border-left: 3px solid ${isC ? '#FF3D71' : sphere.color}; border-radius: 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 10px;"><div style="flex: 1; min-width: 0;"><div style="font-size: 13px; color: #fff; word-break: break-word;">${escapeHtml(h.title)}</div><div style="font-size: 9px; color: ${sphere.color}; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 3px; font-weight: 600;">${sphere.name}${hL}</div></div><div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;"><div style="font-size: 13px; color: ${isC ? '#FF3D71' : '#A78BFA'}; font-weight: 700; ${isC ? 'text-decoration: line-through;' : ''}">${isC ? '−' : '+'}${h.xp}</div><button onclick="window.__app.undo('${h.id}')" style="width: 24px; height: 24px; background: ${isC ? '#FF3D71' : 'transparent'}; border: 1px solid ${isC ? '#FF3D71' : 'rgba(255,255,255,0.15)'}; border-radius: 50%; color: ${isC ? '#fff' : '#8870a8'}; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; font-size: 11px;">${isC ? '✓' : '✕'}</button></div></div>`;
+        out += `<div style="padding: 11px 13px; background: ${isC ? 'rgba(255,61,113,0.1)' : 'rgba(255,255,255,0.03)'}; border-left: 3px solid ${isC ? '#FF3D71' : sphere.color}; border-radius: 8px; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; gap: 10px;"><div style="flex: 1; min-width: 0;"><div style="font-size: 13px; color: #fff; word-break: break-word;">${escapeHtml(h.title)}</div><div style="font-size: 9px; color: ${sphere.color}; letter-spacing: 0.15em; text-transform: uppercase; margin-top: 3px; font-weight: 600;">${sphere.name}${hL}</div></div><div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;"><div style="font-size: 13px; color: ${isC ? '#FF3D71' : '#A78BFA'}; font-weight: 700; ${isC ? 'text-decoration: line-through;' : ''}">${isC ? '−' : '+'}${h.xp}</div><button onclick="window.__app.undo('${h.id}')" style="width: 24px; height: 24px; background: ${isC ? '#FF3D71' : 'transparent'}; border: 1px solid ${isC ? '#FF3D71' : 'rgba(255,255,255,0.15)'}; border-radius: 50%; color: ${isC ? '#fff' : '#8870a8'}; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0; font-size: 11px;">${isC ? '✓' : '✕'}</button></div></div>`;
       });
-      html += `</div>`;
+      out += `</div>`;
     }
-    html += `</div>`;
+    out += `</div>`;
+    return out;
+  }
+
+  function renderMonthCard(monthKey, monthData, indent) {
+    const monthIdx = parseInt(monthKey.slice(5, 7), 10) - 1;
+    const monthName = ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'][monthIdx];
+    const monthYear = monthKey.slice(0, 4);
+    const monthLabel = showYearLevel ? monthName : `${monthName} ${monthYear}`;
+    const monthGroupKey = 'history_month_' + monthKey;
+    const isMonthOpen = view.expandedGroups && view.expandedGroups[monthGroupKey];
+    const isCurrent = monthKey === curMonth;
+
+    let out = `<div style="margin-bottom: 8px; ${indent ? 'margin-left: 12px;' : ''}">
+      <button onclick="window.__app.toggleGroup('${monthGroupKey}')" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: ${isCurrent ? 'rgba(167,139,250,0.10)' : 'rgba(255,255,255,0.04)'}; border: 1px solid ${isCurrent ? 'rgba(167,139,250,0.3)' : 'rgba(255,255,255,0.08)'}; border-radius: 11px; cursor: pointer; text-align: left;">
+        <div style="font-size: 14px; color: ${isCurrent ? '#A78BFA' : '#8870a8'}; flex-shrink: 0;">${isMonthOpen ? '▾' : '▸'}</div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 14px; color: #fff; font-weight: 700; letter-spacing: 0.03em;">${monthLabel}${isCurrent ? ' <span style=\"font-size:9px;color:#A78BFA;letter-spacing:0.2em;text-transform:uppercase;margin-left:6px;font-weight:600;\">текущий</span>' : ''}</div>
+          <div style="font-size: 10px; color: #8870a8; margin-top: 2px;">${Object.keys(monthData.days).length} ${plural(Object.keys(monthData.days).length, 'день', 'дня', 'дней')} · ${monthData.count} ${plural(monthData.count, 'действие', 'действия', 'действий')}</div>
+        </div>
+        <div style="text-align: right; flex-shrink: 0;">
+          <div style="font-size: 14px; color: ${isCurrent ? '#A78BFA' : '#e8d5a8'}; font-weight: 700;">+${monthData.totalXP} XP</div>
+          ${monthData.totalHours > 0 ? `<div style="font-size: 10px; color: #00E5FF;">${monthData.totalHours.toFixed(1)} ч</div>` : ''}
+        </div>
+      </button>`;
+
+    if (isMonthOpen) {
+      out += `<div style="margin-top: 6px; padding-left: 6px;">`;
+      Object.keys(monthData.days).sort().reverse().forEach(date => {
+        out += renderDayCard(date, monthData.days[date]);
+      });
+      out += `</div>`;
+    }
+    out += `</div>`;
+    return out;
+  }
+
+  function renderYearCard(yr, yrData) {
+    const yearGroupKey = 'history_year_' + yr;
+    const isYearOpen = view.expandedGroups && view.expandedGroups[yearGroupKey];
+    const isCurrent = yr === curYear;
+
+    let out = `<div style="margin-bottom: 12px;">
+      <button onclick="window.__app.toggleGroup('${yearGroupKey}')" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: ${isCurrent ? 'linear-gradient(135deg, rgba(167,139,250,0.15), rgba(255,77,216,0.05))' : 'rgba(255,255,255,0.05)'}; border: 1px solid ${isCurrent ? 'rgba(167,139,250,0.4)' : 'rgba(255,255,255,0.1)'}; border-radius: 12px; cursor: pointer; text-align: left;">
+        <div style="font-size: 16px; color: ${isCurrent ? '#A78BFA' : '#e8d5a8'}; flex-shrink: 0;">${isYearOpen ? '▾' : '▸'}</div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-size: 18px; color: #fff; font-weight: 700; font-family: Georgia, serif; letter-spacing: 0.08em;">${yr}</div>
+          <div style="font-size: 10px; color: #8870a8; margin-top: 2px;">${Object.keys(yrData.months).length} ${plural(Object.keys(yrData.months).length, 'месяц', 'месяца', 'месяцев')} · ${yrData.count} ${plural(yrData.count, 'действие', 'действия', 'действий')}</div>
+        </div>
+        <div style="text-align: right; flex-shrink: 0;">
+          <div style="font-size: 16px; color: ${isCurrent ? '#A78BFA' : '#e8d5a8'}; font-weight: 700;">+${yrData.totalXP} XP</div>
+          ${yrData.totalHours > 0 ? `<div style="font-size: 10px; color: #00E5FF;">${yrData.totalHours.toFixed(1)} ч</div>` : ''}
+        </div>
+      </button>`;
+
+    if (isYearOpen) {
+      out += `<div style="margin-top: 8px;">`;
+      Object.keys(yrData.months).sort().reverse().forEach(mo => {
+        out += renderMonthCard(mo, yrData.months[mo], true);
+      });
+      out += `</div>`;
+    }
+    out += `</div>`;
+    return out;
+  }
+
+  // Рендер дерева
+  years.forEach(yr => {
+    if (showYearLevel) {
+      html += renderYearCard(yr, yearMap[yr]);
+    } else {
+      Object.keys(yearMap[yr].months).sort().reverse().forEach(mo => {
+        html += renderMonthCard(mo, yearMap[yr].months[mo], false);
+      });
+    }
   });
 
   const lastBackupText = state.lastBackup ? `Последний бэкап: ${formatDateRelative(state.lastBackup)}` : 'Бэкапов ещё не было';

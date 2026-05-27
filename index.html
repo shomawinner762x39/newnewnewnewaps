@@ -4278,15 +4278,6 @@ function renderCharacterCard() {
   ];
   const cl = CHAR_LEVELS[Math.min(lv, 6)];
 
-  const totalXP   = SPHERES.reduce(function(s, sp){ return s + sphereXP(sp.id); }, 0);
-  const totalDays = state.startedAt ? Math.floor((Date.now() - new Date(state.startedAt)) / 86400000) : 0;
-  const totalTasks = (state.history || []).filter(function(h){ return h.xp > 0; }).length;
-
-  const STR = Math.min(99, Math.round(5  + lv * 12 + Math.min(totalDays,200)/5));
-  const END = Math.min(99, Math.round(3  + lv * 11 + Math.min(totalDays,200)/6));
-  const WIL = Math.min(99, Math.round(4  + lv * 13 + Math.min(totalTasks,300)/10));
-  const WIS = Math.min(99, Math.round(2  + lv * 10 + Math.min(totalXP,10000)/200));
-
   const charSVG = makeWarriorSVG(lv, faceData);
 
   // ── Отображение персонажа (арт или SVG) ──────────────────────
@@ -4304,22 +4295,31 @@ function renderCharacterCard() {
       + '</div>';
   }
 
-  const statBars = [
-    ['СИЛ',STR,'#c4621d','⚔'],
-    ['ВЫН',END,'#4a9a4a','\u{1F6E1}'],
-    ['ВОЛ',WIL,'#8a4aaa','◈'],
-    ['МУД',WIS,'#4a7aaa','◎']
-  ].map(function(arr){
-    const lb = arr[0], v = arr[1], col = arr[2], ic = arr[3];
-    return '<div style="margin-bottom:6px;">'
-      + '<div style="display:flex;justify-content:space-between;margin-bottom:2px;">'
-      + '<span style="font-size:8px;color:#6a5a8a;letter-spacing:0.15em;font-weight:700;">' + ic + ' ' + lb + '</span>'
-      + '<span style="font-size:9px;color:' + col + ';font-weight:700;">' + v + '</span>'
-      + '</div>'
-      + '<div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;">'
-      + '<div style="height:100%;width:' + v + '%;background:' + col + ';border-radius:2px;box-shadow:0 0 5px ' + col + '80;"></div>'
-      + '</div></div>';
-  }).join('');
+  // Прогресс текущего этапа
+  const _stageId = currentStageId();
+  const _stage   = PATH.find(function(s){ return s.id === _stageId; });
+  const _overallPct = stageOverallProgress(_stageId);
+
+  const stageBars = '<div style="margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;">'
+    + '<span style="font-size:8px;color:#6a5a8a;letter-spacing:0.2em;text-transform:uppercase;font-weight:700;">' + (_stage ? _stage.title : 'Этап') + '</span>'
+    + '<span style="font-size:9px;color:#c4621d;font-weight:800;">' + _overallPct + '%</span>'
+    + '</div>'
+    + SPHERES.map(function(sp){
+      var prog = sphereProgressForStage(sp.id, _stageId);
+      var type = SPHERE_TARGET_TYPE[sp.id];
+      var cur  = type === 'hours' ? prog.current.toFixed(1) : prog.current;
+      var tgt  = type === 'hours' ? prog.target + ' ч' : prog.target;
+      var pct  = prog.pct;
+      var done = pct >= 100;
+      return '<div style="margin-bottom:5px;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
+        + '<span style="font-size:8px;color:' + (done ? sp.color : '#8870a8') + ';font-weight:' + (done ? '700' : '400') + ';">' + sp.emoji + ' ' + sp.name + '</span>'
+        + '<span style="font-size:8px;color:' + sp.color + ';font-weight:700;">' + cur + '/' + tgt + '</span>'
+        + '</div>'
+        + '<div style="height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;">'
+        + '<div style="height:100%;width:' + pct + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
+        + '</div></div>';
+    }).join('');
 
   return '<div style="background:linear-gradient(160deg,rgba(25,12,5,0.95),rgba(10,5,18,0.95));border:1px solid rgba(196,98,29,0.2);border-radius:18px;padding:16px 14px;margin-bottom:16px;position:relative;overflow:hidden;">'
     + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 60%,' + cl.color + '0a,transparent 55%);pointer-events:none;"></div>'
@@ -4327,31 +4327,12 @@ function renderCharacterCard() {
     + '<div style="display:flex;gap:14px;align-items:flex-start;position:relative;">'
     + '<div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:5px;">'
     + charDisplay
-    + '<div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center;">'
-    + '<input type="file" id="char-art-inp" accept="image/*" style="display:none;" onchange="window.__app.uploadCharacterArt(this,' + lv + ')"/>'
-    + '<button onclick="document.getElementById(\'char-art-inp\').click()" style="font-size:8px;color:#c9a84c;background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.25);border-radius:5px;padding:3px 9px;cursor:pointer;white-space:nowrap;">🖼 арт · lv' + lv + '</button>'
-    + (charArt ? '<button onclick="window.__app.clearCharacterArt(' + lv + ')" style="font-size:8px;color:#8a5a5a;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:5px;padding:3px 6px;cursor:pointer;">✕</button>' : '')
-    + '</div>'
     + '</div>'
     + '<div style="flex:1;min-width:0;padding-top:2px;">'
     + '<div style="font-size:8px;color:' + cl.color + ';letter-spacing:0.3em;text-transform:uppercase;font-weight:700;margin-bottom:2px;">⚔ ранг</div>'
     + '<div style="font-size:20px;color:' + cl.color + ';font-weight:800;font-family:Georgia,serif;line-height:1.1;text-shadow:0 0 16px ' + cl.color + '55;">' + cl.name + '</div>'
     + '<div style="font-size:10px;color:#8870a8;margin-bottom:11px;margin-top:1px;">' + cl.sub + '</div>'
-    + statBars
-    + '<div style="margin-top:8px;display:flex;gap:8px;">'
-    + '<div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:6px 8px;text-align:center;">'
-    + '<div style="font-size:14px;color:#c9a84c;font-weight:800;font-family:Georgia,serif;">' + totalDays + '</div>'
-    + '<div style="font-size:8px;color:#6a5a8a;letter-spacing:0.1em;margin-top:1px;">ДНЕЙ</div>'
-    + '</div>'
-    + '<div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:6px 8px;text-align:center;">'
-    + '<div style="font-size:14px;color:#A78BFA;font-weight:800;font-family:Georgia,serif;">' + totalXP + '</div>'
-    + '<div style="font-size:8px;color:#6a5a8a;letter-spacing:0.1em;margin-top:1px;">XP</div>'
-    + '</div>'
-    + '<div style="flex:1;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:6px 8px;text-align:center;">'
-    + '<div style="font-size:14px;color:#4a9a7a;font-weight:800;font-family:Georgia,serif;">' + totalTasks + '</div>'
-    + '<div style="font-size:8px;color:#6a5a8a;letter-spacing:0.1em;margin-top:1px;">ЗАДАЧ</div>'
-    + '</div>'
-    + '</div>'
+    + stageBars
     + '</div>'
     + '</div>'
     + '</div>';

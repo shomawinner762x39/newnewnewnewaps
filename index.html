@@ -4284,7 +4284,7 @@ function renderCharacterCard() {
   var charDisplay;
   if (charArt) {
     // Арт — чистое изображение без оверлеев
-    charDisplay = '<div style="position:relative;width:118px;height:210px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 20px rgba(0,0,0,0.6);">'
+    charDisplay = '<div style="position:relative;width:130px;height:230px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 24px rgba(0,0,0,0.7);">'
       + '<img src="'+charArt+'" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;"/>'
       + '</div>';
   } else {
@@ -4300,9 +4300,9 @@ function renderCharacterCard() {
   const _stage   = PATH.find(function(s){ return s.id === _stageId; });
   const _overallPct = stageOverallProgress(_stageId);
 
-  const stageBars = '<div style="margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;">'
-    + '<span style="font-size:8px;color:#6a5a8a;letter-spacing:0.2em;text-transform:uppercase;font-weight:700;">' + (_stage ? _stage.title : 'Этап') + '</span>'
-    + '<span style="font-size:9px;color:#c4621d;font-weight:800;">' + _overallPct + '%</span>'
+  const stageBars = '<div style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'
+    + '<span style="font-size:10px;color:#8870a8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;">' + (_stage ? _stage.title : 'Этап') + '</span>'
+    + '<span style="font-size:11px;color:#c4621d;font-weight:800;">' + _overallPct + '%</span>'
     + '</div>'
     + SPHERES.map(function(sp){
       var prog = sphereProgressForStage(sp.id, _stageId);
@@ -4311,12 +4311,12 @@ function renderCharacterCard() {
       var tgt  = type === 'hours' ? prog.target + ' ч' : prog.target;
       var pct  = prog.pct;
       var done = pct >= 100;
-      return '<div style="margin-bottom:5px;">'
+      return '<div style="margin-bottom:6px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
-        + '<span style="font-size:8px;color:' + (done ? sp.color : '#8870a8') + ';font-weight:' + (done ? '700' : '400') + ';">' + sp.emoji + ' ' + sp.name + '</span>'
-        + '<span style="font-size:8px;color:' + sp.color + ';font-weight:700;">' + cur + '/' + tgt + '</span>'
+        + '<span style="font-size:10px;color:' + (done ? sp.color : '#b0a0d0') + ';font-weight:' + (done ? '700' : '400') + ';">' + sp.emoji + ' ' + sp.name + '</span>'
+        + '<span style="font-size:10px;color:' + sp.color + ';font-weight:700;">' + cur + '/' + tgt + '</span>'
         + '</div>'
-        + '<div style="height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;">'
+        + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
         + '<div style="height:100%;width:' + pct + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
         + '</div></div>';
     }).join('');
@@ -4350,66 +4350,6 @@ function renderPathStages() {
     + '</div>';
 
   // Виджет сна теперь живёт под карточкой «Тело» в Целях
-
-  // Карточка текущего этапа
-  if (currentIdx > 0 && currentIdx < PATH.length) {
-    const cur = PATH[currentIdx];
-    const overallPct = stageOverallProgress(cur.id);
-    const ready = isStageReady(cur.id);
-    const enoughTime = dp >= cur.days;
-    let targetDate = '';
-    if (state.startedAt) {
-      const start = parseISO(state.startedAt);
-      const target = new Date(start);
-      target.setDate(target.getDate() + cur.days);
-      targetDate = formatDateLong(dateToISO(target));
-    }
-    html += `<div style="background:linear-gradient(135deg,rgba(167,139,250,0.18),rgba(255,77,216,0.08));border:1px solid rgba(167,139,250,0.4);border-radius:14px;padding:16px;margin-bottom:18px;box-shadow:0 0 20px rgba(167,139,250,0.15);">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
-        <div>
-          <div style="font-size:10px;letter-spacing:0.25em;color:#A78BFA;text-transform:uppercase;font-weight:700;">Текущий этап</div>
-          <div style="font-size:19px;color:#fff;font-weight:700;margin-top:3px;">${escapeHtml(cur.title)}</div>
-          <div style="font-size:11px;color:#8870a8;margin-top:2px;">${cur.days} дн. · самое раннее ${targetDate}</div>
-        </div>
-        <div style="text-align:right;">
-          <div style="font-size:10px;letter-spacing:0.25em;color:#FF4DD8;text-transform:uppercase;font-weight:700;">Готово</div>
-          <div style="font-size:28px;color:${ready?'#10E891':'#fff'};font-weight:800;line-height:1;">${overallPct}%</div>
-        </div>
-      </div>
-      <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;margin-bottom:12px;">
-        <div style="height:100%;width:${overallPct}%;background:${ready?'linear-gradient(90deg,#10E891,#A78BFA)':'linear-gradient(90deg,#A78BFA,#FF4DD8)'};box-shadow:0 0 10px ${ready?'rgba(16,232,145,0.6)':'rgba(167,139,250,0.6)'};"></div>
-      </div>
-      <div style="font-size:10px;color:#b0a0d0;line-height:1.5;margin-bottom:12px;">
-        ${ready&&enoughTime?'<span style="color:#10E891;font-weight:700;">✓ Все сферы готовы — этап откроется при следующем действии</span>':ready&&!enoughTime?`<span style="color:#FFAA00;">Сферы дотянулись, ждём ${cur.days-dp} ${plural(cur.days-dp,'день','дня','дней')}</span>`:enoughTime?'<span style="color:#FF4DD8;">Срок прошёл, но не все сферы дотянулись</span>':`<span>${cur.days-dp} ${plural(cur.days-dp,'день','дня','дней')} до срока</span>`}
-      </div>
-      <div style="display:grid;grid-template-columns:1fr;gap:6px;">`;
-
-    SPHERES.forEach(sp => {
-      const prog = sphereProgressForStage(sp.id, cur.id);
-      const targetType = SPHERE_TARGET_TYPE[sp.id];
-      const unit = targetType === 'hours' ? 'ч' : '';
-      const formatNum = n => targetType === 'hours' ? n.toFixed(1) : Math.round(n);
-      const isDone = prog.pct >= 100;
-      html += `<div style="background:rgba(0,0,0,0.25);border:1px solid ${isDone?sp.color+'60':'rgba(255,255,255,0.05)'};border-left:3px solid ${sp.color};border-radius:8px;padding:9px 11px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:5px;">
-          <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
-            <span style="font-size:16px;color:${sp.color};text-shadow:0 0 8px ${sp.glow};flex-shrink:0;">${sp.emoji}</span>
-            <span style="font-size:12px;color:#fff;font-weight:600;">${sp.name}</span>
-          </div>
-          <div style="font-size:11px;color:${isDone?'#10E891':sp.color};font-weight:700;flex-shrink:0;">${isDone?'✓':Math.round(prog.pct)+'%'}</div>
-        </div>
-        <div style="height:3px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden;">
-          <div style="height:100%;width:${Math.min(100,prog.pct)}%;background:${isDone?'#10E891':sp.color};"></div>
-        </div>
-        <div style="font-size:9px;color:#6a5a8a;margin-top:3px;">${formatNum(prog.current)} ${unit} / ${formatNum(prog.target)} ${unit}</div>
-      </div>`;
-    });
-
-    // 🌙 Сон — отдельная строка после всех сфер
-    html += renderSleepRowPath();
-
-    html += '</div></div>';
-  }
 
   // Все этапы
   html += `<div style="font-size:10px;letter-spacing:0.2em;color:#6a5a8a;text-transform:uppercase;font-weight:700;margin-bottom:10px;">Все этапы</div>`;

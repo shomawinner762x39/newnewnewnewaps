@@ -62,8 +62,19 @@
     animation: none;
     transition: transform 0.15s ease-out;
   }
-  #guts-eye-layer {
-    /* без CSS-анимации — движением управляет JS lerp */
+  #guts-eye-layer { display: none; }  /* убрали PNG-слой */
+  .guts-pupil {
+    position: absolute;
+    width: 20px;
+    height: 15px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 33% 28%, rgba(255,255,255,0.18) 9%, #0a0808 26%, #000 68%);
+    pointer-events: none;
+    z-index: 3;
+    opacity: 0;
+    transform: translate(-50%, -50%);
+    will-change: transform;
+    transition: opacity 0.4s;
   }
   @keyframes cel-pop { 0% {transform: scale(0.4); opacity:0;} 50% {transform: scale(1.1);} 100% {transform: scale(1); opacity:1;} }
   @keyframes slide-down { from {transform: translateY(-20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
@@ -3331,7 +3342,8 @@ function renderApp() {
 
   const header = `<div style="padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); position:relative; overflow:hidden;">
     <div id="guts-eyes" style="position:absolute;inset:0;background-image:var(--guts-bg);background-size:cover;background-position:center 28%;opacity:0.7;transform:scale(1.08) translate(0%,0%);"></div>
-    <img id="guts-eye-layer" src="${GUTS_EYE_LAYER}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center 28%;pointer-events:none;z-index:1;transform:scale(1.08);transform-origin:center;transition:transform 0.12s ease-out;will-change:transform;" />
+    <div id="guts-pupil-l" class="guts-pupil"></div>
+    <div id="guts-pupil-r" class="guts-pupil"></div>
     <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(10,6,18,0.0) 40%, rgba(10,6,18,0.75) 100%);"></div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;min-height:170px;">
       <div style="font-size:18px;font-weight:700;color:#e8d5a8;font-family:Georgia,serif;letter-spacing:0.08em;text-transform:uppercase;">${r.name}</div>
@@ -3380,59 +3392,92 @@ function renderApp() {
 
   root.innerHTML = banner + header + whyBlock + `<div style="padding: 18px;">${content}</div>`;
 
-  // 👁 Guts pupils: плавное lerp-слежение за тапом по всему экрану
+  // 👁 CSS-зрачки: позиционируем динамически + плавный lerp за тапом
+  (function() {
+    // ШАГ 1: точно расставить зрачки по реальному размеру шапки
+    requestAnimationFrame(function() {
+      var bgEl = document.getElementById('guts-eyes');
+      var pl   = document.getElementById('guts-pupil-l');
+      var pr   = document.getElementById('guts-pupil-r');
+      if (!bgEl || !pl || !pr) return;
+
+      var rect = bgEl.getBoundingClientRect();
+      var cW = rect.width, cH = rect.height;
+      var imgW = 735, imgH = 415;
+      var imgRatio = imgW / imgH, cRatio = cW / cH;
+      var scaleW, scaleH, offX, offY;
+      if (cRatio > imgRatio) {
+        scaleW = cW; scaleH = cW / imgRatio;
+        offX = 0; offY = -(scaleH - cH) * 0.28;
+      } else {
+        scaleH = cH; scaleW = cH * imgRatio;
+        offX = -(scaleW - cW) * 0.5; offY = 0;
+      }
+      var sc = scaleW / imgW;
+      // Координаты центров зрачков в оригинальном изображении
+      var EYES = [{x: 167, y: 220}, {x: 539, y: 147}];
+      [pl, pr].forEach(function(el, i) {
+        var ex = EYES[i].x * sc + offX;
+        var ey = EYES[i].y * sc + offY;
+        el.style.left    = (ex / cW * 100).toFixed(2) + '%';
+        el.style.top     = (ey / cH * 100).toFixed(2) + '%';
+        el.style.opacity = '1';
+      });
+    });
+  })();
+
+  // ШАГ 2: глобальный lerp-трекер (один раз за сессию)
   if (!window.__gutsEyesInit) {
     window.__gutsEyesInit = true;
-    var _gTargX = 0, _gTargY = 0;
-    var _gCurX  = 0, _gCurY  = 0;
-    var _gRaf   = null;
-    var _gIdleTimer = null;
-    var MAX_PX  = 3;    // максимальный сдвиг зрачков (px) — очень мягко
-    var LERP    = 0.07; // скорость сглаживания
+    var _gTX = 0, _gTY = 0, _gCX = 0, _gCY = 0;
+    var _gRaf = null, _gIdle = null;
+    var G_MAX = 5, G_LERP = 0.08;
 
-    function _gutsTick() {
-      _gCurX += (_gTargX - _gCurX) * LERP;
-      _gCurY += (_gTargY - _gCurY) * LERP;
-      var el = document.getElementById('guts-eye-layer');
-      if (el) {
-        el.style.transform = 'scale(1.08) translate(' +
-          (_gCurX / 1.08).toFixed(2) + 'px,' +
-          (_gCurY / 1.08).toFixed(2) + 'px)';
-      }
-      var done = Math.abs(_gCurX - _gTargX) < 0.02 && Math.abs(_gCurY - _gTargY) < 0.02;
-      _gRaf = done ? null : requestAnimationFrame(_gutsTick);
+    function _gTick() {
+      _gCX += (_gTX - _gCX) * G_LERP;
+      _gCY += (_gTY - _gCY) * G_LERP;
+      var pl = document.getElementById('guts-pupil-l');
+      var pr = document.getElementById('guts-pupil-r');
+      var t  = 'translate(calc(-50% + ' + _gCX.toFixed(2) + 'px), calc(-50% + ' + _gCY.toFixed(2) + 'px))';
+      if (pl) pl.style.transform = t;
+      if (pr) pr.style.transform = t;
+      var done = Math.abs(_gCX-_gTX)<0.05 && Math.abs(_gCY-_gTY)<0.05;
+      _gRaf = done ? null : requestAnimationFrame(_gTick);
     }
 
-    function _gutsSetTarget(tx, ty) {
-      _gTargX = tx; _gTargY = ty;
-      if (!_gRaf) _gRaf = requestAnimationFrame(_gutsTick);
+    function _gSet(tx, ty) {
+      _gTX = tx; _gTY = ty;
+      if (!_gRaf) _gRaf = requestAnimationFrame(_gTick);
     }
 
-    function _gutsMove(e) {
-      var el = document.getElementById('guts-eye-layer');
-      if (!el) return;
-      var r  = el.getBoundingClientRect();
+    function _gMove(e) {
+      var pl = document.getElementById('guts-pupil-l');
+      if (!pl) return;
+      var r  = pl.getBoundingClientRect();
+      // Берём среднее между двумя зрачками как "центр взгляда"
+      var pr = document.getElementById('guts-pupil-r');
+      var r2 = pr ? pr.getBoundingClientRect() : r;
+      var ex = (r.left + r.width/2 + r2.left + r2.width/2) / 2;
+      var ey = (r.top  + r.height/2 + r2.top + r2.height/2) / 2;
       var cx = e.touches ? e.touches[0].clientX : e.clientX;
       var cy = e.touches ? e.touches[0].clientY : e.clientY;
-      var ex = r.left + r.width  / 2;
-      var ey = r.top  + r.height / 2;
       var dx = cx - ex, dy = cy - ey;
-      var dist = Math.sqrt(dx * dx + dy * dy) || 1;
-      var f  = Math.min(dist / 150, 1) * MAX_PX;
-      if (_gIdleTimer) { clearTimeout(_gIdleTimer); _gIdleTimer = null; }
-      _gutsSetTarget((dx / dist) * f, (dy / dist) * f);
+      var dist = Math.sqrt(dx*dx + dy*dy) || 1;
+      var f = Math.min(dist / 100, 1) * G_MAX;
+      if (_gIdle) { clearTimeout(_gIdle); _gIdle = null; }
+      _gSet((dx/dist)*f, (dy/dist)*f);
     }
 
-    function _gutsEnd() {
-      if (_gIdleTimer) clearTimeout(_gIdleTimer);
-      _gIdleTimer = setTimeout(function() { _gutsSetTarget(0, 0); }, 800);
+    function _gEnd() {
+      if (_gIdle) clearTimeout(_gIdle);
+      _gIdle = setTimeout(function() { _gSet(0, 0); }, 700);
     }
 
-    document.addEventListener('touchstart', _gutsMove, {passive: true});
-    document.addEventListener('touchmove',  _gutsMove, {passive: true});
-    document.addEventListener('touchend',   _gutsEnd);
-    document.addEventListener('mousemove',  _gutsMove);
-    document.addEventListener('mouseleave', _gutsEnd);
+    document.addEventListener('touchstart', _gMove, {passive:true});
+    document.addEventListener('touchmove',  _gMove, {passive:true});
+    document.addEventListener('touchend',   _gEnd);
+    document.addEventListener('mousemove',  _gMove);
+    document.addEventListener('mouseleave', _gEnd);
   }
 
   // Модалки рендерим в отдельный корень вне #app-root (иначе на iOS position:fixed подрезается)

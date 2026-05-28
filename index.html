@@ -3414,8 +3414,8 @@ function renderApp() {
         offX = -(scaleW - cW) * 0.5; offY = 0;
       }
       var sc = scaleW / imgW;
-      // Координаты центров зрачков в оригинальном изображении
-      var EYES = [{x: 167, y: 220}, {x: 539, y: 147}];
+      // Координаты центров зрачков — найдены по центру белка глаза
+      var EYES = [{x: 145, y: 234}, {x: 590, y: 163}];
       [pl, pr].forEach(function(el, i) {
         var ex = EYES[i].x * sc + offX;
         var ey = EYES[i].y * sc + offY;

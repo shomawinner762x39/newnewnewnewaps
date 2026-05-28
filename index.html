@@ -1391,6 +1391,11 @@ const SPHERES = [
   { id: 'love',     name: 'Связи',    emoji: '⛓', color: '#7a1a3a', glow: 'rgba(122,26,58,0.7)',   desc: 'Семья · друзья' }
 ];
 
+function getActiveSpheres() {
+  if (!state || !state.activeSpheres || state.activeSpheres.length === 0) return SPHERES;
+  return SPHERES.filter(function(s) { return state.activeSpheres.includes(s.id); });
+}
+
 const QUESTIONS = {
   body: [{ id: 'current', label: 'Где ты сейчас?', placeholder: 'Вес, тренировки' },{ id: 'goal', label: 'К чему стремишься?', placeholder: 'Цели' },{ id: 'constraints', label: 'Что ограничивает?', placeholder: 'Травмы' },{ id: 'pace', label: 'Часов в неделю?', placeholder: 'Реально' }],
   career: [{ id: 'current', label: 'Где работаешь?', placeholder: 'Должность, ЗП' },{ id: 'criteria', label: 'Критерии роста?', placeholder: 'KPI' },{ id: 'goal', label: 'Через 3 года?', placeholder: 'Должность' },{ id: 'risks', label: 'Что может помешать?', placeholder: 'Факторы' }],
@@ -1476,13 +1481,13 @@ function sphereProgressForStage(sphereId, stageId) {
 
 function isStageReady(stageId) {
   // Этап готов к открытию если все 6 сфер набрали свою норму
-  return SPHERES.every(s => sphereProgressForStage(s.id, stageId).pct >= 100);
+  return getActiveSpheres().every(s => sphereProgressForStage(s.id, stageId).pct >= 100);
 }
 
 function stageOverallProgress(stageId) {
   // Общая готовность этапа = среднее по 6 сферам, ограниченное 100%
-  const sum = SPHERES.reduce((acc, s) => acc + sphereProgressForStage(s.id, stageId).pct, 0);
-  return Math.round(sum / SPHERES.length);
+  const sum = getActiveSpheres().reduce((acc, s) => acc + sphereProgressForStage(s.id, stageId).pct, 0);
+  return Math.round(sum / getActiveSpheres().length);
 }
 
 // === УРОВНИ ===
@@ -2151,7 +2156,7 @@ const MANDATORY_TASKS = {
 
 function buildMandatoryTasks() {
   const result = {};
-  SPHERES.forEach(s => { result[s.id] = []; });
+  getActiveSpheres().forEach(s => { result[s.id] = []; });
   Object.keys(MANDATORY_TASKS).forEach(sphereId => {
     MANDATORY_TASKS[sphereId].forEach((t, idx) => {
       // Уникальный id для задачи; taskKey = mandatoryKey, чтобы счётчики работали стабильно
@@ -2165,7 +2170,7 @@ function buildMandatoryTasks() {
     });
   });
   // Заполнить пустые сферы пустым массивом если их нет в MANDATORY_TASKS
-  SPHERES.forEach(s => { if (!result[s.id]) result[s.id] = []; });
+  getActiveSpheres().forEach(s => { if (!result[s.id]) result[s.id] = []; });
   return result;
 }
 
@@ -2209,6 +2214,7 @@ function ensureMandatoryTasks() {
 function makeInitial() {
   const init = {
     onboardingDone: false,
+    activeSpheres: [],
     context: JSON.parse(JSON.stringify(PREFILLED)),
     prefilledFlags: JSON.parse(JSON.stringify(PREFILLED_FLAGS)),
     tasks: buildMandatoryTasks(),
@@ -3177,10 +3183,12 @@ async function updatePrayerStrip() {
 function renderOnboarding() {
   const root = document.getElementById('app-root');
   const step = view.onboardStep;
-  const totalSteps = SPHERES.length + 2;
+  const activeSph = getActiveSpheres();
+  const totalSteps = activeSph.length + 2; // intro + выбранные сферы + финал
   const isIntro = step === 0;
-  const isFinal = step === SPHERES.length + 1;
-  const sphere = step > 0 && step <= SPHERES.length ? SPHERES[step - 1] : null;
+  const isSpherePicker = step === 1;
+  const isFinal = step === totalSteps - 1;
+  const sphere = step >= 2 && step <= activeSph.length + 1 ? activeSph[step - 2] : null;
 
   let progressBar = '<div style="display: flex; gap: 4px; margin-bottom: 28px;">';
   for (let i = 0; i < totalSteps; i++) {
@@ -3192,13 +3200,45 @@ function renderOnboarding() {
   let content = '';
   if (isIntro) {
     content = `<div style="font-size: 11px; letter-spacing: 0.3em; color: #A78BFA; text-transform: uppercase; margin-bottom: 12px; font-weight: 600;">Готово к старту</div><h2 style="font-size: 28px; font-weight: 700; margin: 0 0 20px; line-height: 1.2; background: linear-gradient(135deg,#fff,#A78BFA); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Карта на 3 года</h2><div style="background: linear-gradient(135deg, rgba(167,139,250,0.2), rgba(255,77,216,0.1)); border: 1px solid rgba(167,139,250,0.4); border-radius: 12px; padding: 18px; margin-bottom: 20px;"><div style="font-size: 10px; letter-spacing: 0.2em; color: #A78BFA; text-transform: uppercase; margin-bottom: 10px; font-weight: 700;">✓ Все данные на месте</div><div style="font-size: 13px; color: #d8c8f0; line-height: 1.7;">Записал всё, что ты рассказал — по всем 6 сферам. Поля помечены неоном.</div></div><p style="font-size: 14px; color: #b0a0d0; line-height: 1.7; margin-bottom: 14px;">Этапы открываются <strong style="color:#fff;">от работы и от времени</strong>. Раньше срока — нельзя.</p><p style="font-size: 14px; color: #b0a0d0; line-height: 1.7; margin-bottom: 28px;">Виден только следующий этап. Дальше — туман.</p><button onclick="window.__app.next()" style="padding: 14px 28px; background: linear-gradient(135deg,#A78BFA,#FF4DD8); color: #fff; border: none; border-radius: 12px; font-size: 13px; font-weight: 600; cursor: pointer; letter-spacing: 0.1em; box-shadow: 0 4px 20px rgba(167,139,250,0.4);">НАЧАТЬ →</button>`;
+  } else if (isSpherePicker) {
+    const selectedIds = state.activeSpheres && state.activeSpheres.length > 0
+      ? state.activeSpheres
+      : SPHERES.map(s => s.id);
+    let sphereGrid = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px;">';
+    SPHERES.forEach(function(sp) {
+      var isSelected = selectedIds.includes(sp.id);
+      sphereGrid += '<button onclick="window.__app.toggleSphere(\'' + sp.id + '\')" id="sph-btn-' + sp.id + '" style="'
+        + 'display:flex;align-items:center;gap:10px;padding:12px 14px;'
+        + 'background:' + (isSelected ? sp.color + '25' : 'rgba(255,255,255,0.03)') + ';'
+        + 'border:2px solid ' + (isSelected ? sp.color : 'rgba(255,255,255,0.08)') + ';'
+        + 'border-radius:12px;cursor:pointer;text-align:left;transition:all 0.2s;">'
+        + '<span style="font-size:20px;">' + sp.emoji + '</span>'
+        + '<div>'
+        + '<div style="font-size:12px;color:' + (isSelected ? '#fff' : '#6a5a8a') + ';font-weight:700;">' + sp.name + '</div>'
+        + '<div style="font-size:9px;color:' + (isSelected ? sp.color : '#4a3a6a') + ';">' + sp.desc + '</div>'
+        + '</div>'
+        + (isSelected ? '<span style="margin-left:auto;color:' + sp.color + ';font-size:14px;">✓</span>' : '')
+        + '</button>';
+    });
+    sphereGrid += '</div>';
+    content = '<div style="text-align:center;margin-bottom:20px;">'
+      + '<div style="font-size:13px;letter-spacing:0.3em;color:#A78BFA;text-transform:uppercase;font-weight:700;margin-bottom:8px;">Выбери свои сферы</div>'
+      + '<div style="font-size:12px;color:#8870a8;line-height:1.6;">Отметь те области жизни которые хочешь развивать.<br>Минимум 2 сферы.</div>'
+      + '</div>'
+      + sphereGrid
+      + '<div style="display:flex;gap:10px;">'
+      + '<button onclick="window.__app.prev()" style="padding:12px 18px;background:rgba(255,255,255,0.05);color:#b0a0d0;border:1px solid rgba(255,255,255,0.1);border-radius:10px;font-size:13px;cursor:pointer;">← Назад</button>'
+      + '<button onclick="window.__app.next()" style="flex:1;padding:12px 18px;background:linear-gradient(135deg,#A78BFA,#FF4DD8);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:0.05em;">ДАЛЬШЕ →</button>'
+      + '</div>';
   } else if (sphere) {
     const inputs = QUESTIONS[sphere.id].map(q => {
       const val = state.context[sphere.id]?.[q.id] || '';
       const isPrefilled = state.prefilledFlags?.[sphere.id]?.[q.id];
       return `<div style="margin-bottom: 18px;"><div style="display: flex; align-items: center; gap: 6px; margin-bottom: 8px;"><label style="font-size: 13px; color: #fff; font-weight: 500;">${q.label}</label>${isPrefilled ? `<span style="font-size: 9px; padding: 2px 8px; background: ${sphere.color}30; color: ${sphere.color}; border-radius: 8px; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700; border: 1px solid ${sphere.color}60;">из разговора</span>` : ''}</div><textarea oninput="window.__app.setAnswer('${sphere.id}', '${q.id}', this.value)" placeholder="${escapeHtml(q.placeholder)}" rows="3" style="width: 100%; padding: 11px 13px; background: ${isPrefilled ? `${sphere.color}15` : 'rgba(255,255,255,0.04)'}; border: 1px solid ${isPrefilled ? `${sphere.color}50` : 'rgba(255,255,255,0.08)'}; border-radius: 10px; color: #fff; font-size: 13px; line-height: 1.5; resize: vertical; min-height: 56px; outline: none;">${escapeHtml(val)}</textarea></div>`;
     }).join('');
-    content = `<div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;"><div style="font-size: 32px; color: ${sphere.color}; text-shadow: 0 0 12px ${sphere.glow};">${sphere.emoji}</div><div><div style="font-size: 10px; letter-spacing: 0.25em; color: ${sphere.color}; text-transform: uppercase; font-weight: 700;">Сфера ${step} из 6</div><h2 style="font-size: 22px; margin: 2px 0 0; font-weight: 700; color: #fff;">${sphere.name}</h2></div></div>${inputs}<div style="display: flex; gap: 10px; margin-top: 24px;"><button onclick="window.__app.prev()" style="padding: 12px 18px; background: rgba(255,255,255,0.05); color: #b0a0d0; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; font-size: 13px; cursor: pointer;">← Назад</button><button onclick="window.__app.next()" style="flex: 1; padding: 12px 18px; background: linear-gradient(135deg,${sphere.color},${sphere.color}cc); color: #000; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.05em; box-shadow: 0 0 20px ${sphere.glow};">${step === SPHERES.length ? 'К ИТОГУ' : 'ДАЛЬШЕ'} →</button></div>`;
+    const sphereNum = step - 1;
+    const sphereTotal = activeSph.length;
+    content = `<div style="display: flex; align-items: center; gap: 14px; margin-bottom: 20px;"><div style="font-size: 32px; color: ${sphere.color}; text-shadow: 0 0 12px ${sphere.glow};">${sphere.emoji}</div><div><div style="font-size: 10px; letter-spacing: 0.25em; color: ${sphere.color}; text-transform: uppercase; font-weight: 700;">Сфера ${sphereNum} из ${sphereTotal}</div><h2 style="font-size: 22px; margin: 2px 0 0; font-weight: 700; color: #fff;">${sphere.name}</h2></div></div>${inputs}<div style="display: flex; gap: 10px; margin-top: 24px;"><button onclick="window.__app.prev()" style="padding: 12px 18px; background: rgba(255,255,255,0.05); color: #b0a0d0; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; font-size: 13px; cursor: pointer;">← Назад</button><button onclick="window.__app.next()" style="flex: 1; padding: 12px 18px; background: linear-gradient(135deg,${sphere.color},${sphere.color}cc); color: #000; border: none; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.05em; box-shadow: 0 0 20px ${sphere.glow};">${sphereNum === sphereTotal ? 'К ИТОГУ' : 'ДАЛЬШЕ'} →</button></div>`;
   } else if (isFinal) {
     content = `<div style="font-size: 11px; letter-spacing: 0.3em; color: #A78BFA; text-transform: uppercase; margin-bottom: 12px; font-weight: 600;">Карта готова</div><h2 style="font-size: 26px; font-weight: 700; margin: 0 0 20px; line-height: 1.2; background: linear-gradient(135deg,#fff,#A78BFA); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Контекст записан</h2><p style="font-size: 14px; color: #b0a0d0; line-height: 1.7; margin-bottom: 16px;">7 этапов на 3 года.</p><button onclick="window.__app.finishOnboarding()" style="padding: 14px 28px; background: linear-gradient(135deg,#A78BFA,#FF4DD8); color: #fff; border: none; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer; letter-spacing: 0.15em; box-shadow: 0 4px 20px rgba(167,139,250,0.5);">НАЧАТЬ ПУТЬ ✦</button>`;
   }
@@ -3346,7 +3386,7 @@ function renderTree() {
   </button>`;
   html += '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">';
 
-  SPHERES.forEach(s => {
+  getActiveSpheres().forEach(s => {
     const sxp = sphereXP(s.id);
     const sh = sphereHours(s.id);
     const tc = state.tasks[s.id]?.length || 0;
@@ -4435,7 +4475,7 @@ function renderCharacterCard() {
     + '<span style="font-size:10px;color:#8870a8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;">' + (_stage ? _stage.title : 'Этап') + '</span>'
     + '<span style="font-size:11px;color:#c4621d;font-weight:800;">' + _overallPct + '%</span>'
     + '</div>'
-    + SPHERES.map(function(sp){
+    + getActiveSpheres().map(function(sp){
       var prog = sphereProgressForStage(sp.id, _stageId);
       var type = SPHERE_TARGET_TYPE[sp.id];
       var cur  = type === 'hours' ? prog.current.toFixed(1) : prog.current;
@@ -6708,7 +6748,20 @@ window.__app = {
   next: () => { view.onboardStep++; render(); },
   prev: () => { view.onboardStep--; render(); },
   setAnswer: (sid, qid, val) => { state.context[sid][qid] = val; save(); },
-  finishOnboarding: () => { state.onboardingDone = true; state.startedAt = today(); state.stagesUnlocked = { s0: today() }; checkAchievements(); save(); render(); },
+  finishOnboarding: () => { if (!state.activeSpheres || state.activeSpheres.length === 0) { state.activeSpheres = SPHERES.map(function(s) { return s.id; }); } state.onboardingDone = true; state.startedAt = today(); state.stagesUnlocked = { s0: today() }; checkAchievements(); save(); render(); },
+  toggleSphere: function(id) {
+    if (!state.activeSpheres || state.activeSpheres.length === 0) {
+      state.activeSpheres = SPHERES.map(function(s) { return s.id; });
+    }
+    var idx = state.activeSpheres.indexOf(id);
+    if (idx >= 0) {
+      if (state.activeSpheres.length <= 2) return; // минимум 2
+      state.activeSpheres.splice(idx, 1);
+    } else {
+      state.activeSpheres.push(id);
+    }
+    save(); render();
+  },
   tab: t => { view.tab = t; render(); },
   openGoalsModal: () => { view.goalsModal = true; view.editingGoalSphere = null; render(); },
   closeGoalsModal: () => { view.goalsModal = false; view.editingGoalSphere = null; render(); },

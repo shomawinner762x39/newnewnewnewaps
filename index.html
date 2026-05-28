@@ -4527,7 +4527,7 @@ function buildMonthBar() {
 
   var _leg = _segs.map(function(s){
     var val = s.label === 'Молитвы'
-      ? Math.round(s.h * 60) + 'мин'
+      ? s.h.toFixed(1) + 'ч'
       : s.h.toFixed(0) + 'ч';
     return '<span style="display:inline-flex;align-items:center;gap:3px;">'
       +'<span style="width:7px;height:7px;border-radius:2px;background:'+s.color+';display:inline-block;flex-shrink:0;"></span>'

@@ -3334,6 +3334,7 @@ function renderApp() {
         <div style="font-size:14px;letter-spacing:0.2em;color:rgba(255,255,255,0.85);text-transform:uppercase;font-weight:700;font-family:Georgia,serif;flex-shrink:0;">ВОЛЯ</div>
       </div>
       <div id="prayer-strip" style="display:none;"></div>
+      ${(typeof window === 'undefined' || true) ? `<button id="gyro-btn" onclick="window.__gutsRequestGyro && window.__gutsRequestGyro()" style="display:none;position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);border-radius:20px;color:rgba(255,255,255,0.7);font-size:11px;padding:5px 10px;cursor:pointer;z-index:10;backdrop-filter:blur(4px);">📱 Движение</button>` : ''}
     </div>
   </div>`;
 
@@ -3401,18 +3402,32 @@ function renderApp() {
       _gGyroY = Math.max(-5, Math.min(5, dy / 14 * 5));
     }
 
+    function _gStartGyro() {
+      window.addEventListener('deviceorientation', _gOnOrientation);
+      var btn = document.getElementById('gyro-btn');
+      if (btn) btn.style.display = 'none';
+    }
+
+    window.__gutsRequestGyro = function() {
+      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+        DeviceOrientationEvent.requestPermission()
+          .then(function(r) { if (r === 'granted') _gStartGyro(); })
+          .catch(function() {});
+      } else {
+        _gStartGyro();
+      }
+    };
+
     if (typeof DeviceOrientationEvent !== 'undefined') {
       if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS 13+ — нужен жест пользователя для разрешения
-        document.addEventListener('touchstart', function _iosOnce() {
-          document.removeEventListener('touchstart', _iosOnce);
-          DeviceOrientationEvent.requestPermission()
-            .then(function(r) { if (r === 'granted') window.addEventListener('deviceorientation', _gOnOrientation); })
-            .catch(function() {});
-        }, {once: true, passive: true});
+        // iOS 13+ — показываем кнопку, она вызовет requestPermission по тапу
+        requestAnimationFrame(function() {
+          var btn = document.getElementById('gyro-btn');
+          if (btn) btn.style.display = 'block';
+        });
       } else {
-        // Android — сразу работает
-        window.addEventListener('deviceorientation', _gOnOrientation);
+        // Android — сразу работает без разрешения
+        _gStartGyro();
       }
     }
   }

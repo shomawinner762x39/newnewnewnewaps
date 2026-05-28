@@ -3394,8 +3394,6 @@ function renderApp() {
 
 function renderTree() {
   let html = '';
-  // Мини-бар месяца — обновляется в реальном времени
-  try { html += buildMonthBar(true); } catch(e) {}
   // Кнопка «Цели» — полная ширина
   html += `<button onclick="window.__app.openGoalsModal()" style="width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px 18px;margin-bottom:12px;background:linear-gradient(90deg,rgba(160,110,30,0.06),rgba(190,145,50,0.14),rgba(160,110,30,0.06));border:1px solid rgba(185,140,45,0.32);border-radius:14px;color:#c9a84c;font-size:13px;font-weight:700;letter-spacing:0.22em;cursor:pointer;text-transform:uppercase;font-family:Georgia,serif;text-shadow:0 0 18px rgba(200,165,60,0.35);">
     <span style="font-size:15px;opacity:0.8;">◎</span> Цели
@@ -4456,7 +4454,8 @@ function makeClothAnimation(ax, ay) {
 }
 
 // ── Общий расчёт месячного бара (используется на вкладках Путь и Древо) ──
-function buildMonthBar(compact) {
+function buildMonthBar() {
+  var compact = false;
   var _mn   = new Date();
   var _my   = _mn.getFullYear();
   var _mm   = _mn.getMonth();
@@ -4464,19 +4463,21 @@ function buildMonthBar(compact) {
   var _tot  = _days * 24;
   var _ms   = _my + '-' + String(_mm + 1).padStart(2, '0');
 
+  // Сон — только этот месяц (вводится ежедневно)
   var _sleepH  = (state.sleep && state.sleep.entries || [])
     .filter(function(e){ return e.date && e.date.startsWith(_ms); })
     .reduce(function(s,e){ return s + (e.hours || 0); }, 0);
 
+  // Карьера/Тело/Навыки — всё накопленное (совпадает со счётчиками прогресса)
   var _careerH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'career' && h.date && h.date.startsWith(_ms); })
+    .filter(function(h){ return h.sphere === 'career'; })
     .reduce(function(s,h){ return s + (parseFloat(h.hours) || 0); }, 0);
 
   var _bodyH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'body' && h.date && h.date.startsWith(_ms); }).length * 2;
+    .filter(function(h){ return h.sphere === 'body'; }).length * 2;
 
   var _skillH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'skills' && h.date && h.date.startsWith(_ms); })
+    .filter(function(h){ return h.sphere === 'skills'; })
     .reduce(function(s,h){ return s + (parseFloat(h.hours) || 0); }, 0);
 
   var _freeH = Math.max(0, _tot - _sleepH - _careerH - _bodyH - _skillH);
@@ -4499,18 +4500,6 @@ function buildMonthBar(compact) {
       +'<span style="width:7px;height:7px;border-radius:2px;background:'+s.color+';display:inline-block;flex-shrink:0;"></span>'
       +'<span style="font-size:9px;color:#8870a8;">'+s.label+' '+s.h.toFixed(0)+'ч</span></span>';
   }).join('');
-
-  if (compact) {
-    // Компактная версия для вкладки Древо
-    return '<div style="margin-bottom:12px;background:rgba(10,5,18,0.7);border:1px solid rgba(255,255,255,0.06);border-radius:10px;padding:8px 10px;">'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
-      +'<span style="font-size:9px;color:#6a5a8a;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;">⏱ Месяц · '+_tot+'ч</span>'
-      +'<span style="font-size:9px;color:'+(_freeH<24?'#c4621d':'#4a8a5a')+';font-weight:700;">▷ '+_freeH.toFixed(0)+' ч свободно</span>'
-      +'</div>'
-      +'<div style="height:'+_barH+';border-radius:4px;overflow:hidden;display:flex;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);">'+_bars+'</div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:5px;">'+_leg+'</div>'
-      +'</div>';
-  }
 
   // Полная версия для вкладки Путь
   return '<div style="margin-top:14px;">'
@@ -4586,7 +4575,7 @@ function renderCharacterCard() {
 
   // ── Месячный бар времени ──────────────────────────────────────────
   var monthBar = '';
-  try { monthBar = buildMonthBar(false); } catch(e) { monthBar = ''; }
+  try { monthBar = buildMonthBar(); } catch(e) { monthBar = ''; }
 
   return '<div style="background:linear-gradient(160deg,rgba(25,12,5,0.95),rgba(10,5,18,0.95));border:1px solid rgba(196,98,29,0.2);border-radius:18px;padding:16px 14px;margin-bottom:16px;position:relative;overflow:hidden;">'
     + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 60%,' + cl.color + '0a,transparent 55%);pointer-events:none;"></div>'

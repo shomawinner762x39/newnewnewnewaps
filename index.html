@@ -3903,16 +3903,24 @@ function _oldRenderSleepDropdown(s) {
         </div>
         <label style="display:block;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">Дата</label>
         <input type="date" max="${todayISO}" value="${f.date}" onchange="window.__app.sleepEditSet('date',this.value)" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:13px;outline:none;margin-bottom:8px;color-scheme:dark;" />
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
           <div style="flex:1;">
             <label style="display:block;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">🌙 Лёг</label>
-            <input type="time" value="${f.bedtime}" onchange="window.__app.sleepEditSet('bedtime',this.value)" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
+            <input type="time" value="${f.bedtime}" onchange="window.__app.sleepEditSet('bedtime',this.value);window.__app.sleepEditSet('manualHours','')" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
           </div>
           <div style="flex:1;">
             <label style="display:block;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">☀ Встал</label>
-            <input type="time" value="${f.wake}" onchange="window.__app.sleepEditSet('wake',this.value)" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
+            <input type="time" value="${f.wake}" onchange="window.__app.sleepEditSet('wake',this.value);window.__app.sleepEditSet('manualHours','')" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
           </div>
         </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+          <span style="font-size:9px;color:#6a5a8a;white-space:nowrap;">или сразу укажи часы</span>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+        </div>
+        <input type="number" min="0" max="24" step="0.25" value="${f.manualHours || ''}" placeholder="например 7.5"
+          oninput="window.__app.sleepEditSet('manualHours',this.value)"
+          style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,${f.manualHours?'0.3':'0.1'});border-radius:6px;color:#fff;font-size:18px;font-weight:700;outline:none;text-align:center;box-sizing:border-box;margin-bottom:10px;" />
         <button onclick="window.__app.sleepEditSave()" style="width:100%;padding:10px;background:${s.color};border:none;border-radius:8px;color:#000;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">✓ Сохранить</button>
       </div>`;
     }
@@ -5800,16 +5808,24 @@ function renderSleepBlock(s) {
         </div>
         <label style="display:block;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">Дата</label>
         <input type="date" max="${todayISO}" value="${f.date}" onchange="window.__app.sleepEditSet('date',this.value)" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:13px;outline:none;margin-bottom:8px;color-scheme:dark;" />
-        <div style="display:flex;gap:8px;margin-bottom:10px;">
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
           <div style="flex:1;">
             <label style="display:block;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">🌙 Лёг</label>
-            <input type="time" value="${f.bedtime}" onchange="window.__app.sleepEditSet('bedtime',this.value)" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
+            <input type="time" value="${f.bedtime}" onchange="window.__app.sleepEditSet('bedtime',this.value);window.__app.sleepEditSet('manualHours','')" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
           </div>
           <div style="flex:1;">
             <label style="display:block;font-size:9px;color:#8870a8;letter-spacing:0.15em;text-transform:uppercase;margin-bottom:4px;">☀ Встал</label>
-            <input type="time" value="${f.wake}" onchange="window.__app.sleepEditSet('wake',this.value)" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
+            <input type="time" value="${f.wake}" onchange="window.__app.sleepEditSet('wake',this.value);window.__app.sleepEditSet('manualHours','')" style="width:100%;padding:8px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-size:14px;outline:none;color-scheme:dark;" />
           </div>
         </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+          <span style="font-size:9px;color:#6a5a8a;white-space:nowrap;">или сразу укажи часы</span>
+          <div style="flex:1;height:1px;background:rgba(255,255,255,0.07);"></div>
+        </div>
+        <input type="number" min="0" max="24" step="0.25" value="${f.manualHours || ''}" placeholder="например 7.5"
+          oninput="window.__app.sleepEditSet('manualHours',this.value)"
+          style="width:100%;padding:10px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,${f.manualHours?'0.3':'0.1'});border-radius:6px;color:#fff;font-size:18px;font-weight:700;outline:none;text-align:center;box-sizing:border-box;margin-bottom:10px;" />
         <button onclick="window.__app.sleepEditSave()" style="width:100%;padding:10px;background:#A78BFA;border:none;border-radius:8px;color:#000;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">✓ Сохранить</button>
       </div>`;
     }
@@ -7058,8 +7074,8 @@ window.__app = {
   sleepOpenForm: (dateISO) => {
     const existing = sleepEntryForDate(dateISO || today());
     view.sleepEditing = existing
-      ? { date: existing.date, bedtime: existing.bedtime, wake: existing.wake, editingExisting: true }
-      : { date: dateISO || today(), bedtime: '23:00', wake: '07:00' };
+      ? { date: existing.date, bedtime: existing.bedtime || '23:00', wake: existing.wake || '07:00', manualHours: existing.manualHours || '', editingExisting: true }
+      : { date: dateISO || today(), bedtime: '23:00', wake: '07:00', manualHours: '' };
     render();
   },
   sleepEditSet: (field, val) => {
@@ -7070,17 +7086,23 @@ window.__app = {
   sleepEditClose: () => { view.sleepEditing = null; render(); },
   sleepEditSave: () => {
     const f = view.sleepEditing;
-    if (!f || !f.date || !f.bedtime || !f.wake) return;
-    // Считаем часы
-    const [bh, bm] = f.bedtime.split(':').map(Number);
-    const [wh, wm] = f.wake.split(':').map(Number);
-    let bedMin = bh * 60 + bm;
-    let wakeMin = wh * 60 + wm;
-    if (wakeMin <= bedMin) wakeMin += 24 * 60; // через полночь
-    const hours = +((wakeMin - bedMin) / 60).toFixed(2);
-    // Удаляем старую запись на эту дату если есть
+    if (!f || !f.date) return;
+    let hours;
+    if (f.manualHours && parseFloat(f.manualHours) > 0) {
+      // Пользователь ввёл часы напрямую
+      hours = +parseFloat(f.manualHours).toFixed(2);
+    } else {
+      // Считаем из времени лёг/встал
+      if (!f.bedtime || !f.wake) return;
+      const [bh, bm] = f.bedtime.split(':').map(Number);
+      const [wh, wm] = f.wake.split(':').map(Number);
+      let bedMin = bh * 60 + bm;
+      let wakeMin = wh * 60 + wm;
+      if (wakeMin <= bedMin) wakeMin += 24 * 60;
+      hours = +((wakeMin - bedMin) / 60).toFixed(2);
+    }
     state.sleep.entries = state.sleep.entries.filter(e => e.date !== f.date);
-    state.sleep.entries.push({ date: f.date, bedtime: f.bedtime, wake: f.wake, hours, manual: true });
+    state.sleep.entries.push({ date: f.date, bedtime: f.bedtime, wake: f.wake, hours, manual: true, manualHours: f.manualHours || '' });
     view.sleepEditing = null;
     save(); render();
     showToast('🌙 ' + fmtDur(hours), '#A78BFA');

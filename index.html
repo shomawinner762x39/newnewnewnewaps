@@ -4506,6 +4506,70 @@ function renderCharacterCard() {
         + '</div></div>';
     }).join('');
 
+  // ── Месячный бар времени ──────────────────────────────────────────
+  const now2     = new Date();
+  const year2    = now2.getFullYear();
+  const month2   = now2.getMonth();
+  const daysInMonth = new Date(year2, month2 + 1, 0).getDate();
+  const totalHours  = daysInMonth * 24;
+
+  // Сон: из трекера сна за текущий месяц
+  const sleepH = sleepHoursThisMonth();
+
+  // Работа: часы карьеры за всё время (сферы считают нарастающим итогом — берём текущий месяц)
+  const monthStr2 = year2 + '-' + String(month2 + 1).padStart(2,'0');
+  const careerH = (state.history || [])
+    .filter(function(h){ return h.sphere === 'career' && h.date && h.date.startsWith(monthStr2); })
+    .reduce(function(s,h){ return s + (h.hours || h.duration || 1); }, 0)
+    + ((state.tasks || [])
+    .filter(function(t){ return t.sphere === 'career' && t.completedAt && new Date(t.completedAt).toISOString().startsWith(monthStr2) && t.done; })
+    .reduce(function(s,t){ return s + (t.hours || 1); }, 0));
+
+  // Тренировки: кол-во выполнений тела × 2ч
+  const bodyCount = (state.history || [])
+    .filter(function(h){ return h.sphere === 'body' && h.date && h.date.startsWith(monthStr2); }).length;
+  const bodyH = bodyCount * 2;
+
+  // Навыки: часы из истории/задач
+  const skillsH = (state.history || [])
+    .filter(function(h){ return h.sphere === 'skills' && h.date && h.date.startsWith(monthStr2); })
+    .reduce(function(s,h){ return s + (h.hours || h.duration || 1); }, 0);
+
+  const usedH   = sleepH + careerH + bodyH + skillsH;
+  const freeH   = Math.max(0, totalHours - usedH);
+
+  // Сегменты: [цвет, часы, подпись]
+  const segments = [
+    { color: '#4a2a6a', h: sleepH,  label: 'Сон',      emoji: '🌙' },
+    { color: '#b87a0a', h: careerH, label: 'Работа',    emoji: '🛡' },
+    { color: '#8b1a1a', h: bodyH,   label: 'Тело',      emoji: '⚔' },
+    { color: '#2a6a4a', h: skillsH, label: 'Навыки',    emoji: '📖' },
+    { color: 'rgba(255,255,255,0.08)', h: freeH, label: 'Свободно', emoji: '◇' },
+  ].filter(function(s){ return s.h > 0; });
+
+  const barSegments = segments.map(function(seg){
+    const pct = (seg.h / totalHours * 100).toFixed(2);
+    return '<div title="' + seg.label + ': ' + seg.h.toFixed(1) + 'ч" style="height:100%;width:' + pct + '%;background:' + seg.color + ';flex-shrink:0;"></div>';
+  }).join('');
+
+  const legendItems = segments.map(function(seg){
+    return '<span style="display:inline-flex;align-items:center;gap:3px;white-space:nowrap;">'
+      + '<span style="display:inline-block;width:7px;height:7px;border-radius:2px;background:' + seg.color + ';flex-shrink:0;"></span>'
+      + '<span style="font-size:9px;color:#8870a8;">' + seg.label + ' ' + seg.h.toFixed(0) + 'ч</span>'
+      + '</span>';
+  }).join('');
+
+  const monthBar = '<div style="margin-top:14px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
+    + '<span style="font-size:9px;color:#6a5a8a;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;">Месяц · ' + totalHours + ' ч</span>'
+    + '<span style="font-size:9px;color:' + (freeH < 24 ? '#c4621d' : '#4a8a5a') + ';font-weight:700;">▷ ' + freeH.toFixed(0) + ' ч свободно</span>'
+    + '</div>'
+    + '<div style="height:10px;border-radius:5px;overflow:hidden;display:flex;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);">'
+    + barSegments
+    + '</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">' + legendItems + '</div>'
+    + '</div>';
+
   return '<div style="background:linear-gradient(160deg,rgba(25,12,5,0.95),rgba(10,5,18,0.95));border:1px solid rgba(196,98,29,0.2);border-radius:18px;padding:16px 14px;margin-bottom:16px;position:relative;overflow:hidden;">'
     + '<div style="position:absolute;inset:0;background:radial-gradient(ellipse at 20% 60%,' + cl.color + '0a,transparent 55%);pointer-events:none;"></div>'
     + '<div style="position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,' + cl.color + '50,transparent);"></div>'
@@ -4520,6 +4584,7 @@ function renderCharacterCard() {
     + stageBars
     + '</div>'
     + '</div>'
+    + monthBar
     + '</div>';
 }
 

@@ -1491,7 +1491,7 @@ function stageOverallProgress(stageId) {
 // === Персонажи Берсерка по месяцам чистоты ===
 // Каждые 30 дней — новый персонаж, от ученика до Гатса
 const PURITY_TIERS = [
-  { days: 7,    name: 'Пробуждение',  color: '#7a6aaa', tag: 'Первые 7 дней',        icon: 'eye'     },
+  { days: 7,    name: 'Пробуждение',  color: '#7a6aaa', tag: 'Первые 7 дней',        icon: 'dawn'    },
   { days: 30,   name: 'Закалка',      color: '#b08850', tag: 'Первый месяц',          icon: 'sword'   },
   { days: 90,   name: 'Дисциплина',   color: '#3a9a6a', tag: 'Три месяца',            icon: 'shield'  },
   { days: 180,  name: 'Воля',         color: '#c8961e', tag: 'Полгода без слабости',  icon: 'gauntlet'},
@@ -1528,6 +1528,26 @@ function makePurityBadgeSVG(icon, color, size, unlocked) {
       + '<line x1="' + half + '" y1="' + (half - ry - strokeW) + '" x2="' + half + '" y2="' + (half - ry - strokeW*3.5) + '" stroke="' + stroke + '" stroke-width="' + Math.max(1.5, strokeW*0.8) + '" stroke-linecap="round"/>'
       + '<line x1="' + (half - half*0.28) + '" y1="' + (half - ry*0.72) + '" x2="' + (half - half*0.35) + '" y2="' + (half - ry*0.72 - strokeW*3) + '" stroke="' + stroke + '" stroke-width="' + Math.max(1.5, strokeW*0.8) + '" stroke-linecap="round"/>'
       + '<line x1="' + (half + half*0.28) + '" y1="' + (half - ry*0.72) + '" x2="' + (half + half*0.35) + '" y2="' + (half - ry*0.72 - strokeW*3) + '" stroke="' + stroke + '" stroke-width="' + Math.max(1.5, strokeW*0.8) + '" stroke-linecap="round"/>';
+  } else if (icon === 'dawn') {
+    // Рассвет: полукруг солнца над горизонтом + лучи
+    var horizY = half * 1.18;
+    var sunR = half * 0.38;
+    // Горизонт
+    content = '<line x1="' + (half*0.15) + '" y1="' + horizY + '" x2="' + (s - half*0.15) + '" y2="' + horizY + '" stroke="' + stroke + '" stroke-width="' + strokeW + '" stroke-linecap="round"/>';
+    // Полукруг солнца
+    content += '<path d="M' + (half - sunR) + ',' + horizY + ' A' + sunR + ',' + sunR + ' 0 0 1 ' + (half + sunR) + ',' + horizY + '" fill="' + (unlocked ? color+'30' : '#1a0a2a') + '" stroke="' + stroke + '" stroke-width="' + strokeW + '"/>';
+    // 7 лучей вверх (веером)
+    var numRays = 7;
+    for (var ri = 0; ri < numRays; ri++) {
+      var angle = Math.PI + (ri / (numRays - 1)) * Math.PI;
+      var r1 = sunR + strokeW * 2.5;
+      var r2 = sunR + half * 0.32 + (ri === Math.floor(numRays/2) ? half*0.08 : 0);
+      var rx1 = half + Math.cos(angle) * r1;
+      var ry1 = horizY + Math.sin(angle) * r1;
+      var rx2 = half + Math.cos(angle) * r2;
+      var ry2 = horizY + Math.sin(angle) * r2;
+      content += '<line x1="' + rx1.toFixed(1) + '" y1="' + ry1.toFixed(1) + '" x2="' + rx2.toFixed(1) + '" y2="' + ry2.toFixed(1) + '" stroke="' + stroke + '" stroke-width="' + Math.max(1.2, strokeW * (ri === Math.floor(numRays/2) ? 1 : 0.75)) + '" stroke-linecap="round"/>';
+    }
   } else if (icon === 'sword') {
     var bW = half * 0.13, tip = half * 0.08, base = s * 0.62, guardY = s * 0.66, guardW = half * 0.55, gripH = half * 0.28, gripW = half * 0.1, pomH = half * 0.12;
     content = '<polygon points="' + half + ',' + tip + ' ' + (half+bW) + ',' + base + ' ' + (half-bW) + ',' + base + '" fill="' + c + '" stroke="' + stroke + '" stroke-width="' + strokeW + '" stroke-linejoin="round"/>'

@@ -1491,12 +1491,14 @@ function stageOverallProgress(stageId) {
 // === Персонажи Берсерка по месяцам чистоты ===
 // Каждые 30 дней — новый персонаж, от ученика до Гатса
 const PURITY_TIERS = [
-  { days: 7,   name: 'Пробуждение',  color: '#7a6aaa', tag: 'Первые 7 дней',       icon: 'eye'     },
-  { days: 30,  name: 'Закалка',      color: '#b08850', tag: 'Первый месяц',         icon: 'sword'   },
-  { days: 90,  name: 'Дисциплина',   color: '#3a9a6a', tag: 'Три месяца',           icon: 'shield'  },
-  { days: 180, name: 'Воля',         color: '#c8961e', tag: 'Полгода без слабости', icon: 'gauntlet'},
-  { days: 365, name: 'Несгибаемый',  color: '#d04020', tag: 'Год воздержания',      icon: 'eclipse' },
-  { days: 730, name: 'Несокрушимый', color: '#A78BFA', tag: 'Два года · Легенда',   icon: 'brand'   },
+  { days: 7,    name: 'Пробуждение',  color: '#7a6aaa', tag: 'Первые 7 дней',        icon: 'eye'     },
+  { days: 30,   name: 'Закалка',      color: '#b08850', tag: 'Первый месяц',          icon: 'sword'   },
+  { days: 90,   name: 'Дисциплина',   color: '#3a9a6a', tag: 'Три месяца',            icon: 'shield'  },
+  { days: 180,  name: 'Воля',         color: '#c8961e', tag: 'Полгода без слабости',  icon: 'gauntlet'},
+  { days: 365,  name: 'Несгибаемый',  color: '#d04020', tag: 'Год воздержания',       icon: 'eclipse' },
+  { days: 500,  name: 'Повелитель',   color: '#d4a030', tag: '500 дней · Господство', icon: 'crown'   },
+  { days: 730,  name: 'Несокрушимый', color: '#A78BFA', tag: 'Два года · Легенда',    icon: 'brand'   },
+  { days: 1095, name: 'Бессмертный',  color: '#e0e8ff', tag: 'Три года · Конец пути', icon: 'void'    },
 ];
 function getPurityTier(totalDays) {
   var result = null;
@@ -1578,7 +1580,43 @@ function makePurityBadgeSVG(icon, color, size, unlocked) {
       + '<circle cx="' + (half - brR) + '" cy="' + half + '" r="' + dotR + '" fill="' + stroke + '"/>'
       + '<circle cx="' + (half + brR) + '" cy="' + half + '" r="' + dotR + '" fill="' + stroke + '"/>'
       + '<circle cx="' + half + '" cy="' + half + '" r="' + (half * 0.28) + '" fill="none" stroke="' + stroke + '" stroke-width="' + Math.max(1, strokeW*0.7) + '" opacity="0.6"/>';
-  }
+  } else if (icon === 'crown') {
+    var cBase = s * 0.72, cTop = s * 0.16, cLeft = s * 0.06, cRight = s * 0.94;
+    var midX = half, t1x = half - half*0.44, t3x = half + half*0.44;
+    var t1y = s * 0.26, t3y = s * 0.26, t2y = cTop, gem = half * 0.12;
+    var crPath = 'M' + cLeft + ',' + cBase
+      + ' L' + cLeft + ',' + s*0.46
+      + ' L' + t1x + ',' + t1y
+      + ' L' + (midX - half*0.18) + ',' + s*0.40
+      + ' L' + midX + ',' + t2y
+      + ' L' + (midX + half*0.18) + ',' + s*0.40
+      + ' L' + t3x + ',' + t3y
+      + ' L' + cRight + ',' + s*0.46
+      + ' L' + cRight + ',' + cBase + ' Z';
+    content = '<path d="' + crPath + '" fill="' + (unlocked ? color+'20' : '#1a0a2a') + '" stroke="' + stroke + '" stroke-width="' + strokeW + '" stroke-linejoin="round"/>'
+      + '<circle cx="' + midX + '" cy="' + (t2y + gem) + '" r="' + gem + '" fill="' + stroke + '"/>'
+      + '<circle cx="' + t1x + '" cy="' + (t1y + gem*0.8) + '" r="' + (gem*0.7) + '" fill="' + stroke + '" opacity="0.7"/>'
+      + '<circle cx="' + t3x + '" cy="' + (t3y + gem*0.8) + '" r="' + (gem*0.7) + '" fill="' + stroke + '" opacity="0.7"/>'
+      + '<line x1="' + (cLeft+strokeW) + '" y1="' + (cBase - s*0.08) + '" x2="' + (cRight-strokeW) + '" y2="' + (cBase - s*0.08) + '" stroke="' + stroke + '" stroke-width="' + Math.max(1,strokeW*0.6) + '" opacity="0.5"/>';
+  } else if (icon === 'void') {
+    var rings = [0.72, 0.54, 0.37, 0.21];
+    var dashPatterns = ['8 4', '6 6', '4 4', '3 3'];
+    var offsets = [0, 6, 3, 1];
+    for (var vi = 0; vi < rings.length; vi++) {
+      var vr = half * rings[vi];
+      content += '<circle cx="' + half + '" cy="' + half + '" r="' + vr + '" fill="none" stroke="' + stroke + '" stroke-width="' + Math.max(1.2, strokeW*(0.9 - vi*0.15)) + '" stroke-dasharray="' + dashPatterns[vi] + '" stroke-dashoffset="' + offsets[vi] + '" opacity="' + (1 - vi*0.15).toFixed(2) + '"/>';
+    }
+    for (var vj = 0; vj < 8; vj++) {
+      var va = (vj / 8) * Math.PI * 2;
+      var vx1 = half + Math.cos(va) * half * 0.22;
+      var vy1 = half + Math.sin(va) * half * 0.22;
+      var vx2 = half + Math.cos(va) * half * 0.54;
+      var vy2 = half + Math.sin(va) * half * 0.54;
+      content += '<line x1="' + vx1.toFixed(1) + '" y1="' + vy1.toFixed(1) + '" x2="' + vx2.toFixed(1) + '" y2="' + vy2.toFixed(1) + '" stroke="' + stroke + '" stroke-width="' + Math.max(0.8, strokeW*0.5) + '" opacity="0.6"/>';
+    }
+    content += '<circle cx="' + half + '" cy="' + half + '" r="' + (half*0.1) + '" fill="' + stroke + '"/>';
+    content += '<circle cx="' + half + '" cy="' + half + '" r="' + (half*0.04) + '" fill="' + (unlocked ? '#fff' : '#2a1a3a') + '"/>';
+}
   return '<svg width="' + s + '" height="' + s + '" viewBox="0 0 ' + s + ' ' + s + '" xmlns="http://www.w3.org/2000/svg"' + filterAttr + '>'
     + glow + content + '</svg>';
 }

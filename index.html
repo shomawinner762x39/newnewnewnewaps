@@ -1474,9 +1474,34 @@ const TARGET_TYPE_LABEL = {
   count: { unit: '', word: ['раз', 'раза', 'раз'] }
 };
 
+// Считает кол-во рабочих дней (пн–пт) за numDays дней начиная с startISO
+function workdaysInPeriod(startISO, numDays) {
+  if (!startISO) return Math.round(numDays * 5 / 7); // fallback без даты старта
+  const start = new Date(startISO + 'T00:00:00');
+  let count = 0;
+  for (let i = 0; i < numDays; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    const dow = d.getDay(); // 0=вс, 6=сб
+    if (dow !== 0 && dow !== 6) count++;
+  }
+  return count;
+}
+
+// Динамическая цель карьеры: рабочие дни за период этапа × 8ч (5 дней из 7, 8ч/день)
+function adjustedTarget(sphereId, stageId) {
+  if (sphereId === 'career') {
+    const stage = PATH.find(function(p){ return p.id === stageId; });
+    if (!stage || !stage.days) return 0;
+    const wd = workdaysInPeriod(state && state.startedAt, stage.days);
+    return wd * 8;
+  }
+  return STAGE_TARGETS[stageId]?.[sphereId] || 0;
+}
+
 function sphereProgressForStage(sphereId, stageId) {
   // Возвращает {current, target, pct, type} — сколько накоплено (часов или выполнений) с момента старта
-  const target = (typeof adjustedTarget === 'function') ? adjustedTarget(sphereId, stageId) : (STAGE_TARGETS[stageId]?.[sphereId] || 0);
+  const target = adjustedTarget(sphereId, stageId);
   const type = SPHERE_TARGET_TYPE[sphereId] || 'count';
   let current = 0;
   if (type === 'hours') {
@@ -4561,22 +4586,15 @@ function renderCharacterCard() {
       var type = SPHERE_TARGET_TYPE[sp.id];
       var pct  = prog.pct;
       var done = pct >= 100;
-      // Карьера — без верхней планки: показываем только накопленные часы
-      var label;
-      if (sp.id === 'career') {
-        label = prog.current.toFixed(1) + ' ч ↑';
-      } else if (type === 'hours') {
-        label = prog.current.toFixed(1) + '/' + prog.target + ' ч';
-      } else {
-        label = prog.current + '/' + prog.target;
-      }
+      var cur  = type === 'hours' ? prog.current.toFixed(1) : prog.current;
+      var tgt  = type === 'hours' ? prog.target + ' ч' : prog.target;
       return '<div style="margin-bottom:6px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
         + '<span style="font-size:10px;color:' + (done ? sp.color : '#b0a0d0') + ';font-weight:' + (done ? '700' : '400') + ';">' + sp.emoji + ' ' + sp.name + '</span>'
-        + '<span style="font-size:10px;color:' + sp.color + ';font-weight:700;">' + label + '</span>'
+        + '<span style="font-size:10px;color:' + sp.color + ';font-weight:700;">' + cur + '/' + tgt + '</span>'
         + '</div>'
         + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
-        + '<div style="height:100%;width:' + (sp.id === 'career' ? Math.min(100, pct) : pct) + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
+        + '<div style="height:100%;width:' + pct + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
         + '</div></div>';
     }).join('');
 
@@ -6677,22 +6695,17 @@ function renderSphereModal() {
     const formatNum = n => targetType === 'hours' ? n.toFixed(1) : Math.round(n);
     const isDone = prog.pct >= 100;
     const remaining = Math.max(0, prog.target - prog.current);
-    // Карьера — без верхней планки
-    const isCareer = s.id === 'career';
-    const progressLabel = isCareer
-      ? `${formatNum(prog.current)} ч ↑`
-      : `${formatNum(prog.current)}${unit} <span style="color:#6a5a8a;">из ${prog.target}${unit}</span>`;
     stageProgressHtml = `<div style="background: rgba(0,0,0,0.25); border: 1px solid ${isDone ? s.color + '50' : 'rgba(255,255,255,0.06)'}; border-radius: 10px; padding: 11px 13px; margin-bottom: 14px;">
       <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px;">
         <div style="font-size: 10px; color: ${s.color}; letter-spacing: 0.15em; text-transform: uppercase; font-weight: 700;">До этапа «${escapeHtml(stage.title)}»</div>
-        <div style="font-size: 12px; color: ${isDone ? '#10E891' : '#fff'}; font-weight: 700;">${isDone ? '✓ готово' : (isCareer ? formatNum(prog.current) + ' ч' : Math.round(prog.pct) + '%')}</div>
+        <div style="font-size: 12px; color: ${isDone ? '#10E891' : '#fff'}; font-weight: 700;">${isDone ? '✓ готово' : `${Math.round(prog.pct)}%`}</div>
       </div>
       <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px;">
-        <span style="color: #b0a0d0;">${progressLabel}</span>
-        ${(!isDone && !isCareer) ? `<span style="color: ${s.color};">осталось ${formatNum(remaining)}${unit}</span>` : ''}
+        <span style="color: #b0a0d0;">${formatNum(prog.current)}${unit} <span style="color:#6a5a8a;">из ${prog.target}${unit}</span></span>
+        ${!isDone ? `<span style="color: ${s.color};">осталось ${formatNum(remaining)}${unit}</span>` : ''}
       </div>
       <div style="height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;">
-        <div style="height: 100%; width: ${Math.min(100, prog.pct)}%; background: ${s.color}; box-shadow: 0 0 6px ${s.glow};"></div>
+        <div style="height: 100%; width: ${prog.pct}%; background: ${s.color}; box-shadow: 0 0 6px ${s.glow};"></div>
       </div>
     </div>`;
   }
@@ -6745,11 +6758,8 @@ function renderStageModal() {
             ${isDone ? '<span style="font-size: 10px; color: #10E891; font-weight: 700;">✓</span>' : ''}
           </div>
           <div style="text-align: right; flex-shrink: 0;">
-            ${sp.id === 'career'
-              ? `<div style="font-size: 12px; color: ${isDone ? '#10E891' : '#fff'}; font-weight: 700; line-height: 1;">${formatNum(prog.current)} ч ↑</div>`
-              : `<div style="font-size: 12px; color: ${isDone ? '#10E891' : '#fff'}; font-weight: 700; line-height: 1;">${formatNum(prog.current)}${unit} <span style="color:#6a5a8a; font-weight: 400;">/ ${prog.target}${unit}</span></div>
-            ${!isDone ? `<div style="font-size: 9px; color: ${sp.color}; margin-top: 2px;">осталось ${formatNum(remaining)}${unit}</div>` : ''}`
-            }
+            <div style="font-size: 12px; color: ${isDone ? '#10E891' : '#fff'}; font-weight: 700; line-height: 1;">${formatNum(prog.current)}${unit} <span style="color:#6a5a8a; font-weight: 400;">/ ${prog.target}${unit}</span></div>
+            ${!isDone ? `<div style="font-size: 9px; color: ${sp.color}; margin-top: 2px;">осталось ${formatNum(remaining)}${unit}</div>` : ''}
           </div>
         </div>
         <div style="height: 3px; background: rgba(255,255,255,0.06); border-radius: 2px; overflow: hidden;">

@@ -52,15 +52,13 @@
     will-change: transform;
   }
   @keyframes guts-breathe {
-    0%   { transform: scale(1.08) translate(0%, 0%); }
-    20%  { transform: scale(1.09) translate(-0.4%, 0.15%); }
-    45%  { transform: scale(1.10) translate(0.3%, -0.2%); }
-    70%  { transform: scale(1.09) translate(-0.2%, 0.25%); }
-    100% { transform: scale(1.08) translate(0%, 0%); }
-  }
-  #guts-eyes.tracking {
-    animation: none;
-    transition: transform 0.15s ease-out;
+    0%   { transform: scale(1.08) translate(0%,    0%);    }
+    15%  { transform: scale(1.085) translate(-0.3%, 0.2%); }
+    30%  { transform: scale(1.09) translate(0.25%, -0.15%);}
+    50%  { transform: scale(1.095) translate(-0.2%, 0.3%); }
+    65%  { transform: scale(1.09) translate(0.3%, -0.1%);  }
+    80%  { transform: scale(1.085) translate(-0.15%, 0.2%);}
+    100% { transform: scale(1.08) translate(0%,    0%);    }
   }
   #guts-eye-layer { display: none; }
   @keyframes cel-pop { 0% {transform: scale(0.4); opacity:0;} 50% {transform: scale(1.1);} 100% {transform: scale(1); opacity:1;} }
@@ -3377,52 +3375,7 @@ function renderApp() {
 
   root.innerHTML = banner + header + whyBlock + `<div style="padding: 18px;">${content}</div>`;
 
-  // 👁 Двигаем саму картинку — никаких наложений
-  if (!window.__gutsEyesInit) {
-    window.__gutsEyesInit = true;
-    var _gTX=0,_gTY=0,_gCX=0,_gCY=0,_gRaf=null,_gIdle=null;
-
-    function _gTick() {
-      _gCX += (_gTX-_gCX)*0.09;
-      _gCY += (_gTY-_gCY)*0.09;
-      var el = document.getElementById('guts-eyes');
-      if (el) el.style.transform =
-        'scale(1.08) translate('+(_gCX/1.08).toFixed(2)+'px,'+(_gCY/1.08).toFixed(2)+'px)';
-      _gRaf = (Math.abs(_gCX-_gTX)<0.03 && Math.abs(_gCY-_gTY)<0.03)
-        ? null : requestAnimationFrame(_gTick);
-    }
-
-    function _gSet(tx,ty){ _gTX=tx; _gTY=ty; if(!_gRaf) _gRaf=requestAnimationFrame(_gTick); }
-
-    function _gMove(e) {
-      var el = document.getElementById('guts-eyes');
-      if (!el) return;
-      var r=el.getBoundingClientRect();
-      var cx=e.touches?e.touches[0].clientX:e.clientX;
-      var cy=e.touches?e.touches[0].clientY:e.clientY;
-      var dx=cx-(r.left+r.width/2), dy=cy-(r.top+r.height/2);
-      var dist=Math.sqrt(dx*dx+dy*dy)||1;
-      var f=Math.min(dist/120,1)*5;
-      el.classList.add('tracking');
-      if(_gIdle){clearTimeout(_gIdle);_gIdle=null;}
-      _gSet((dx/dist)*f,(dy/dist)*f);
-    }
-
-    function _gEnd() {
-      if(_gIdle) clearTimeout(_gIdle);
-      _gIdle=setTimeout(function(){
-        var el=document.getElementById('guts-eyes');
-        if(el) el.classList.remove('tracking');
-        _gSet(0,0);
-      },700);
-    }
-
-    document.addEventListener('touchstart',_gMove,{passive:true});
-    document.addEventListener('touchmove', _gMove,{passive:true});
-    document.addEventListener('touchend',  _gEnd);
-    document.addEventListener('mousemove', _gMove);
-    document.addEventListener('mouseleave',_gEnd);
-  }
+  // 👁 живость — только CSS-анимация, без реакции на тапы
 
   // Модалки рендерим в отдельный корень вне #app-root (иначе на iOS position:fixed подрезается)
   const modalRoot = document.getElementById('modal-root');

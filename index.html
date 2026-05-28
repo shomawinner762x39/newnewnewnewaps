@@ -47,8 +47,15 @@
   ::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.3); border-radius: 4px; }
   @keyframes cel-in { from {opacity:0;} to {opacity:1;} }
   #guts-eyes {
+    animation: guts-breathe 4s ease-in-out infinite;
     will-change: transform;
-    /* анимация управляется JS — дыхание + гироскоп */
+  }
+  @keyframes guts-breathe {
+    0%   { transform: scale(1.08) translate(0%,    0%);    }
+    25%  { transform: scale(1.09) translate(-0.4%, 0.2%);  }
+    50%  { transform: scale(1.10) translate(0.3%, -0.2%);  }
+    75%  { transform: scale(1.09) translate(-0.2%, 0.3%);  }
+    100% { transform: scale(1.08) translate(0%,    0%);    }
   }
   #guts-eye-layer { display: none; }
   @keyframes cel-pop { 0% {transform: scale(0.4); opacity:0;} 50% {transform: scale(1.1);} 100% {transform: scale(1); opacity:1;} }
@@ -3334,7 +3341,6 @@ function renderApp() {
         <div style="font-size:14px;letter-spacing:0.2em;color:rgba(255,255,255,0.85);text-transform:uppercase;font-weight:700;font-family:Georgia,serif;flex-shrink:0;">ВОЛЯ</div>
       </div>
       <div id="prayer-strip" style="display:none;"></div>
-      ${(typeof window === 'undefined' || true) ? `<button id="gyro-btn" onclick="window.__gutsRequestGyro && window.__gutsRequestGyro()" style="display:none;position:absolute;top:10px;right:10px;background:rgba(0,0,0,0.5);border:1px solid rgba(255,255,255,0.2);border-radius:20px;color:rgba(255,255,255,0.7);font-size:11px;padding:5px 10px;cursor:pointer;z-index:10;backdrop-filter:blur(4px);">📱 Движение</button>` : ''}
     </div>
   </div>`;
 
@@ -3366,71 +3372,6 @@ function renderApp() {
 
   root.innerHTML = banner + header + whyBlock + `<div style="padding: 18px;">${content}</div>`;
 
-  // 👁 дыхание (JS) + гироскоп-параллакс
-  if (!window.__gutsMotionInit) {
-    window.__gutsMotionInit = true;
-    var _gGyroX = 0, _gGyroY = 0; // цель от гироскопа
-    var _gSmX   = 0, _gSmY   = 0; // сглаженное значение
-    var _gB0    = null, _gG0 = null; // калибровка нулевого положения
-
-    // Один RAF-цикл делает и дыхание, и гироскоп
-    (function _gFrame() {
-      requestAnimationFrame(_gFrame);
-      var el = document.getElementById('guts-eyes');
-      if (!el) return;
-      var t = Date.now();
-      // Лёгкое органическое дыхание
-      var bx = Math.sin(t / 3800) * 0.35;
-      var by = Math.cos(t / 4700) * 0.22;
-      var sc = 1.08 + Math.sin(t / 5500) * 0.008;
-      // Сглаживаем гироскоп
-      _gSmX += (_gGyroX - _gSmX) * 0.06;
-      _gSmY += (_gGyroY - _gSmY) * 0.06;
-      el.style.transform = 'scale(' + sc.toFixed(4) + ') translate(' +
-        (bx + _gSmX / sc).toFixed(2) + '%, ' +
-        (by + _gSmY / sc).toFixed(2) + '%)';
-    })();
-
-    // Обработчик гироскопа
-    function _gOnOrientation(e) {
-      var beta  = e.beta  || 0;
-      var gamma = e.gamma || 0;
-      if (_gB0 === null) { _gB0 = beta; _gG0 = gamma; } // первое чтение = нейтраль
-      var dx = gamma - _gG0; // наклон влево-вправо
-      var dy = beta  - _gB0; // наклон вперёд-назад
-      _gGyroX = Math.max(-7, Math.min(7, dx / 14 * 7)); // ±7px при ±14°
-      _gGyroY = Math.max(-5, Math.min(5, dy / 14 * 5));
-    }
-
-    function _gStartGyro() {
-      window.addEventListener('deviceorientation', _gOnOrientation);
-      var btn = document.getElementById('gyro-btn');
-      if (btn) btn.style.display = 'none';
-    }
-
-    window.__gutsRequestGyro = function() {
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        DeviceOrientationEvent.requestPermission()
-          .then(function(r) { if (r === 'granted') _gStartGyro(); })
-          .catch(function() {});
-      } else {
-        _gStartGyro();
-      }
-    };
-
-    if (typeof DeviceOrientationEvent !== 'undefined') {
-      if (typeof DeviceOrientationEvent.requestPermission === 'function') {
-        // iOS 13+ — показываем кнопку, она вызовет requestPermission по тапу
-        requestAnimationFrame(function() {
-          var btn = document.getElementById('gyro-btn');
-          if (btn) btn.style.display = 'block';
-        });
-      } else {
-        // Android — сразу работает без разрешения
-        _gStartGyro();
-      }
-    }
-  }
 
   // Модалки рендерим в отдельный корень вне #app-root (иначе на iOS position:fixed подрезается)
   const modalRoot = document.getElementById('modal-root');

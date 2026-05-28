@@ -1437,24 +1437,25 @@ const PREFILLED_FLAGS = {
 };
 
 const PATH = [
-  { id: 's0', months: 0, days: 0, xp: 0, title: 'Точка отсчёта', hint: 'Сегодня. Контекст и видение записаны.' },
-  { id: 's1', months: 2, days: 60, xp: 600, title: 'Фундамент привычки', hint: 'Привычки стали ежедневными.' },
-  { id: 's2', months: 6, days: 180, xp: 2200, title: 'Первые плоды', hint: 'Видимые сдвиги в каждой сфере.' },
-  { id: 's3', months: 12, days: 365, xp: 5000, title: 'Год пути', hint: 'Уже не тот, кем начинал.' },
-  { id: 's4', months: 18, days: 540, xp: 8500, title: 'Зрелость', hint: 'Глубокая работа.' },
-  { id: 's5', months: 24, days: 730, xp: 13000, title: 'Двухлетняя версия', hint: 'Совсем другая жизнь.' },
-  { id: 's6', months: 36, days: 1095, xp: 20000, title: 'Вершина', hint: 'То, ради чего всё начиналось.' }
+  { id: 's0', months: 0,  days: 0,    xp: 0,     title: 'Точка отсчёта',      hint: 'Сегодня. Контекст и видение записаны.' },
+  { id: 's1', months: 3,  days: 90,   xp: 900,   title: 'Фундамент привычки', hint: 'Привычки стали ежедневными.' },
+  { id: 's2', months: 6,  days: 180,  xp: 2200,  title: 'Первые плоды',       hint: 'Видимые сдвиги в каждой сфере.' },
+  { id: 's3', months: 9,  days: 270,  xp: 3800,  title: 'Девять месяцев',     hint: 'Характер сформирован.' },
+  { id: 's4', months: 12, days: 365,  xp: 5800,  title: 'Год пути',           hint: 'Уже не тот, кем начинал.' },
+  { id: 's5', months: 24, days: 730,  xp: 13000, title: 'Двухлетняя версия',  hint: 'Совсем другая жизнь.' },
+  { id: 's6', months: 36, days: 1095, xp: 20000, title: 'Вершина',            hint: 'То, ради чего всё начиналось.' }
 ];
 
 // Нормы по каждой сфере для каждого этапа.
 // type: 'hours' — суммарные часы за всё время | 'count' — суммарное количество выполненных задач
 // Нормы накопительные: s2 включает s1 и т.д.
+// career переопределяется через adjustedTarget() — динамически по рабочим дням
 const STAGE_TARGETS = {
   s0: { body: 0,   career: 0,    skills: 0,    religion: 0,    money: 0,   love: 0   },
-  s1: { body: 32,  career: 320,  skills: 60,   religion: 400,  money: 16,  love: 45  },
+  s1: { body: 48,  career: 480,  skills: 90,   religion: 600,  money: 24,  love: 68  },
   s2: { body: 96,  career: 960,  skills: 200,  religion: 1200, money: 50,  love: 139 },
-  s3: { body: 195, career: 1920, skills: 440,  religion: 2500, money: 100, love: 278 },
-  s4: { body: 288, career: 2880, skills: 680,  religion: 3700, money: 150, love: 412 },
+  s3: { body: 145, career: 1440, skills: 330,  religion: 1875, money: 75,  love: 209 },
+  s4: { body: 192, career: 1920, skills: 450,  religion: 2500, money: 100, love: 275 },
   s5: { body: 390, career: 3840, skills: 940,  religion: 5000, money: 200, love: 556 },
   s6: { body: 585, career: 5760, skills: 1400, religion: 7600, money: 300, love: 834 }
 };

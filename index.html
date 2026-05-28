@@ -4505,13 +4505,18 @@ function buildMonthBar() {
     .filter(function(h){ return h.sphere === 'skills'; })
     .reduce(function(s,h){ return s + (parseFloat(h.hours) || 0); }, 0);
 
-  var _freeH = Math.max(0, _tot - _sleepH - _careerH - _bodyH - _skillH);
+  // Молитвы: каждая = 10 минут = 1/6 часа
+  var _religH = (state.history || [])
+    .filter(function(h){ return h.sphere === 'religion'; }).length * (10 / 60);
+
+  var _freeH = Math.max(0, _tot - _sleepH - _careerH - _bodyH - _skillH - _religH);
 
   var _segs = [
     { color: '#4a2a6a',                h: _sleepH,  label: 'Сон'      },
     { color: '#b87a0a',                h: _careerH, label: 'Работа'   },
     { color: '#8b1a1a',                h: _bodyH,   label: 'Тело'     },
     { color: '#2a6a4a',                h: _skillH,  label: 'Навыки'   },
+    { color: '#1a5a8a',                h: _religH,  label: 'Молитвы'  },
     { color: 'rgba(255,255,255,0.10)', h: _freeH,   label: 'Свободно' },
   ].filter(function(s){ return s.h > 0; });
 
@@ -4521,9 +4526,12 @@ function buildMonthBar() {
   }).join('');
 
   var _leg = _segs.map(function(s){
+    var val = s.label === 'Молитвы'
+      ? Math.round(s.h * 60) + 'мин'
+      : s.h.toFixed(0) + 'ч';
     return '<span style="display:inline-flex;align-items:center;gap:3px;">'
       +'<span style="width:7px;height:7px;border-radius:2px;background:'+s.color+';display:inline-block;flex-shrink:0;"></span>'
-      +'<span style="font-size:9px;color:#8870a8;">'+s.label+' '+s.h.toFixed(0)+'ч</span></span>';
+      +'<span style="font-size:9px;color:#8870a8;">'+s.label+' '+val+'</span></span>';
   }).join('');
 
   // Полная версия для вкладки Путь

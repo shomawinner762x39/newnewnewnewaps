@@ -46,6 +46,22 @@
   ::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
   ::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.3); border-radius: 4px; }
   @keyframes cel-in { from {opacity:0;} to {opacity:1;} }
+  #guts-eyes {
+    transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
+    animation: guts-breathe 7s ease-in-out infinite;
+    will-change: transform;
+  }
+  @keyframes guts-breathe {
+    0%   { transform: scale(1.08) translate(0%, 0%); }
+    20%  { transform: scale(1.09) translate(-0.4%, 0.15%); }
+    45%  { transform: scale(1.10) translate(0.3%, -0.2%); }
+    70%  { transform: scale(1.09) translate(-0.2%, 0.25%); }
+    100% { transform: scale(1.08) translate(0%, 0%); }
+  }
+  #guts-eyes.tracking {
+    animation: none;
+    transition: transform 0.15s ease-out;
+  }
   @keyframes cel-pop { 0% {transform: scale(0.4); opacity:0;} 50% {transform: scale(1.1);} 100% {transform: scale(1); opacity:1;} }
   @keyframes slide-down { from {transform: translateY(-20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }
   @keyframes confetti-fall { 0% { transform: translate3d(0,0,0) rotate(0deg); opacity: 1; } 100% { transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--rot)); opacity: 0; } }
@@ -3310,7 +3326,7 @@ function renderApp() {
   }
 
   const header = `<div style="padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); position:relative; overflow:hidden;">
-    <div style="position:absolute;inset:0;background-image:var(--guts-bg);background-size:cover;background-position:center 28%;opacity:0.7;"></div>
+    <div id="guts-eyes" style="position:absolute;inset:0;background-image:var(--guts-bg);background-size:cover;background-position:center 28%;opacity:0.7;transform:scale(1.08) translate(0%,0%);"></div>
     <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(10,6,18,0.0) 40%, rgba(10,6,18,0.75) 100%);"></div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;min-height:170px;">
       <div style="font-size:18px;font-weight:700;color:#e8d5a8;font-family:Georgia,serif;letter-spacing:0.08em;text-transform:uppercase;">${r.name}</div>
@@ -3358,6 +3374,44 @@ function renderApp() {
   if (view.skillId) skillModal = renderSkillModal();
 
   root.innerHTML = banner + header + whyBlock + `<div style="padding: 18px;">${content}</div>`;
+
+  // 👁 Guts eyes: breathing + follow taps/mouse
+  (function() {
+    var eyesEl = document.getElementById('guts-eyes');
+    var headerEl = eyesEl ? eyesEl.parentElement : null;
+    if (!eyesEl || !headerEl) return;
+    var _resetTimer = null;
+    function onPointer(e) {
+      var rect = headerEl.getBoundingClientRect();
+      var cx, cy;
+      if (e.touches && e.touches.length > 0) {
+        cx = e.touches[0].clientX;
+        cy = e.touches[0].clientY;
+      } else {
+        cx = e.clientX;
+        cy = e.clientY;
+      }
+      var relX = (cx - rect.left) / rect.width;   // 0..1
+      var relY = (cy - rect.top)  / rect.height;  // 0..1
+      var tx = (relX - 0.5) * 6;   // ±3%
+      var ty = (relY - 0.5) * 3;   // ±1.5%
+      eyesEl.classList.add('tracking');
+      eyesEl.style.transform = 'scale(1.09) translate(' + tx + '%, ' + ty + '%)';
+      if (_resetTimer) clearTimeout(_resetTimer);
+    }
+    function onEnd() {
+      if (_resetTimer) clearTimeout(_resetTimer);
+      _resetTimer = setTimeout(function() {
+        eyesEl.classList.remove('tracking');
+        eyesEl.style.transform = '';
+      }, 800);
+    }
+    headerEl.addEventListener('touchstart', onPointer, { passive: true });
+    headerEl.addEventListener('touchmove',  onPointer, { passive: true });
+    headerEl.addEventListener('touchend',   onEnd);
+    headerEl.addEventListener('mousemove',  onPointer);
+    headerEl.addEventListener('mouseleave', onEnd);
+  })();
 
   // Модалки рендерим в отдельный корень вне #app-root (иначе на iOS position:fixed подрезается)
   const modalRoot = document.getElementById('modal-root');

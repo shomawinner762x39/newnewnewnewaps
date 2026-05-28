@@ -3345,8 +3345,8 @@ function renderApp() {
 
   const header = `<div style="padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); position:relative; overflow:hidden;">
     <div id="guts-eyes" style="position:absolute;inset:0;background-image:var(--guts-bg);background-size:cover;background-position:center 28%;opacity:0.7;transform:scale(1.08) translate(0%,0%);"></div>
-    <div id="guts-pupil-l" class="guts-pupil" style="left:22%;top:56%;"></div>
-    <div id="guts-pupil-r" class="guts-pupil" style="left:77%;top:32%;"></div>
+    <div id="guts-pupil-l" class="guts-pupil" style="left:50%;top:50%;opacity:0;"></div>
+    <div id="guts-pupil-r" class="guts-pupil" style="left:50%;top:50%;opacity:0;"></div>
     <div style="position:absolute;inset:0;background:linear-gradient(to bottom, rgba(10,6,18,0.0) 40%, rgba(10,6,18,0.75) 100%);"></div>
     <div style="position:relative;z-index:1;display:flex;flex-direction:column;min-height:170px;">
       <div style="font-size:18px;font-weight:700;color:#e8d5a8;font-family:Georgia,serif;letter-spacing:0.08em;text-transform:uppercase;">${r.name}</div>
@@ -3395,68 +3395,96 @@ function renderApp() {
 
   root.innerHTML = banner + header + whyBlock + `<div style="padding: 18px;">${content}</div>`;
 
-  // 👁 Guts eyes: pupils breathe + follow taps/mouse
-  (function() {
+  // 👁 Guts eyes: position pupils dynamically + follow taps anywhere on page
+  // — рассчитываем позиции из реального размера div-а с фоном
+  requestAnimationFrame(function() {
     var eyesEl = document.getElementById('guts-eyes');
     var pl     = document.getElementById('guts-pupil-l');
     var pr     = document.getElementById('guts-pupil-r');
-    var headerEl = eyesEl ? eyesEl.parentElement : null;
-    if (!eyesEl || !headerEl || !pl || !pr) return;
+    if (!eyesEl || !pl || !pr) return;
 
-    var _resetTimer = null;
-    var MAX_X = 6, MAX_Y = 4; // max pixel shift for pupils
+    var rect = eyesEl.getBoundingClientRect();
+    var cW = rect.width, cH = rect.height;
+    // Реальные размеры исходного изображения
+    var imgW = 735, imgH = 415;
+    var imgRatio = imgW / imgH;
+    var cRatio   = cW / cH;
 
-    function movePupils(tx, ty) {
-      pl.style.transform = 'translate(calc(-50% + ' + tx + 'px), calc(-50% + ' + ty + 'px))';
-      pr.style.transform = 'translate(calc(-50% + ' + tx + 'px), calc(-50% + ' + ty + 'px))';
+    var scaleW, scaleH, offX, offY;
+    if (cRatio > imgRatio) {
+      // контейнер шире — масштаб по ширине
+      scaleW = cW; scaleH = cW / imgRatio;
+      offX = 0; offY = -(scaleH - cH) * 0.28;
+    } else {
+      // контейнер выше — масштаб по высоте
+      scaleH = cH; scaleW = cH * imgRatio;
+      offX = -(scaleW - cW) * 0.5; offY = 0;
+    }
+    var sc = scaleW / imgW;
+
+    // Координаты зрачков в оригинальном изображении (px)
+    var EYES = [{x:163, y:218}, {x:563, y:130}];
+    var elems = [pl, pr];
+    EYES.forEach(function(e, i) {
+      var px = e.x * sc + offX;
+      var py = e.y * sc + offY;
+      elems[i].style.left    = (px / cW * 100) + '%';
+      elems[i].style.top     = (py / cH * 100) + '%';
+      elems[i].style.opacity = '1';
+      elems[i].style.transition = 'opacity 0.3s';
+    });
+  });
+
+  // Глобальное слежение — вешаем один раз за сессию
+  if (!window.__gutsEyesInit) {
+    window.__gutsEyesInit = true;
+    var _gRT = null; // reset timer
+    var MAX_SHIFT = 5; // максимальный сдвиг зрачка, px
+
+    function _gutsPtrMove(e) {
+      var pl = document.getElementById('guts-pupil-l');
+      var pr = document.getElementById('guts-pupil-r');
+      if (!pl || !pr) return;
+      var cx = e.touches ? e.touches[0].clientX : e.clientX;
+      var cy = e.touches ? e.touches[0].clientY : e.clientY;
+      [pl, pr].forEach(function(el) {
+        var r = el.getBoundingClientRect();
+        var ex = r.left + r.width  / 2;
+        var ey = r.top  + r.height / 2;
+        var dx = cx - ex, dy = cy - ey;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 1) return;
+        // Плавное затухание: сдвиг = MAX при dist≥80px, меньше — ближе
+        var factor = Math.min(dist / 80, 1) * MAX_SHIFT;
+        var tx = (dx / dist) * factor;
+        var ty = (dy / dist) * factor;
+        el.style.animation = 'none';
+        el.style.transform = 'translate(calc(-50% + ' + tx + 'px), calc(-50% + ' + ty + 'px))';
+      });
+      if (_gRT) clearTimeout(_gRT);
     }
 
-    function onPointer(e) {
-      var rect = headerEl.getBoundingClientRect();
-      var cx, cy;
-      if (e.touches && e.touches.length > 0) {
-        cx = e.touches[0].clientX;
-        cy = e.touches[0].clientY;
-      } else {
-        cx = e.clientX;
-        cy = e.clientY;
-      }
-      var relX = (cx - rect.left) / rect.width;
-      var relY = (cy - rect.top)  / rect.height;
-      var tx = (relX - 0.5) * MAX_X * 2;
-      var ty = (relY - 0.5) * MAX_Y * 2;
-      // Clamp to max shift
-      tx = Math.max(-MAX_X, Math.min(MAX_X, tx));
-      ty = Math.max(-MAX_Y, Math.min(MAX_Y, ty));
-
-      pl.classList.add('tracking');
-      pr.classList.add('tracking');
-      pl.style.animation = 'none';
-      pr.style.animation = 'none';
-      movePupils(tx, ty);
-
-      if (_resetTimer) clearTimeout(_resetTimer);
-    }
-
-    function onEnd() {
-      if (_resetTimer) clearTimeout(_resetTimer);
-      _resetTimer = setTimeout(function() {
-        movePupils(0, 0);
+    function _gutsPtrEnd() {
+      if (_gRT) clearTimeout(_gRT);
+      _gRT = setTimeout(function() {
+        var pl = document.getElementById('guts-pupil-l');
+        var pr = document.getElementById('guts-pupil-r');
+        if (!pl || !pr) return;
+        pl.style.transform = pr.style.transform = 'translate(-50%, -50%)';
         setTimeout(function() {
-          pl.classList.remove('tracking');
-          pr.classList.remove('tracking');
-          pl.style.animation = '';
-          pr.style.animation = '';
+          var pl2 = document.getElementById('guts-pupil-l');
+          var pr2 = document.getElementById('guts-pupil-r');
+          if (pl2) pl2.style.animation = '';
+          if (pr2) pr2.style.animation = '';
         }, 120);
-      }, 600);
+      }, 500);
     }
 
-    headerEl.addEventListener('touchstart', onPointer, { passive: true });
-    headerEl.addEventListener('touchmove',  onPointer, { passive: true });
-    headerEl.addEventListener('touchend',   onEnd);
-    headerEl.addEventListener('mousemove',  onPointer);
-    headerEl.addEventListener('mouseleave', onEnd);
-  })();
+    document.addEventListener('touchstart', _gutsPtrMove, {passive: true});
+    document.addEventListener('touchmove',  _gutsPtrMove, {passive: true});
+    document.addEventListener('touchend',   _gutsPtrEnd);
+    document.addEventListener('mousemove',  _gutsPtrMove);
+  }
 
   // Модалки рендерим в отдельный корень вне #app-root (иначе на iOS position:fixed подрезается)
   const modalRoot = document.getElementById('modal-root');

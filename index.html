@@ -4514,28 +4514,28 @@ function buildMonthBar() {
     _dateFilter = function(d){ return d && d >= _stgStart; };
   }
 
-  // Сон
+  // Используем filterByPeriod для совпадения с хроникой
+  // Для режима 'stage' — _dateFilter уже содержит нужный фильтр по дате старта этапа
+  var _fpPeriod = mode === 'month' ? 'month' : 'all';
+
+  // Сон (своя коллекция, filterByPeriod не подходит — фильтруем вручную)
   var _sleepH = (state.sleep && state.sleep.entries || [])
     .filter(function(e){ return _dateFilter(e.date); })
     .reduce(function(s,e){ return s + (e.hours || 0); }, 0);
 
-  // Карьера
-  var _careerH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'career' && _dateFilter(h.date); })
-    .reduce(function(s,h){ return s + (parseFloat(h.hours) || 0); }, 0);
+  // Для месяца используем filterByPeriod (та же функция что хроника).
+  // Для этапа — _dateFilter (фильтр по дате старта этапа).
+  function _histOf(sphere) {
+    var base = (state.history||[]).filter(function(h){ return h.sphere === sphere; });
+    return mode === 'month' ? filterByPeriod(base, 'month')
+         : mode === 'alltime' ? base
+         : base.filter(function(h){ return _dateFilter(h.date); }); // stage
+  }
 
-  // Тело (тренировка = 2ч)
-  var _bodyH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'body' && _dateFilter(h.date); }).length * 2;
-
-  // Навыки
-  var _skillH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'skills' && _dateFilter(h.date); })
-    .reduce(function(s,h){ return s + (parseFloat(h.hours) || 0); }, 0);
-
-  // Молитвы (10 мин = 1/6 ч)
-  var _religH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'religion' && _dateFilter(h.date); }).length * (10 / 60);
+  var _careerH = _histOf('career').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
+  var _bodyH   = _histOf('body').length * 2;
+  var _skillH  = _histOf('skills').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
+  var _religH  = _histOf('religion').length * (10 / 60);
 
   var _usedH = _sleepH + _careerH + _bodyH + _skillH + _religH;
   var _freeH = Math.max(0, _tot - _usedH);
@@ -4620,6 +4620,7 @@ function renderCharacterCard() {
     + '</div>';
 
   // Данные по сфере в зависимости от режима
+  // Используем filterByPeriod — ту же функцию что и хроника, чтобы числа совпадали
   function _sphereData(sp) {
     var type = SPHERE_TARGET_TYPE[sp.id] || 'count';
     var current, target, pct;
@@ -4630,29 +4631,33 @@ function renderCharacterCard() {
       return { current: prog2.current, target: prog2.target, pct: prog2.pct, type: type };
     }
 
-    if (_mode === 'alltime') {
-      if (type === 'hours') {
-        current = (state.history||[]).filter(function(h){ return h.sphere===sp.id; }).reduce(function(s,h){ return s+(parseFloat(h.hours)||0); }, 0);
-      } else {
-        current = (state.history||[]).filter(function(h){ return h.sphere===sp.id; }).length;
-        if (sp.id==='money') current += (state.finance&&state.finance.entries ? state.finance.entries.length : 0);
+    // Фильтруем историю той же функцией что хроника
+    var _period = _mode === 'month' ? 'month' : 'all';
+    var _hist = filterByPeriod(
+      (state.history||[]).filter(function(h){ return h.sphere === sp.id; }),
+      _period
+    );
+
+    if (type === 'hours') {
+      current = _hist.reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
+    } else {
+      current = _hist.length;
+      if (sp.id === 'money') {
+        var _finEntries = (state.finance && state.finance.entries) ? state.finance.entries : [];
+        current += filterByPeriod(_finEntries, _period).length;
       }
-      target = adjustedTarget(sp.id, 's8');
-      pct = target===0 ? 100 : Math.min(100, (current/target)*100);
-      return { current: current, target: target, pct: pct, type: type };
     }
 
-    // month
-    if (type === 'hours') {
-      current = (state.history||[]).filter(function(h){ return h.sphere===sp.id && h.date && h.date.startsWith(_ms2); }).reduce(function(s,h){ return s+(parseFloat(h.hours)||0); }, 0);
-      // Месячная норма: s8 цель / 36 месяцев
-      target = Math.round(adjustedTarget(sp.id, 's8') / 36 * 10) / 10;
+    if (_mode === 'alltime') {
+      target = adjustedTarget(sp.id, 's8');
     } else {
-      current = (state.history||[]).filter(function(h){ return h.sphere===sp.id && h.date && h.date.startsWith(_ms2); }).length;
-      if (sp.id==='money') current += (state.finance&&state.finance.entries ? state.finance.entries.filter(function(e){ return e.date&&e.date.startsWith(_ms2); }).length : 0);
-      target = Math.round(adjustedTarget(sp.id, 's8') / 36);
+      // Месяц: норма = s8 цель / 36 месяцев
+      target = type === 'hours'
+        ? Math.round(adjustedTarget(sp.id, 's8') / 36 * 10) / 10
+        : Math.round(adjustedTarget(sp.id, 's8') / 36);
     }
-    pct = target===0 ? 100 : Math.min(100, (current/target)*100);
+
+    pct = target === 0 ? 100 : Math.min(100, (current / target) * 100);
     return { current: current, target: target, pct: pct, type: type };
   }
 

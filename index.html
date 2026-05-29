@@ -4532,9 +4532,7 @@ function buildMonthBar() {
   // Для этапа — _dateFilter (фильтр по дате старта этапа).
   function _histOf(sphere) {
     var base = (state.history||[]).filter(function(h){ return h.sphere === sphere; });
-    return mode === 'month' ? filterByPeriod(base, 'month')
-         : mode === 'alltime' ? base
-         : base.filter(function(h){ return _dateFilter(h.date); }); // stage
+    return mode === 'alltime' ? base : base.filter(function(h){ return _dateFilter(h.date); });
   }
 
   var _careerH = _histOf('career').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);

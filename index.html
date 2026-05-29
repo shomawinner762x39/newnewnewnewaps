@@ -2784,7 +2784,7 @@ function filterByPeriod(entries, period) {
   }
   if (period === 'month') {
     const m = currentMonth();
-    return entries.filter(h => h.date.startsWith(m));
+    return entries.filter(h => h.date && h.date.startsWith(m));
   }
   if (period === 'report') {
     const rp = currentReportPeriod();

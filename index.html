@@ -4961,11 +4961,12 @@ function renderCounters() {
     html += `<div style="display: flex; gap: 8px; margin-bottom: 14px; padding: 10px; background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.2); border-radius: 10px;"><div style="flex: 1;"><div style="font-size: 9px; color: #8870a8; margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase;">С</div><input type="date" value="${view.customFrom || ''}" onchange="window.__app.setCustomFrom(this.value)" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 12px; outline: none;" /></div><div style="flex: 1;"><div style="font-size: 9px; color: #8870a8; margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase;">По</div><input type="date" value="${view.customTo || ''}" onchange="window.__app.setCustomTo(this.value)" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 12px; outline: none;" /></div></div>`;
   }
 
-  // Календарь общий
-  html += `<button onclick="window.__app.toggleCalendar()" style="width: 100%; padding: 10px; margin-bottom: 14px; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); border-radius: 10px; color: #A78BFA; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; font-weight: 600;">${view.calendarVisible ? '▴ Скрыть календарь' : '▾ Показать календарь активности'}</button>`;
-  if (view.calendarVisible) {
-    html += renderHeatmapMonth(view.calendarMonth, null, '#A78BFA');
-  }
+  // Одна кнопка — все сферы под ней
+  html += `<button onclick="window.__app.toggleCalendar()" style="width: 100%; padding: 12px; margin-bottom: ${view.calendarVisible ? '0' : '0'}px; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); border-radius: ${view.calendarVisible ? '10px 10px 0 0' : '10px'}; color: #A78BFA; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; font-weight: 600;">${view.calendarVisible ? '▴ Скрыть активность' : '▾ Показать активность'}</button>`;
+
+  if (!view.calendarVisible) return html;
+
+  html += `<div style="border: 1px solid rgba(167,139,250,0.3); border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; margin-bottom: 14px;">`;
 
   // Фильтр сфер убран — задачи раскрываются по веткам ниже
   const filtered = allRepeating;
@@ -5002,8 +5003,8 @@ function renderCounters() {
     // По умолчанию все закрыты
     const isOpen = !!(view.expandedGroups && view.expandedGroups[groupKey]);
 
-    html += `<div style="margin-bottom: 10px; border: 1px solid ${sp.color}30; border-radius: 12px; overflow: hidden;">
-      <button onclick="window.__app.toggleGroup('${groupKey}')" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: linear-gradient(135deg, ${sp.color}15, ${sp.color}05); border: none; cursor: pointer; text-align: left;">
+    html += `<div style="border-bottom: 1px solid rgba(167,139,250,0.1);">
+      <button onclick="window.__app.toggleGroup('${groupKey}')" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: linear-gradient(135deg, ${sp.color}10, transparent); border: none; cursor: pointer; text-align: left;">
         <div style="font-size: 22px; color: ${sp.color}; text-shadow: 0 0 10px ${sp.glow}; flex-shrink: 0;">${sp.emoji}</div>
         <div style="flex: 1; min-width: 0;">
           <div style="font-size: 13px; color: #fff; font-weight: 700;">${sp.name}</div>
@@ -5039,6 +5040,8 @@ function renderCounters() {
     }
     html += `</div>`;
   });
+
+  html += `</div>`; // закрываем общий блок активности
 
   return html;
 }

@@ -4999,28 +4999,27 @@ function renderCounters() {
     sphereTotalHours += orphans.reduce((s, h) => s + (h.hours || 0), 0);
 
     const groupKey = `counters_${sp.id}`;
-    // По умолчанию: если фильтр стоит на одной сфере — она открыта; иначе все свёрнуты
-    const isFilteredToThis = filter === sp.id;
+    // По умолчанию все открыты
     const isOpen = view.expandedGroups && view.expandedGroups[groupKey] !== undefined
       ? view.expandedGroups[groupKey]
-      : isFilteredToThis;
+      : true;
 
-    html += `<div style="margin-bottom: 12px;">
-      <button onclick="window.__app.toggleGroup('${groupKey}')" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: linear-gradient(135deg, ${sp.color}15, ${sp.color}05); border: 1px solid ${sp.color}40; border-left: 3px solid ${sp.color}; border-radius: 10px; cursor: pointer; text-align: left;">
-        <div style="font-size: 14px; color: ${sp.color}; flex-shrink: 0; width: 16px;">${isOpen ? '▾' : '▸'}</div>
+    html += `<div style="margin-bottom: 10px; border: 1px solid ${sp.color}30; border-radius: 12px; overflow: hidden;">
+      <button onclick="window.__app.toggleGroup('${groupKey}')" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: linear-gradient(135deg, ${sp.color}15, ${sp.color}05); border: none; cursor: pointer; text-align: left;">
         <div style="font-size: 22px; color: ${sp.color}; text-shadow: 0 0 10px ${sp.glow}; flex-shrink: 0;">${sp.emoji}</div>
         <div style="flex: 1; min-width: 0;">
           <div style="font-size: 13px; color: #fff; font-weight: 700;">${sp.name}</div>
           <div style="font-size: 10px; color: ${sp.color}; letter-spacing: 0.1em; text-transform: uppercase; margin-top: 1px;">${items.length} ${plural(items.length, 'задача', 'задачи', 'задач')}</div>
         </div>
-        <div style="text-align: right; flex-shrink: 0;">
+        <div style="text-align: right; flex-shrink: 0; margin-right: 8px;">
           <div style="font-size: 14px; color: #fff; font-weight: 700;">${sphereTotalCount} ${plural(sphereTotalCount, 'раз', 'раза', 'раз')}</div>
           ${sphereTotalHours > 0 ? `<div style="font-size: 11px; color: #00E5FF; font-weight: 600;">◷ ${sphereTotalHours.toFixed(1)} ч</div>` : ''}
         </div>
+        <div style="font-size: 18px; color: ${sp.color}; flex-shrink: 0; transition: transform 0.2s; ${isOpen ? 'transform:rotate(0deg)' : 'transform:rotate(-90deg)'};">▾</div>
       </button>`;
 
     if (isOpen) {
-      html += `<div style="margin-top: 6px; padding-left: 8px;">`;
+      html += `<div style="padding: 10px 12px; border-top: 1px solid ${sp.color}20;">`;
       items.forEach(r => {
         const stats = taskStats(r.task.taskKey, period);
         const allTimeStats = taskStats(r.task.taskKey, 'all');

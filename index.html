@@ -4532,8 +4532,10 @@ function buildMonthBar() {
     .filter(function(e){ return _dateFilter(e.date); })
     .reduce(function(s,e){ return s + (e.hours || 0); }, 0);
 
-  // Для месяца используем filterByPeriod (та же функция что хроника).
-  // Для этапа — _dateFilter (фильтр по дате старта этапа).
+  // Питание: 3 раза × 0.5ч = 1.5ч/день — фиксированный расчёт по дням периода
+  var _periodDays = Math.round(_tot / 24);
+  var _foodH = _periodDays * 1.5;
+
   function _histOf(sphere) {
     var base = (state.history||[]).filter(function(h){ return h.sphere === sphere; });
     return mode === 'alltime' ? base : base.filter(function(h){ return _dateFilter(h.date); });
@@ -4544,11 +4546,12 @@ function buildMonthBar() {
   var _skillH  = _histOf('skills').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
   var _religH  = _histOf('religion').length * (10 / 60);
 
-  var _usedH = _sleepH + _careerH + _bodyH + _skillH + _religH;
+  var _usedH = _sleepH + _foodH + _careerH + _bodyH + _skillH + _religH;
   var _freeH = Math.max(0, _tot - _usedH);
 
   var _segs = [
     { color: '#4a2a6a',                h: _sleepH,  label: 'Сон'      },
+    { color: '#3a1a5a',                h: _foodH,   label: 'Пища'     },
     { color: '#b87a0a',                h: _careerH, label: 'Работа'   },
     { color: '#8b1a1a',                h: _bodyH,   label: 'Тело'     },
     { color: '#2a6a4a',                h: _skillH,  label: 'Навыки'   },
@@ -4704,28 +4707,36 @@ function renderCharacterCard() {
   // ── Бар сна — вычисляем до stageBars ────────────────────────────────
   var _sleepE = (state.sleep && state.sleep.entries) || [];
   var _sleepCur, _sleepTgt;
+  var _periodDaysCard;
   if (_mode === 'month') {
     _sleepCur = _sleepE.filter(function(e){ return e.date && e.date.startsWith(_selMs); })
                        .reduce(function(s,e){ return s+(e.hours||0); }, 0);
+    _periodDaysCard = _daysInMonth;
     _sleepTgt = _daysInMonth * 8;
   } else if (_mode === 'alltime') {
     _sleepCur = _sleepE.reduce(function(s,e){ return s+(e.hours||0); }, 0);
-    _sleepTgt = 1095 * 8; // 3 года × 8ч/ночь = 8760ч
+    _periodDaysCard = 1095;
+    _sleepTgt = 1095 * 8;
   } else {
-    // Этап: сон с даты открытия текущего этапа vs полный срок этапа × 8ч
     var _stgIdSleep = currentStageId();
     var _stgStartSleep = (state.stagesUnlocked && state.stagesUnlocked[_stgIdSleep]) || (state.startedAt || today());
     var _stgObjSleep = PATH.find(function(p){ return p.id === _stgIdSleep; });
     _sleepCur = _sleepE.filter(function(e){ return e.date && e.date >= _stgStartSleep; })
                        .reduce(function(s,e){ return s+(e.hours||0); }, 0);
-    _sleepTgt = (_stgObjSleep ? _stgObjSleep.days : 90) * 8;
+    _periodDaysCard = _stgObjSleep ? _stgObjSleep.days : 90;
+    _sleepTgt = _periodDaysCard * 8;
   }
-  _sleepTgt = Math.round(_sleepTgt);
-  var _sleepPct = Math.min(100, _sleepTgt > 0 ? (_sleepCur / _sleepTgt * 100) : 0);
+  // Добавляем питание: 3 × 0.5ч = 1.5ч/день
+  var _foodCurCard = _periodDaysCard * 1.5;
+  var _foodTgtCard = _periodDaysCard * 1.5;
+  var _sleepFoodCur = Math.round(_sleepCur + _foodCurCard);
+  var _sleepFoodTgt = Math.round(_sleepTgt + _foodTgtCard);
+  _sleepTgt = _sleepFoodTgt;
+  var _sleepPct = Math.min(100, _sleepFoodTgt > 0 ? (_sleepFoodCur / _sleepFoodTgt * 100) : 0);
   var _sleepBarHtml = '<div style="margin-bottom:6px;">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
-    + '<span style="font-size:10px;color:#b0a0d0;">🌙 Сон</span>'
-    + '<span style="font-size:10px;color:#7a5aaa;font-weight:700;">' + Math.round(_sleepCur) + '/' + _sleepTgt + ' ч</span>'
+    + '<span style="font-size:10px;color:#b0a0d0;">🌙 Сон + Пища</span>'
+    + '<span style="font-size:10px;color:#7a5aaa;font-weight:700;">' + _sleepFoodCur + '/' + _sleepFoodTgt + ' ч</span>'
     + '</div>'
     + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
     + '<div style="height:100%;width:' + _sleepPct + '%;background:#7a5aaa;border-radius:2px;"></div>'

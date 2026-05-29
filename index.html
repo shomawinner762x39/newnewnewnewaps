@@ -1442,9 +1442,10 @@ const PATH = [
   { id: 's2', months: 6,  days: 180,  xp: 2200,  title: 'Первые плоды',       hint: 'Видимые сдвиги в каждой сфере.' },
   { id: 's3', months: 9,  days: 270,  xp: 3800,  title: 'Девять месяцев',     hint: 'Характер сформирован.' },
   { id: 's4', months: 12, days: 365,  xp: 5800,  title: 'Год пути',           hint: 'Уже не тот, кем начинал.' },
-  { id: 's5', months: 24, days: 730,  xp: 13000, title: 'Двухлетняя версия',  hint: 'Совсем другая жизнь.' },
-  { id: 's6', months: 30, days: 912,  xp: 16500, title: 'Перед вершиной',     hint: 'Финальный разгон.' },
-  { id: 's7', months: 36, days: 1095, xp: 20000, title: 'Вершина',            hint: 'То, ради чего всё начиналось.' }
+  { id: 's5', months: 18, days: 548,  xp: 9200,  title: 'Полтора года',       hint: 'Скорость стала нормой.' },
+  { id: 's6', months: 24, days: 730,  xp: 13000, title: 'Двухлетняя версия',  hint: 'Совсем другая жизнь.' },
+  { id: 's7', months: 30, days: 912,  xp: 16500, title: 'Перед вершиной',     hint: 'Финальный разгон.' },
+  { id: 's8', months: 36, days: 1095, xp: 20000, title: 'Вершина',            hint: 'То, ради чего всё начиналось.' }
 ];
 
 // Нормы по каждой сфере для каждого этапа.
@@ -1457,9 +1458,10 @@ const STAGE_TARGETS = {
   s2: { body: 96,  career: 960,  skills: 200,  religion: 1200, money: 50,  love: 139 },
   s3: { body: 145, career: 1440, skills: 330,  religion: 1875, money: 75,  love: 209 },
   s4: { body: 192, career: 1920, skills: 450,  religion: 2500, money: 100, love: 275 },
-  s5: { body: 390, career: 3840, skills: 940,  religion: 5000, money: 200, love: 556 },
-  s6: { body: 488, career: 4800, skills: 1170, religion: 6300, money: 250, love: 695 },
-  s7: { body: 585, career: 5760, skills: 1400, religion: 7600, money: 300, love: 834 }
+  s5: { body: 291, career: 2880, skills: 695,  religion: 3750, money: 150, love: 415 },
+  s6: { body: 390, career: 3840, skills: 940,  religion: 5000, money: 200, love: 556 },
+  s7: { body: 488, career: 4800, skills: 1170, religion: 6300, money: 250, love: 695 },
+  s8: { body: 585, career: 5760, skills: 1400, religion: 7600, money: 300, love: 834 }
 };
 
 // Тип нормы по сфере: hours = суммарные часы, count = суммарное количество выполнений
@@ -1760,7 +1762,7 @@ const ACHIEVEMENTS = [
   { id: 'streak_100',  name: 'Сто дней',        desc: '100 дней активности подряд',          icon: '⚡', cond: s => s.maxStreak >= 100 },
   { id: 'tasks_500',   name: 'Пятьсот',         desc: '500 выполненных задач',               icon: '✦',  cond: s => s.history.length >= 500 },
   { id: 'hours_500',   name: 'Пятьсот часов',   desc: '500 часов суммарной работы',          icon: '⊛',  cond: s => (s.totalHours||0) >= 500 },
-  { id: 'stage_s6',    name: 'Вершина пути',    desc: 'Открыть финальный этап',              icon: '✧',  cond: s => !!s.stagesUnlocked['s7'] },
+  { id: 'stage_s6',    name: 'Вершина пути',    desc: 'Открыть финальный этап',              icon: '✧',  cond: s => !!s.stagesUnlocked['s8'] },
 ];
 
 const MONTHS_RU = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
@@ -3438,7 +3440,7 @@ function renderTree() {
     const ctx = state.context?.[s.id] || {};
     const goalText = ctx.goal || ctx.wanted || ctx.criteria || '';
     const deadlineMonths = ctx.deadline || 36;
-    const prog = sphereProgressForStage(s.id, 's7');
+    const prog = sphereProgressForStage(s.id, 's8');
     const pct = Math.min(100, Math.round(prog.pct * (36 / deadlineMonths)));
 
     html += `<button onclick="window.__app.openSphere('${s.id}')" style="
@@ -3618,7 +3620,7 @@ function renderGoals() {
     // Пересчитываем прогресс от дедлайна (не от s6 который всегда 36 мес)
     const totalMonths = 36; // s6 = 36 месяцев
     const scaleFactor = totalMonths / deadlineMonths;
-    const prog = sphereProgressForStage(s.id, 's7');
+    const prog = sphereProgressForStage(s.id, 's8');
     const pct = Math.min(100, Math.round(prog.pct * scaleFactor));
     const type = SPHERE_TARGET_TYPE[s.id];
     const unit = type === 'hours' ? 'ч' : '';
@@ -4550,7 +4552,7 @@ function buildMonthBar() {
 
 function renderCharacterCard() {
   if (!state.stagesUnlocked) state.stagesUnlocked = {};
-  const lv = ['s1','s2','s3','s4','s5','s6','s7'].filter(function(k){ return state.stagesUnlocked[k]; }).length;
+  const lv = ['s1','s2','s3','s4','s5','s6','s7','s8'].filter(function(k){ return state.stagesUnlocked[k]; }).length;
   const faceData = null; // лицо убрано — используем арт по уровням
   const artLevels = state.characterArtLevels || [];
   const charArt   = artLevels[lv] || LEVEL_ART[lv] || null; // сначала пользовательский, потом встроенный

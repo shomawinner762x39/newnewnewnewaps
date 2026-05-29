@@ -4727,18 +4727,18 @@ function renderCharacterCard() {
       if (_mode === 'month') {
         // Месяц: фактический сон за выбранный месяц vs норма (дней в месяце × 7ч)
         _sleepCur = _filterBySelMonth(_sleepEntries).reduce(function(s,e){ return s+(e.hours||0); }, 0);
-        _sleepTgt = _daysInMonth * 7;
+        _sleepTgt = _daysInMonth * 8;
       } else if (_mode === 'alltime') {
-        // Всё время: весь накопленный сон vs норма за 3 года (1095 × 7ч = 7665ч)
+        // Всё время: весь накопленный сон vs норма за 3 года (1095 × 8ч = 8760ч)
         _sleepCur = _sleepEntries.reduce(function(s,e){ return s+(e.hours||0); }, 0);
-        _sleepTgt = 1095 * 7; // полный путь 3 года
+        _sleepTgt = 1095 * 8; // полный путь 3 года
       } else {
-        // Этап: сон с даты старта этапа vs норма за весь период этапа (stage.days × 7ч)
+        // Этап: сон с даты старта этапа vs норма за весь период этапа (stage.days × 8ч)
         var _curStgId = currentStageId();
         var _stgStart2 = (state.stagesUnlocked && state.stagesUnlocked[_curStgId]) || (state.startedAt || today());
         var _stgObj2 = PATH.find(function(p){ return p.id === _curStgId; });
         _sleepCur = _sleepEntries.filter(function(e){ return e.date && e.date >= _stgStart2; }).reduce(function(s,e){ return s+(e.hours||0); }, 0);
-        _sleepTgt = (_stgObj2 ? _stgObj2.days : 90) * 7; // полный срок этапа × 7ч/ночь
+        _sleepTgt = (_stgObj2 ? _stgObj2.days : 90) * 8; // полный срок этапа × 8ч/ночь
       }
       _sleepTgt = Math.round(_sleepTgt);
       var _sleepPct = Math.min(100, _sleepTgt > 0 ? (_sleepCur / _sleepTgt * 100) : 0);

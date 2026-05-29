@@ -4526,7 +4526,7 @@ function buildMonthBar() {
   // Для месяца используем filterByPeriod (та же функция что хроника).
   // Для этапа — _dateFilter (фильтр по дате старта этапа).
   function _histOf(sphere) {
-    var base = (state.history||[]).filter(function(h){ return h.sphere === sphere; });
+    var base = (state.history||[]).filter(function(h){ return h.sphere === sphere && h.taskKey; });
     return mode === 'month' ? filterByPeriod(base, 'month')
          : mode === 'alltime' ? base
          : base.filter(function(h){ return _dateFilter(h.date); }); // stage
@@ -4631,10 +4631,11 @@ function renderCharacterCard() {
       return { current: prog2.current, target: prog2.target, pct: prog2.pct, type: type };
     }
 
-    // Фильтруем историю той же функцией что хроника
+    // Фильтруем историю той же функцией и тем же условием что хроника:
+    // только записи с taskKey (иначе числа расходятся)
     var _period = _mode === 'month' ? 'month' : 'all';
     var _hist = filterByPeriod(
-      (state.history||[]).filter(function(h){ return h.sphere === sp.id; }),
+      (state.history||[]).filter(function(h){ return h.sphere === sp.id && h.taskKey; }),
       _period
     );
 

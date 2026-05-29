@@ -4585,29 +4585,90 @@ function renderCharacterCard() {
       + '</div>';
   }
 
-  // Прогресс текущего этапа
-  const _stageId = currentStageId();
-  const _stage   = PATH.find(function(s){ return s.id === _stageId; });
-  const _overallPct = stageOverallProgress(_stageId);
+  // ── Режим статистики: этап / всё время / месяц ───────────────────
+  var _mode = view.statsMode || 'stage';
+  var _mn2 = new Date();
+  var _ms2 = _mn2.getFullYear() + '-' + String(_mn2.getMonth() + 1).padStart(2, '0');
+  var _daysInMonth = new Date(_mn2.getFullYear(), _mn2.getMonth() + 1, 0).getDate();
 
-  const stageBars = '<div style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'
-    + '<span style="font-size:10px;color:#8870a8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;">' + (_stage ? _stage.title : 'Этап') + '</span>'
-    + '<span style="font-size:11px;color:#c4621d;font-weight:800;">' + _overallPct + '%</span>'
+  // Переключатель режимов
+  var _modeLabels = { stage: 'Этап', alltime: 'Всё время', month: 'Месяц' };
+  var modeToggle = '<div style="display:flex;gap:3px;margin-bottom:8px;">'
+    + ['stage','alltime','month'].map(function(m){
+        var active = m === _mode;
+        return '<button onclick="window.__app.setStatsMode(\''+m+'\')" style="flex:1;padding:4px 2px;font-size:8px;letter-spacing:0.08em;border:1px solid '+(active?'rgba(167,139,250,0.5)':'rgba(255,255,255,0.08)')+';border-radius:5px;background:'+(active?'rgba(167,139,250,0.15)':'rgba(255,255,255,0.03)')+';color:'+(active?'#A78BFA':'#5a4a78')+';font-weight:'+(active?'700':'400')+';cursor:pointer;text-transform:uppercase;">'+_modeLabels[m]+'</button>';
+      }).join('')
+    + '</div>';
+
+  // Данные по сфере в зависимости от режима
+  function _sphereData(sp) {
+    var type = SPHERE_TARGET_TYPE[sp.id] || 'count';
+    var current, target, pct;
+
+    if (_mode === 'stage') {
+      var _stageId2 = currentStageId();
+      var prog2 = sphereProgressForStage(sp.id, _stageId2);
+      return { current: prog2.current, target: prog2.target, pct: prog2.pct, type: type };
+    }
+
+    if (_mode === 'alltime') {
+      if (type === 'hours') {
+        current = (state.history||[]).filter(function(h){ return h.sphere===sp.id; }).reduce(function(s,h){ return s+(parseFloat(h.hours)||0); }, 0);
+      } else {
+        current = (state.history||[]).filter(function(h){ return h.sphere===sp.id; }).length;
+        if (sp.id==='money') current += (state.finance&&state.finance.entries ? state.finance.entries.length : 0);
+      }
+      target = adjustedTarget(sp.id, 's8');
+      pct = target===0 ? 100 : Math.min(100, (current/target)*100);
+      return { current: current, target: target, pct: pct, type: type };
+    }
+
+    // month
+    if (type === 'hours') {
+      current = (state.history||[]).filter(function(h){ return h.sphere===sp.id && h.date && h.date.startsWith(_ms2); }).reduce(function(s,h){ return s+(parseFloat(h.hours)||0); }, 0);
+      // Месячная норма: s8 цель / 36 месяцев
+      target = Math.round(adjustedTarget(sp.id, 's8') / 36 * 10) / 10;
+    } else {
+      current = (state.history||[]).filter(function(h){ return h.sphere===sp.id && h.date && h.date.startsWith(_ms2); }).length;
+      if (sp.id==='money') current += (state.finance&&state.finance.entries ? state.finance.entries.filter(function(e){ return e.date&&e.date.startsWith(_ms2); }).length : 0);
+      target = Math.round(adjustedTarget(sp.id, 's8') / 36);
+    }
+    pct = target===0 ? 100 : Math.min(100, (current/target)*100);
+    return { current: current, target: target, pct: pct, type: type };
+  }
+
+  // Заголовок блока
+  var _stageId = currentStageId();
+  var _stage   = PATH.find(function(s){ return s.id === _stageId; });
+  var _overallPct = stageOverallProgress(_stageId);
+  var _modeHeader;
+  if (_mode === 'stage') {
+    _modeHeader = '<span style="font-size:10px;color:#8870a8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;">' + (_stage ? _stage.title : 'Этап') + '</span>'
+      + '<span style="font-size:11px;color:#c4621d;font-weight:800;">' + _overallPct + '%</span>';
+  } else if (_mode === 'alltime') {
+    _modeHeader = '<span style="font-size:10px;color:#8870a8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;">С начала пути</span>'
+      + '<span style="font-size:10px;color:#A78BFA;font-weight:700;">3 года</span>';
+  } else {
+    _modeHeader = '<span style="font-size:10px;color:#8870a8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;">Этот месяц</span>'
+      + '<span style="font-size:10px;color:#10E891;font-weight:700;">' + _daysInMonth + ' дн</span>';
+  }
+
+  const stageBars = modeToggle
+    + '<div style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'
+    + _modeHeader
     + '</div>'
     + getActiveSpheres().map(function(sp){
-      var prog = sphereProgressForStage(sp.id, _stageId);
-      var type = SPHERE_TARGET_TYPE[sp.id];
-      var pct  = prog.pct;
-      var done = pct >= 100;
-      var cur  = type === 'hours' ? prog.current.toFixed(1) : prog.current;
-      var tgt  = type === 'hours' ? prog.target + ' ч' : prog.target;
+      var d = _sphereData(sp);
+      var done = d.pct >= 100;
+      var cur  = d.type === 'hours' ? d.current.toFixed(1) : d.current;
+      var tgt  = d.type === 'hours' ? d.target + ' ч' : d.target;
       return '<div style="margin-bottom:6px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
         + '<span style="font-size:10px;color:' + (done ? sp.color : '#b0a0d0') + ';font-weight:' + (done ? '700' : '400') + ';">' + sp.emoji + ' ' + sp.name + '</span>'
         + '<span style="font-size:10px;color:' + sp.color + ';font-weight:700;">' + cur + '/' + tgt + '</span>'
         + '</div>'
         + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
-        + '<div style="height:100%;width:' + pct + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
+        + '<div style="height:100%;width:' + d.pct + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
         + '</div></div>';
     }).join('');
 
@@ -7075,6 +7136,7 @@ window.__app = {
   backupAndMark: () => exportData(true),
   imp: importData,
   dismissBanner: dismissBanner,
+  setStatsMode: m => { view.statsMode = m; render(); },
   setPeriod: p => { view.countersPeriod = p; render(); },
   setCFilter: f => { view.countersFilter = f; render(); },
   setCustomFrom: v => { view.customFrom = v; render(); },

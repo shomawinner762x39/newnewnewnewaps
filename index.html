@@ -4571,12 +4571,12 @@ function buildMonthBar() {
 
   var _segs = [
     { color: '#4a2a6a',                h: _sleepH,  label: 'Сон'      },
-    { color: '#3a1a5a',                h: _foodH,   label: 'Пища'     },
+    { color: '#7a4a1a',                h: _foodH,   label: 'Пища'     },
     { color: '#b87a0a',                h: _careerH, label: 'Работа'   },
     { color: '#8b1a1a',                h: _bodyH,   label: 'Тело'     },
     { color: '#2a6a4a',                h: _skillH,  label: 'Навыки'   },
     { color: '#1a5a8a',                h: _religH,  label: 'Молитвы'  },
-    { color: 'rgba(255,255,255,0.10)', h: _freeH,   label: 'Свободно' },
+    { color: 'rgba(167,139,250,0.25)', h: _freeH,   label: 'Свободно' },
   ].filter(function(s){ return s.h > 0; });
 
   var _bars = _segs.map(function(s){

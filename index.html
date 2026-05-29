@@ -4687,8 +4687,11 @@ function renderCharacterCard() {
     _modeHeader = '<span style="font-size:10px;color:#8870a8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;">' + (_stage ? _stage.title : 'Этап') + '</span>'
       + '<span style="font-size:11px;color:#c4621d;font-weight:800;">' + _overallPct + '%</span>';
   } else if (_mode === 'alltime') {
+    var _totalDays = 1095; // 36 месяцев
+    var _passedDays = typeof daysPassed === 'function' ? daysPassed() : 0;
+    var _journeyPct = Math.min(100, Math.round(_passedDays / _totalDays * 10) / 10);
     _modeHeader = '<span style="font-size:10px;color:#8870a8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;">С начала пути</span>'
-      + '<span style="font-size:10px;color:#A78BFA;font-weight:700;">3 года</span>';
+      + '<span style="font-size:10px;color:#A78BFA;font-weight:700;">' + _journeyPct + '% · ' + _passedDays + ' дн</span>';
   } else {
     _modeHeader = '<span style="font-size:10px;color:#8870a8;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;">' + _MON_RU[_selMon] + ' ' + _selYear + '</span>'
       + '<span style="font-size:10px;color:#10E891;font-weight:700;">' + _daysInMonth + ' дн</span>';

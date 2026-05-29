@@ -4952,7 +4952,7 @@ function renderCounters() {
     }
   });
 
-  let html = `<div style="text-align: center; margin-bottom: 20px;"><div style="font-size: 10px; letter-spacing: 0.3em; color: #A78BFA; text-transform: uppercase; font-weight: 700;">Учёт повторяющихся задач</div><p style="font-size: 13px; color: #8870a8; margin: 8px 0 0;">Сколько раз сделал каждую и сколько часов</p></div>`;
+  let html = `<div style="text-align: center; margin-bottom: 20px;"><div style="font-size: 10px; letter-spacing: 0.3em; color: #A78BFA; text-transform: uppercase; font-weight: 700;">Учёт повторяющихся задач</div></div>`;
 
   // Период с реальными датами
   const periodLabel = (() => {
@@ -4983,8 +4983,15 @@ function renderCounters() {
     return '';
   })();
 
-  html += `<div style="display: flex; gap: 6px; margin-bottom: 8px; flex-wrap: wrap;">${[['month', 'Месяц'], ['all', 'Всё'], ['custom', 'Свой ↓']].map(([v, l]) => `<button onclick="window.__app.setPeriod('${v}')" style="flex: 1; min-width: 80px; padding: 10px 8px; background: ${period === v ? '#A78BFA' : 'transparent'}; color: ${period === v ? '#000' : '#b0a0d0'}; border: 1px solid ${period === v ? '#A78BFA' : 'rgba(255,255,255,0.1)'}; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 600;">${l}</button>`).join('')}</div>`;
+  // Одна кнопка — всё под ней (кнопки периода + сферы)
+  html += `<button onclick="window.__app.toggleCalendar()" style="width: 100%; padding: 12px; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); border-radius: ${view.calendarVisible ? '10px 10px 0 0' : '10px'}; color: #A78BFA; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; font-weight: 600;">${view.calendarVisible ? '▴ Скрыть активность' : '▾ Показать активность'}</button>`;
 
+  if (!view.calendarVisible) return html;
+
+  html += `<div style="border: 1px solid rgba(167,139,250,0.3); border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; margin-bottom: 14px; padding: 12px;">`;
+
+  // Кнопки периода — внутри блока
+  html += `<div style="display: flex; gap: 6px; margin-bottom: 8px;">${[['month', 'Месяц'], ['all', 'Всё'], ['custom', 'Свой ↓']].map(([v, l]) => `<button onclick="window.__app.setPeriod('${v}')" style="flex: 1; padding: 8px 6px; background: ${period === v ? '#A78BFA' : 'transparent'}; color: ${period === v ? '#000' : '#b0a0d0'}; border: 1px solid ${period === v ? '#A78BFA' : 'rgba(255,255,255,0.1)'}; border-radius: 8px; font-size: 12px; cursor: pointer; font-weight: 600;">${l}</button>`).join('')}</div>`;
   html += `<div style="text-align: center; font-size: 11px; color: #A78BFA; margin-bottom: 12px; letter-spacing: 0.05em;">${periodLabel}</div>`;
 
   // Произвольный диапазон
@@ -4992,12 +4999,7 @@ function renderCounters() {
     html += `<div style="display: flex; gap: 8px; margin-bottom: 14px; padding: 10px; background: rgba(167,139,250,0.08); border: 1px solid rgba(167,139,250,0.2); border-radius: 10px;"><div style="flex: 1;"><div style="font-size: 9px; color: #8870a8; margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase;">С</div><input type="date" value="${view.customFrom || ''}" onchange="window.__app.setCustomFrom(this.value)" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 12px; outline: none;" /></div><div style="flex: 1;"><div style="font-size: 9px; color: #8870a8; margin-bottom: 4px; letter-spacing: 0.1em; text-transform: uppercase;">По</div><input type="date" value="${view.customTo || ''}" onchange="window.__app.setCustomTo(this.value)" style="width: 100%; padding: 8px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); border-radius: 6px; color: #fff; font-size: 12px; outline: none;" /></div></div>`;
   }
 
-  // Одна кнопка — все сферы под ней
-  html += `<button onclick="window.__app.toggleCalendar()" style="width: 100%; padding: 12px; margin-bottom: ${view.calendarVisible ? '0' : '0'}px; background: rgba(167,139,250,0.1); border: 1px solid rgba(167,139,250,0.3); border-radius: ${view.calendarVisible ? '10px 10px 0 0' : '10px'}; color: #A78BFA; font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer; font-weight: 600;">${view.calendarVisible ? '▴ Скрыть активность' : '▾ Показать активность'}</button>`;
-
-  if (!view.calendarVisible) return html;
-
-  html += `<div style="border: 1px solid rgba(167,139,250,0.3); border-top: none; border-radius: 0 0 10px 10px; overflow: hidden; margin-bottom: 14px;">`;
+  html += `<div>`; // вложенный блок для сфер
 
   // Фильтр сфер убран — задачи раскрываются по веткам ниже
   const filtered = allRepeating;
@@ -5072,7 +5074,8 @@ function renderCounters() {
     html += `</div>`;
   });
 
-  html += `</div>`; // закрываем общий блок активности
+  html += `</div>`; // закрываем вложенный блок сфер
+  html += `</div>`; // закрываем внешний блок активности
 
   return html;
 }

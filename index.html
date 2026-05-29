@@ -1501,6 +1501,13 @@ function adjustedTarget(sphereId, stageId) {
     const wd = workdaysInPeriod(state && state.startedAt, stage.days);
     return wd * 8;
   }
+  if (sphereId === 'body') {
+    // Цель = тренировок_в_неделю × недели_в_периоде
+    const bs = (state && state.bodySettings) || { weeklyCount: 3, hoursPerSession: 2 };
+    const stage = PATH.find(function(p){ return p.id === stageId; });
+    if (!stage || !stage.days) return 0;
+    return Math.round(bs.weeklyCount * stage.days / 7);
+  }
   return STAGE_TARGETS[stageId]?.[sphereId] || 0;
 }
 
@@ -2263,6 +2270,7 @@ function makeInitial() {
     tasks: buildMandatoryTasks(),
     history: [], stagesUnlocked: {}, achievementsUnlocked: {}, stageReflections: {}, stageContracts: {}, why: '',
     sleep: { entries: [], lastTap: Date.now(), lastPromptDate: null, goalHours: 8 },
+    bodySettings: { weeklyCount: 3, hoursPerSession: 2 },
     dismissedMandatory: [],
     startedAt: today(), lastBackup: null, bannerDismissedDate: null,
     finance: {
@@ -4562,7 +4570,8 @@ function buildMonthBar() {
   }
 
   var _careerH = _histOf('career').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
-  var _bodyH   = _histOf('body').reduce(function(s,h){ return s + (h.hours > 0 ? h.hours : 2); }, 0);
+  var _bsHours = ((state && state.bodySettings) || { hoursPerSession: 2 }).hoursPerSession;
+  var _bodyH   = _histOf('body').length * _bsHours; // сделанных тренировок × часов за тренировку
   var _skillH  = _histOf('skills').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
   var _religH  = _histOf('religion').length * (10 / 60);
 
@@ -4695,11 +4704,23 @@ function renderCharacterCard() {
       current += _finFiltered.length;
     }
 
-    var target = _mode === 'alltime'
-      ? adjustedTarget(sp.id, 's8')
-      : (type === 'hours'
-          ? Math.round(adjustedTarget(sp.id, 's8') / 36 * 10) / 10
-          : Math.round(adjustedTarget(sp.id, 's8') / 36));
+    var target;
+    if (sp.id === 'body') {
+      // Тело: тренировок_в_неделю × недели_периода
+      var _bs = (state && state.bodySettings) || { weeklyCount: 3, hoursPerSession: 2 };
+      if (_mode === 'alltime') {
+        target = Math.round(_bs.weeklyCount * 1095 / 7);
+      } else {
+        // Месяц: недели в выбранном месяце
+        target = Math.round(_bs.weeklyCount * _daysInMonth / 7);
+      }
+    } else if (_mode === 'alltime') {
+      target = adjustedTarget(sp.id, 's8');
+    } else {
+      target = type === 'hours'
+        ? Math.round(adjustedTarget(sp.id, 's8') / 36 * 10) / 10
+        : Math.round(adjustedTarget(sp.id, 's8') / 36);
+    }
 
     var pct = target === 0 ? 100 : Math.min(100, (current / target) * 100);
     return { current: current, target: target, pct: pct, type: type };
@@ -6133,8 +6154,36 @@ function renderBodyPanel(sphere) {
   const s = sphere;
   const nutritionOpen = !!view.expandedGroups?.['body_nutrition'];
   const measuresOpen  = !!view.expandedGroups?.['body_measures'];
+  const bs = state.bodySettings || { weeklyCount: 3, hoursPerSession: 2 };
 
   let html = '';
+
+  // ── Настройки тренировок ─────────────────────────────────────────
+  html += `<div style="background:rgba(139,26,26,0.08);border:1px solid rgba(139,26,26,0.3);border-radius:12px;padding:14px;margin-bottom:12px;">
+    <div style="font-size:10px;letter-spacing:0.2em;color:#c4621d;text-transform:uppercase;font-weight:700;margin-bottom:12px;">⚙ Настройки тренировок</div>
+    <div style="display:flex;gap:12px;">
+      <div style="flex:1;">
+        <div style="font-size:10px;color:#8870a8;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em;">Раз в неделю</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="window.__app.setBodySetting('weeklyCount', Math.max(1, ${bs.weeklyCount}-1))" style="width:32px;height:32px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:16px;cursor:pointer;">−</button>
+          <span style="font-size:20px;color:#fff;font-weight:700;min-width:24px;text-align:center;">${bs.weeklyCount}</span>
+          <button onclick="window.__app.setBodySetting('weeklyCount', Math.min(7, ${bs.weeklyCount}+1))" style="width:32px;height:32px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:16px;cursor:pointer;">+</button>
+        </div>
+      </div>
+      <div style="flex:1;">
+        <div style="font-size:10px;color:#8870a8;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em;">Часов за тренировку</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <button onclick="window.__app.setBodySetting('hoursPerSession', Math.max(0.5, ${bs.hoursPerSession}-0.5))" style="width:32px;height:32px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:16px;cursor:pointer;">−</button>
+          <span style="font-size:20px;color:#fff;font-weight:700;min-width:32px;text-align:center;">${bs.hoursPerSession}</span>
+          <button onclick="window.__app.setBodySetting('hoursPerSession', Math.min(8, ${bs.hoursPerSession}+0.5))" style="width:32px;height:32px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);border-radius:8px;color:#fff;font-size:16px;cursor:pointer;">+</button>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:#5a4a78;margin-top:10px;">
+      → ${bs.weeklyCount}×/нед · ${bs.hoursPerSession}ч = <strong style="color:#c4621d;">${(bs.weeklyCount * bs.hoursPerSession).toFixed(1)}ч/нед</strong> на тренировки
+    </div>
+  </div>`;
+
   // Сон — вверху панели Тела
   html += renderSleepBlock(s);
 
@@ -7292,6 +7341,7 @@ window.__app = {
   backupAndMark: () => exportData(true),
   imp: importData,
   dismissBanner: dismissBanner,
+  setBodySetting: (key, val) => { if (!state.bodySettings) state.bodySettings = { weeklyCount: 3, hoursPerSession: 2 }; state.bodySettings[key] = val; save(); render(); },
   setStatsMode: m => { view.statsMode = m; if (m === 'month' && !view.statsMonth) view.statsMonth = currentMonth(); render(); },
   shiftStatsMonth: dir => {
     const cur = view.statsMonth || currentMonth();

@@ -4999,10 +4999,8 @@ function renderCounters() {
     sphereTotalHours += orphans.reduce((s, h) => s + (h.hours || 0), 0);
 
     const groupKey = `counters_${sp.id}`;
-    // По умолчанию все открыты
-    const isOpen = view.expandedGroups && view.expandedGroups[groupKey] !== undefined
-      ? view.expandedGroups[groupKey]
-      : true;
+    // По умолчанию все закрыты
+    const isOpen = !!(view.expandedGroups && view.expandedGroups[groupKey]);
 
     html += `<div style="margin-bottom: 10px; border: 1px solid ${sp.color}30; border-radius: 12px; overflow: hidden;">
       <button onclick="window.__app.toggleGroup('${groupKey}')" style="width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; background: linear-gradient(135deg, ${sp.color}15, ${sp.color}05); border: none; cursor: pointer; text-align: left;">
@@ -5019,22 +5017,22 @@ function renderCounters() {
       </button>`;
 
     if (isOpen) {
-      html += `<div style="padding: 10px 12px; border-top: 1px solid ${sp.color}20;">`;
-      items.forEach(r => {
+      html += `<div style="border-top: 1px solid ${sp.color}20;">`;
+      items.forEach((r, ri) => {
         const stats = taskStats(r.task.taskKey, period);
         const allTimeStats = taskStats(r.task.taskKey, 'all');
         const isHM = r.task.type === 'hours';
-        html += `<div style="padding: 12px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.05); border-left: 3px solid ${sp.color}; border-radius: 8px; margin-bottom: 6px; ${r.deleted ? 'opacity: 0.6;' : ''}">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 6px;">
-            <div style="font-size: 13px; color: #fff; word-break: break-word; flex: 1; font-weight: 500;">${escapeHtml(r.task.title)}${r.deleted ? ' <span style="font-size: 9px; color: #FF3D71; letter-spacing: 0.1em;">(УДАЛЕНА)</span>' : ''}</div>
+        const isLast = ri === items.length - 1;
+        html += `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;${!isLast ? `border-bottom:1px solid ${sp.color}12;` : ''}${r.deleted ? 'opacity:0.5;' : ''}">
+          <div style="flex:1;min-width:0;">
+            <div style="font-size:12px;color:#d0c0f0;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(r.task.title)}${r.deleted ? ' <span style="font-size:9px;color:#FF3D71;">(удалена)</span>' : ''}</div>
+            ${allTimeStats.lastDate ? `<div style="font-size:10px;color:#5a4a78;margin-top:1px;">последний раз: ${formatDateRelative(allTimeStats.lastDate)}</div>` : ''}
           </div>
-          <div style="display: flex; gap: 14px; flex-wrap: wrap; font-size: 12px; color: #b0a0d0; margin-bottom: 4px;">
-            <span style="color: ${stats.count > 0 ? '#fff' : '#5a4a78'}; font-weight: 600;">✓ ${stats.count} ${plural(stats.count, 'раз', 'раза', 'раз')}</span>
-            ${isHM && stats.hours > 0 ? `<span style="color: #00E5FF; font-weight: 600;">◷ ${stats.hours.toFixed(1)} ч</span>` : ''}
-            ${stats.xp > 0 ? `<span style="color: #A78BFA;">+${stats.xp} XP</span>` : ''}
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:12px;color:#fff;font-weight:700;">✓ ${stats.count} ${plural(stats.count,'раз','раза','раз')}</div>
+            ${isHM && stats.hours > 0 ? `<div style="font-size:10px;color:#00E5FF;">◷ ${stats.hours.toFixed(1)} ч</div>` : ''}
+            ${stats.xp > 0 ? `<div style="font-size:10px;color:#A78BFA;">+${stats.xp} XP</div>` : ''}
           </div>
-          ${allTimeStats.lastDate ? `<div style="font-size: 10px; color: #6a5a8a;">Последний раз: <span style="color: #b0a0d0;">${formatDateRelative(allTimeStats.lastDate)}</span></div>` : ''}
-          ${allTimeStats.count > 0 ? renderTaskMiniHeatmap(r.task.taskKey, sp.color) : ''}
         </div>`;
       });
       html += `</div>`;

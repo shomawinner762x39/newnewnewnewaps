@@ -1437,15 +1437,15 @@ const PREFILLED_FLAGS = {
 };
 
 const PATH = [
-  { id: 's0', months: 0,  days: 0,    xp: 0,     title: 'Точка отсчёта',      hint: 'Сегодня. Контекст и видение записаны.' },
-  { id: 's1', months: 3,  days: 90,   xp: 900,   title: 'Фундамент привычки', hint: 'Привычки стали ежедневными.' },
-  { id: 's2', months: 6,  days: 180,  xp: 2200,  title: 'Первые плоды',       hint: 'Видимые сдвиги в каждой сфере.' },
-  { id: 's3', months: 9,  days: 270,  xp: 3800,  title: 'Девять месяцев',     hint: 'Характер сформирован.' },
-  { id: 's4', months: 12, days: 365,  xp: 5800,  title: 'Год пути',           hint: 'Уже не тот, кем начинал.' },
-  { id: 's5', months: 18, days: 548,  xp: 9200,  title: 'Полтора года',       hint: 'Скорость стала нормой.' },
-  { id: 's6', months: 24, days: 730,  xp: 13000, title: 'Двухлетняя версия',  hint: 'Совсем другая жизнь.' },
-  { id: 's7', months: 30, days: 912,  xp: 16500, title: 'Перед вершиной',     hint: 'Финальный разгон.' },
-  { id: 's8', months: 36, days: 1095, xp: 20000, title: 'Вершина',            hint: 'То, ради чего всё начиналось.' }
+  { id: 's0', months: 0,  days: 0,    xp: 0,     title: 'Точка отсчёта',   hint: 'Сегодня. Контекст и видение записаны.' },
+  { id: 's1', months: 3,  days: 90,   xp: 900,   title: 'Первый шрам',     hint: 'Первое реальное испытание пройдено.' },
+  { id: 's2', months: 6,  days: 180,  xp: 2200,  title: 'Закалка',         hint: 'Сталь не гнётся.' },
+  { id: 's3', months: 9,  days: 270,  xp: 3800,  title: 'Становление',     hint: 'Характер уже не изменить.' },
+  { id: 's4', months: 12, days: 365,  xp: 5800,  title: 'Первый год',      hint: 'Год без отступления.' },
+  { id: 's5', months: 18, days: 548,  xp: 9200,  title: 'Без оглядки',     hint: 'Пути назад нет.' },
+  { id: 's6', months: 24, days: 730,  xp: 13000, title: 'Другой человек',  hint: 'Тот, кем хотел стать.' },
+  { id: 's7', months: 30, days: 912,  xp: 16500, title: 'Последний рывок', hint: 'Финальный отрезок.' },
+  { id: 's8', months: 36, days: 1095, xp: 20000, title: 'Вершина',         hint: 'То, ради чего всё начиналось.' }
 ];
 
 // Нормы по каждой сфере для каждого этапа.
@@ -4755,23 +4755,47 @@ function renderPathStages() {
 
   // Виджет сна теперь живёт под карточкой «Тело» в Целях
 
-  // Все этапы
-  html += `<div style="font-size:10px;letter-spacing:0.2em;color:#6a5a8a;text-transform:uppercase;font-weight:700;margin-bottom:10px;">Все этапы</div>`;
-  PATH.forEach((stage, i) => {
-    if (i === 0) return;
-    const isUnlocked = !!state.stagesUnlocked[stage.id];
-    const isCurrent = !isUnlocked && (i === currentIdx);
-    const isFuture = !isUnlocked && !isCurrent;
-    const col = isUnlocked ? '#10E891' : isCurrent ? '#A78BFA' : '#3a2a58';
-    html += `<button onclick="window.__app.openStage('${stage.id}')" style="width:100%;display:flex;align-items:center;gap:12px;padding:12px 14px;background:${isUnlocked?'rgba(16,232,145,0.07)':isCurrent?'rgba(167,139,250,0.1)':'rgba(255,255,255,0.02)'};border:1px solid ${isUnlocked?'rgba(16,232,145,0.3)':isCurrent?'rgba(167,139,250,0.3)':'rgba(255,255,255,0.05)'};border-radius:12px;cursor:pointer;text-align:left;margin-bottom:6px;">
-      <div style="width:32px;height:32px;border-radius:50%;background:${col}20;border:2px solid ${col};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:13px;color:${col};font-weight:700;">${isUnlocked?'✓':i}</div>
+  // Пройденные этапы — компактная строка чекпоинтов
+  const unlockedStages = PATH.filter((s,i) => i > 0 && state.stagesUnlocked[s.id]);
+  if (unlockedStages.length > 0) {
+    html += `<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">`;
+    unlockedStages.forEach((stage, i) => {
+      html += `<button onclick="window.__app.openStage('${stage.id}')" style="display:flex;align-items:center;gap:5px;padding:5px 10px;background:rgba(16,232,145,0.07);border:1px solid rgba(16,232,145,0.25);border-radius:20px;cursor:pointer;">
+        <span style="font-size:10px;color:#10E891;">✓</span>
+        <span style="font-size:10px;color:#6a9a8a;font-weight:600;">${escapeHtml(stage.title)}</span>
+      </button>`;
+    });
+    html += `</div>`;
+  }
+
+  // Текущий этап — полная карточка
+  if (currentIdx > 0 && currentIdx < PATH.length) {
+    const cur = PATH[currentIdx];
+    html += `<button onclick="window.__app.openStage('${cur.id}')" style="width:100%;display:flex;align-items:center;gap:12px;padding:14px 16px;background:rgba(167,139,250,0.1);border:1px solid rgba(167,139,250,0.35);border-radius:14px;cursor:pointer;text-align:left;margin-bottom:8px;box-shadow:0 0 20px rgba(167,139,250,0.08);">
+      <div style="width:36px;height:36px;border-radius:50%;background:rgba(167,139,250,0.15);border:2px solid #A78BFA;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px;color:#A78BFA;font-weight:800;">${currentIdx}</div>
       <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;color:${isUnlocked?'#fff':isCurrent?'#fff':'#5a4a78'};font-weight:700;">${escapeHtml(stage.title)}</div>
-        <div style="font-size:10px;color:${col};margin-top:1px;">${stage.months} ${plural(stage.months,'месяц','месяца','месяцев')} · ${stage.xp} XP</div>
+        <div style="font-size:9px;letter-spacing:0.2em;color:#A78BFA;text-transform:uppercase;font-weight:700;margin-bottom:2px;">Текущий этап</div>
+        <div style="font-size:15px;color:#fff;font-weight:700;">${escapeHtml(cur.title)}</div>
+        <div style="font-size:10px;color:#A78BFA;margin-top:2px;">${cur.months} ${plural(cur.months,'месяц','месяца','месяцев')} · ${cur.xp} XP</div>
       </div>
-      <div style="font-size:14px;color:${col};">›</div>
+      <div style="font-size:16px;color:#A78BFA;">›</div>
     </button>`;
-  });
+  }
+
+  // Следующий этап — запечатан, виден но не открыт
+  const nextIdx = currentIdx + 1;
+  if (nextIdx > 0 && nextIdx < PATH.length) {
+    const nxt = PATH[nextIdx];
+    html += `<div style="width:100%;display:flex;align-items:center;gap:12px;padding:13px 16px;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.07);border-radius:14px;margin-bottom:8px;opacity:0.6;">
+      <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.1);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;color:#3a2a58;">🔒</div>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:9px;letter-spacing:0.2em;color:#4a3a68;text-transform:uppercase;font-weight:700;margin-bottom:2px;">Следующий этап</div>
+        <div style="font-size:15px;color:#5a4a78;font-weight:700;">${escapeHtml(nxt.title)}</div>
+        <div style="font-size:10px;color:#3a2a58;margin-top:2px;">${nxt.months} ${plural(nxt.months,'месяц','месяца','месяцев')} · ${nxt.xp} XP</div>
+      </div>
+      <div style="font-size:11px;color:#3a2a58;font-style:italic;">запечатан</div>
+    </div>`;
+  }
 
   return html;
 }

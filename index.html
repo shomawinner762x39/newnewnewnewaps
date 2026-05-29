@@ -3231,7 +3231,7 @@ function renderOnboarding() {
   const root = document.getElementById('app-root');
   const step = view.onboardStep;
   const activeSph = getActiveSpheres();
-  const totalSteps = activeSph.length + 2; // intro + выбранные сферы + финал
+  const totalSteps = activeSph.length + 3; // intro + picker + N сфер + финал
   const isIntro = step === 0;
   const isSpherePicker = step === 1;
   const isFinal = step === totalSteps - 1;

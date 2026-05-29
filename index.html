@@ -4619,46 +4619,49 @@ function renderCharacterCard() {
       }).join('')
     + '</div>';
 
-  // Данные по сфере в зависимости от режима
-  // Используем filterByPeriod — ту же функцию что и хроника, чтобы числа совпадали
+  // Данные по сфере — используем taskStats() точно как хроника
   function _sphereData(sp) {
     var type = SPHERE_TARGET_TYPE[sp.id] || 'count';
-    var current, target, pct;
 
     if (_mode === 'stage') {
-      var _stageId2 = currentStageId();
-      var prog2 = sphereProgressForStage(sp.id, _stageId2);
+      var prog2 = sphereProgressForStage(sp.id, currentStageId());
       return { current: prog2.current, target: prog2.target, pct: prog2.pct, type: type };
     }
 
-    // Фильтруем историю той же функцией и тем же условием что хроника:
-    // только записи с taskKey (иначе числа расходятся)
     var _period = _mode === 'month' ? 'month' : 'all';
-    var _hist = filterByPeriod(
-      (state.history||[]).filter(function(h){ return h.sphere === sp.id && h.taskKey; }),
-      _period
-    );
 
-    if (type === 'hours') {
-      current = _hist.reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
-    } else {
-      current = _hist.length;
-      if (sp.id === 'money') {
-        var _finEntries = (state.finance && state.finance.entries) ? state.finance.entries : [];
-        current += filterByPeriod(_finEntries, _period).length;
+    // Собираем все taskKey для сферы (текущие + удалённые) — как в renderCounters
+    var _seen = new Set();
+    var _keys = [];
+    (state.tasks[sp.id] || []).forEach(function(t) {
+      var k = t.taskKey || t.id;
+      if (k && !_seen.has(k)) { _seen.add(k); _keys.push(k); }
+    });
+    (state.history || []).forEach(function(h) {
+      if (h.sphere === sp.id && h.taskKey && !_seen.has(h.taskKey)) {
+        _seen.add(h.taskKey); _keys.push(h.taskKey);
       }
+    });
+
+    // Суммируем через taskStats — идентично хронике
+    var current = 0;
+    _keys.forEach(function(key) {
+      var s = taskStats(key, _period);
+      current += type === 'hours' ? s.hours : s.count;
+    });
+
+    // Финансы: добавляем записи PnL как в renderCounters
+    if (sp.id === 'money') {
+      current += filterByPeriod((state.finance && state.finance.entries) || [], _period).length;
     }
 
-    if (_mode === 'alltime') {
-      target = adjustedTarget(sp.id, 's8');
-    } else {
-      // Месяц: норма = s8 цель / 36 месяцев
-      target = type === 'hours'
-        ? Math.round(adjustedTarget(sp.id, 's8') / 36 * 10) / 10
-        : Math.round(adjustedTarget(sp.id, 's8') / 36);
-    }
+    var target = _mode === 'alltime'
+      ? adjustedTarget(sp.id, 's8')
+      : (type === 'hours'
+          ? Math.round(adjustedTarget(sp.id, 's8') / 36 * 10) / 10
+          : Math.round(adjustedTarget(sp.id, 's8') / 36));
 
-    pct = target === 0 ? 100 : Math.min(100, (current / target) * 100);
+    var pct = target === 0 ? 100 : Math.min(100, (current / target) * 100);
     return { current: current, target: target, pct: pct, type: type };
   }
 

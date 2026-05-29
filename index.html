@@ -4701,6 +4701,36 @@ function renderCharacterCard() {
       + '<span style="font-size:10px;color:#10E891;font-weight:700;">' + _daysInMonth + ' дн</span>';
   }
 
+  // ── Бар сна — вычисляем до stageBars ────────────────────────────────
+  var _sleepE = (state.sleep && state.sleep.entries) || [];
+  var _sleepCur, _sleepTgt;
+  if (_mode === 'month') {
+    _sleepCur = _sleepE.filter(function(e){ return e.date && e.date.startsWith(_selMs); })
+                       .reduce(function(s,e){ return s+(e.hours||0); }, 0);
+    _sleepTgt = _daysInMonth * 8;
+  } else if (_mode === 'alltime') {
+    _sleepCur = _sleepE.reduce(function(s,e){ return s+(e.hours||0); }, 0);
+    _sleepTgt = 1095 * 8; // 3 года × 8ч/ночь = 8760ч
+  } else {
+    // Этап: сон с даты открытия текущего этапа vs полный срок этапа × 8ч
+    var _stgIdSleep = currentStageId();
+    var _stgStartSleep = (state.stagesUnlocked && state.stagesUnlocked[_stgIdSleep]) || (state.startedAt || today());
+    var _stgObjSleep = PATH.find(function(p){ return p.id === _stgIdSleep; });
+    _sleepCur = _sleepE.filter(function(e){ return e.date && e.date >= _stgStartSleep; })
+                       .reduce(function(s,e){ return s+(e.hours||0); }, 0);
+    _sleepTgt = (_stgObjSleep ? _stgObjSleep.days : 90) * 8;
+  }
+  _sleepTgt = Math.round(_sleepTgt);
+  var _sleepPct = Math.min(100, _sleepTgt > 0 ? (_sleepCur / _sleepTgt * 100) : 0);
+  var _sleepBarHtml = '<div style="margin-bottom:6px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
+    + '<span style="font-size:10px;color:#b0a0d0;">🌙 Сон</span>'
+    + '<span style="font-size:10px;color:#7a5aaa;font-weight:700;">' + Math.round(_sleepCur) + '/' + _sleepTgt + ' ч</span>'
+    + '</div>'
+    + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
+    + '<div style="height:100%;width:' + _sleepPct + '%;background:#7a5aaa;border-radius:2px;"></div>'
+    + '</div></div>';
+
   const stageBars = modeToggle
     + '<div style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'
     + _modeHeader
@@ -4719,39 +4749,7 @@ function renderCharacterCard() {
         + '<div style="height:100%;width:' + d.pct + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
         + '</div></div>';
     }).join('')
-    + (function(){
-      // ── Бар сна ──────────────────────────────────────────────────────
-      var _sleepEntries = (state.sleep && state.sleep.entries) || [];
-      var _sleepCur, _sleepTgt;
-      var _sleepColor = '#7a5aaa';
-      if (_mode === 'month') {
-        // Месяц: фактический сон за выбранный месяц vs норма (дней в месяце × 7ч)
-        _sleepCur = _filterBySelMonth(_sleepEntries).reduce(function(s,e){ return s+(e.hours||0); }, 0);
-        _sleepTgt = _daysInMonth * 8;
-      } else if (_mode === 'alltime') {
-        // Всё время: весь накопленный сон vs норма за 3 года (1095 × 8ч = 8760ч)
-        _sleepCur = _sleepEntries.reduce(function(s,e){ return s+(e.hours||0); }, 0);
-        _sleepTgt = 1095 * 8; // полный путь 3 года
-      } else {
-        // Этап: сон с даты старта этапа vs норма за весь период этапа (stage.days × 8ч)
-        var _curStgId = currentStageId();
-        var _stgStart2 = (state.stagesUnlocked && state.stagesUnlocked[_curStgId]) || (state.startedAt || today());
-        var _stgObj2 = PATH.find(function(p){ return p.id === _curStgId; });
-        _sleepCur = _sleepEntries.filter(function(e){ return e.date && e.date >= _stgStart2; }).reduce(function(s,e){ return s+(e.hours||0); }, 0);
-        _sleepTgt = (_stgObj2 ? _stgObj2.days : 90) * 8; // полный срок этапа × 8ч/ночь
-      }
-      _sleepTgt = Math.round(_sleepTgt);
-      var _sleepPct = Math.min(100, _sleepTgt > 0 ? (_sleepCur / _sleepTgt * 100) : 0);
-      var _sleepDone = _sleepPct >= 100;
-      return '<div style="margin-bottom:6px;">'
-        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
-        + '<span style="font-size:10px;color:' + (_sleepDone ? _sleepColor : '#b0a0d0') + ';font-weight:' + (_sleepDone ? '700' : '400') + ';">🌙 Сон</span>'
-        + '<span style="font-size:10px;color:' + _sleepColor + ';font-weight:700;">' + _sleepCur.toFixed(0) + '/' + _sleepTgt + ' ч</span>'
-        + '</div>'
-        + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
-        + '<div style="height:100%;width:' + _sleepPct + '%;background:' + _sleepColor + ';border-radius:2px;"></div>'
-        + '</div></div>';
-    })();
+    + _sleepBarHtml;
 
   // ── Месячный бар времени ──────────────────────────────────────────
   var monthBar = '';

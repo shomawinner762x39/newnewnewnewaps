@@ -1264,7 +1264,7 @@ html[data-theme="berserk"] [style*="color:#A78BFA"] { color: #b89040 !important;
 html[data-theme="berserk"] [style*="color: #10E891"],
 html[data-theme="berserk"] [style*="color:#10E891"] { color: #5a7a30 !important; }
 
-/* Связи ♥ → тёмно-бордовый */
+/* Нетворк ♥ → тёмно-бордовый */
 html[data-theme="berserk"] [style*="color: #FF4DD8"],
 html[data-theme="berserk"] [style*="color:#FF4DD8"] { color: #7a1a3a !important; }
 
@@ -1401,7 +1401,7 @@ const SPHERES = [
   { id: 'skills',   name: 'Навыки',   emoji: '📜', color: '#7a8a6a', glow: 'rgba(122,138,106,0.6)', desc: 'Учёба · умения' },
   { id: 'religion', name: 'Религия',  emoji: '☽', color: '#b89040', glow: 'rgba(184,144,64,0.7)',  desc: 'Вера · путь' },
   { id: 'money',    name: 'Финансы',  emoji: '⚖', color: '#5a7a2a', glow: 'rgba(90,122,42,0.6)',   desc: 'Капитал · рост' },
-  { id: 'love',     name: 'Связи',    emoji: '⛓', color: '#7a1a3a', glow: 'rgba(122,26,58,0.7)',   desc: 'Семья · друзья' }
+  { id: 'love',     name: 'Нетворк',  emoji: '⛓', color: '#7a1a3a', glow: 'rgba(122,26,58,0.7)',   desc: 'Семья · друзья' }
 ];
 
 function getActiveSpheres() {
@@ -3083,7 +3083,7 @@ function exportICal() {
   addWeeklyEvent('body_strength', '⚡ Силовая тренировка', 'MO,WE,FR', '18:00');
   addWeeklyEvent('body_joints', '⚡ Тренировка суставов', 'TU,TH,SA', '18:00');
 
-  // Связи — раз в неделю в субботу обзвон (твоё пожелание)
+  // Нетворк — раз в неделю в субботу обзвон (твоё пожелание)
   addWeeklyEvent('love_calls', '♥ Обзвон родных (мама, папа, Артур, Арсен, жена)', 'SA', '11:00');
   // Али раз в месяц
   lines.push('BEGIN:VEVENT');
@@ -6718,7 +6718,7 @@ function renderSphereModal() {
       // Считаем сколько выполнено за сегодня в этой группе
       const todayStr = today();
       const doneToday = mandatoryTasks.filter(t => state.history.some(h => h.taskKey === t.taskKey && h.date === todayStr)).length;
-      const headerLabel = s.id === 'religion' ? 'Молитвы дня' : s.id === 'love' ? 'Связь с близкими' : 'Обязательные задачи';
+      const headerLabel = s.id === 'religion' ? 'Молитвы дня' : s.id === 'love' ? 'Нетворк' : 'Обязательные задачи';
 
       tasksHtml += `<button onclick="window.__app.toggleGroup('${groupKey}')" style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: linear-gradient(135deg, ${s.color}20, ${s.color}05); border: 1px solid ${s.color}50; border-left: 3px solid ${s.color}; border-radius: 10px; cursor: pointer; margin-bottom: 5px; text-align: left;">
         <div style="font-size: 18px; flex-shrink: 0;">${isOpen ? '▾' : '▸'}</div>

@@ -4526,7 +4526,7 @@ function buildMonthBar() {
   // Для месяца используем filterByPeriod (та же функция что хроника).
   // Для этапа — _dateFilter (фильтр по дате старта этапа).
   function _histOf(sphere) {
-    var base = (state.history||[]).filter(function(h){ return h.sphere === sphere && h.taskKey; });
+    var base = (state.history||[]).filter(function(h){ return h.sphere === sphere; });
     return mode === 'month' ? filterByPeriod(base, 'month')
          : mode === 'alltime' ? base
          : base.filter(function(h){ return _dateFilter(h.date); }); // stage
@@ -4619,7 +4619,7 @@ function renderCharacterCard() {
       }).join('')
     + '</div>';
 
-  // Данные по сфере — используем taskStats() точно как хроника
+  // Данные по сфере — все записи сферы за период (с taskKey и без)
   function _sphereData(sp) {
     var type = SPHERE_TARGET_TYPE[sp.id] || 'count';
 
@@ -4629,28 +4629,15 @@ function renderCharacterCard() {
     }
 
     var _period = _mode === 'month' ? 'month' : 'all';
+    var _hist = filterByPeriod(
+      (state.history||[]).filter(function(h){ return h.sphere === sp.id; }),
+      _period
+    );
 
-    // Собираем все taskKey для сферы (текущие + удалённые) — как в renderCounters
-    var _seen = new Set();
-    var _keys = [];
-    (state.tasks[sp.id] || []).forEach(function(t) {
-      var k = t.taskKey || t.id;
-      if (k && !_seen.has(k)) { _seen.add(k); _keys.push(k); }
-    });
-    (state.history || []).forEach(function(h) {
-      if (h.sphere === sp.id && h.taskKey && !_seen.has(h.taskKey)) {
-        _seen.add(h.taskKey); _keys.push(h.taskKey);
-      }
-    });
+    var current = type === 'hours'
+      ? _hist.reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0)
+      : _hist.length;
 
-    // Суммируем через taskStats — идентично хронике
-    var current = 0;
-    _keys.forEach(function(key) {
-      var s = taskStats(key, _period);
-      current += type === 'hours' ? s.hours : s.count;
-    });
-
-    // Финансы: добавляем записи PnL как в renderCounters
     if (sp.id === 'money') {
       current += filterByPeriod((state.finance && state.finance.entries) || [], _period).length;
     }
@@ -4946,6 +4933,13 @@ function renderCounters() {
       sphereTotalCount += stats.count;
       sphereTotalHours += stats.hours;
     });
+    // Добавляем записи без taskKey (они не попадают в items но существуют в истории)
+    const orphans = filterByPeriod(
+      state.history.filter(h => h.sphere === sp.id && !h.taskKey),
+      period
+    );
+    sphereTotalCount += orphans.length;
+    sphereTotalHours += orphans.reduce((s, h) => s + (h.hours || 0), 0);
 
     const groupKey = `counters_${sp.id}`;
     // По умолчанию: если фильтр стоит на одной сфере — она открыта; иначе все свёрнуты

@@ -3383,7 +3383,7 @@ function renderApp() {
   if (view.tab === 'tree') content = renderTree();
   else if (view.tab === 'goals') content = renderGoals();
   else if (view.tab === 'path') content = renderPathStages();
-  else if (view.tab === 'history') content = renderCounters() + `<div style="margin: 24px 0 16px; display: flex; align-items: center; gap: 10px;"><div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div><div style="font-size:9px;letter-spacing:0.25em;color:#6a5a8a;text-transform:uppercase;font-weight:700;white-space:nowrap;">Хроника</div><div style="flex:1;height:1px;background:rgba(255,255,255,0.08);"></div></div>` + renderHistory();
+  else if (view.tab === 'history') content = renderCounters() + renderHistory();
   else if (view.tab === 'kb') content = renderKB();
 
   // Таббар — персистентный элемент вне root (не удаляется при ре-рендере, не мигает на iOS)
@@ -5461,7 +5461,7 @@ function renderKB() {
 }
 
 function renderHistory() {
-  let html = '<div style="text-align: center; margin-bottom: 16px;"><div style="font-size: 10px; letter-spacing: 0.3em; color: #A78BFA; text-transform: uppercase; font-weight: 700;">Хроника</div><p style="font-size: 13px; color: #8870a8; margin: 8px 0 0;">' + (state.history.length === 0 ? 'Пока пусто' : 'Случайно нажал — ✕ отменит') + '</p></div>';
+  let html = '';
 
   // === Ретро-добавление ===
   if (view.retroForm) {
@@ -5495,7 +5495,7 @@ function renderHistory() {
     html += `<button onclick="window.__app.retroSave()" style="width:100%;padding:11px;background:#10E891;border:none;border-radius:8px;color:#000;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;">✓ Добавить в хронику</button>
     </div>`;
   } else {
-    html += `<button onclick="window.__app.retroOpen()" style="width:100%;padding:11px;background:rgba(16,232,145,0.08);border:1px dashed rgba(16,232,145,0.4);border-radius:10px;color:#10E891;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;margin-bottom:16px;">+ Задним числом</button>`;
+    html += `<button onclick="window.__app.retroOpen()" style="width:100%;padding:11px;background:rgba(16,232,145,0.08);border:1px dashed rgba(16,232,145,0.4);border-radius:10px;color:#10E891;font-size:12px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;margin-bottom:16px;">Добавить задним числом</button>`;
   }
 
   // Прыжок к дате

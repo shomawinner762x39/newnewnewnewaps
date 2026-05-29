@@ -4727,15 +4727,19 @@ function renderCharacterCard() {
   // ── Бар сна — вычисляем до stageBars ────────────────────────────────
   var _sleepE = (state.sleep && state.sleep.entries) || [];
   var _sleepCur, _sleepTgt;
-  var _periodDaysCard;
+  var _tgtDays, _elapsedDaysCard;
   if (_mode === 'month') {
     _sleepCur = _sleepE.filter(function(e){ return e.date && e.date.startsWith(_selMs); })
                        .reduce(function(s,e){ return s+(e.hours||0); }, 0);
-    _periodDaysCard = _daysInMonth;
-    _sleepTgt = _daysInMonth * 8;
+    _tgtDays = _daysInMonth; // цель = все дни месяца
+    // прошло: если текущий месяц — день месяца, если прошлый — все дни
+    var _isCurrentMonth2 = (_selMs === (_now2.getFullYear() + '-' + String(_now2.getMonth()+1).padStart(2,'0')));
+    _elapsedDaysCard = _isCurrentMonth2 ? _now2.getDate() : _daysInMonth;
+    _sleepTgt = _tgtDays * 8;
   } else if (_mode === 'alltime') {
     _sleepCur = _sleepE.reduce(function(s,e){ return s+(e.hours||0); }, 0);
-    _periodDaysCard = 1095;
+    _tgtDays = 1095;
+    _elapsedDaysCard = typeof daysPassed === 'function' ? daysPassed() : 1; // реально прошло
     _sleepTgt = 1095 * 8;
   } else {
     var _stgIdSleep = currentStageId();
@@ -4743,12 +4747,13 @@ function renderCharacterCard() {
     var _stgObjSleep = PATH.find(function(p){ return p.id === _stgIdSleep; });
     _sleepCur = _sleepE.filter(function(e){ return e.date && e.date >= _stgStartSleep; })
                        .reduce(function(s,e){ return s+(e.hours||0); }, 0);
-    _periodDaysCard = _stgObjSleep ? _stgObjSleep.days : 90;
-    _sleepTgt = _periodDaysCard * 8;
+    _tgtDays = _stgObjSleep ? _stgObjSleep.days : 90; // цель = полный срок этапа
+    _elapsedDaysCard = typeof daysBetween === 'function' ? Math.max(1, daysBetween(_stgStartSleep, today())) : 1;
+    _sleepTgt = _tgtDays * 8;
   }
-  // Добавляем питание: 3 × 0.5ч = 1.5ч/день
-  var _foodCurCard = _periodDaysCard * 1.5;
-  var _foodTgtCard = _periodDaysCard * 1.5;
+  // Питание: current = прошедшие дни × 1.5, target = весь период × 1.5
+  var _foodCurCard = _elapsedDaysCard * 1.5;
+  var _foodTgtCard = _tgtDays * 1.5;
   var _sleepFoodCur = Math.round(_sleepCur + _foodCurCard);
   var _sleepFoodTgt = Math.round(_sleepTgt + _foodTgtCard);
   _sleepTgt = _sleepFoodTgt;

@@ -4718,7 +4718,38 @@ function renderCharacterCard() {
         + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
         + '<div style="height:100%;width:' + d.pct + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
         + '</div></div>';
-    }).join('');
+    }).join('')
+    + (function(){
+      // ── Бар сна ──────────────────────────────────────────────────────
+      var _sleepEntries = (state.sleep && state.sleep.entries) || [];
+      var _sleepCur, _sleepTgt;
+      var _sleepColor = '#7a5aaa';
+      if (_mode === 'month') {
+        _sleepCur = _filterBySelMonth(_sleepEntries).reduce(function(s,e){ return s+(e.hours||0); }, 0);
+        _sleepTgt = _daysInMonth * 7; // 7ч/ночь норма
+      } else if (_mode === 'alltime') {
+        _sleepCur = _sleepEntries.reduce(function(s,e){ return s+(e.hours||0); }, 0);
+        var _dp2 = typeof daysPassed === 'function' ? daysPassed() : 0;
+        _sleepTgt = Math.max(1, _dp2) * 7;
+      } else {
+        // stage
+        var _stgStart2 = (state.stagesUnlocked && state.stagesUnlocked[currentStageId()]) || (state.startedAt || today());
+        _sleepCur = _sleepEntries.filter(function(e){ return e.date && e.date >= _stgStart2; }).reduce(function(s,e){ return s+(e.hours||0); }, 0);
+        var _stgDays2 = typeof daysBetween === 'function' ? Math.max(1, daysBetween(_stgStart2, today())) : 1;
+        _sleepTgt = _stgDays2 * 7;
+      }
+      _sleepTgt = Math.round(_sleepTgt);
+      var _sleepPct = Math.min(100, _sleepTgt > 0 ? (_sleepCur / _sleepTgt * 100) : 0);
+      var _sleepDone = _sleepPct >= 100;
+      return '<div style="margin-bottom:6px;">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
+        + '<span style="font-size:10px;color:' + (_sleepDone ? _sleepColor : '#b0a0d0') + ';font-weight:' + (_sleepDone ? '700' : '400') + ';">🌙 Сон</span>'
+        + '<span style="font-size:10px;color:' + _sleepColor + ';font-weight:700;">' + _sleepCur.toFixed(0) + '/' + _sleepTgt + ' ч</span>'
+        + '</div>'
+        + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
+        + '<div style="height:100%;width:' + _sleepPct + '%;background:' + _sleepColor + ';border-radius:2px;"></div>'
+        + '</div></div>';
+    })();
 
   // ── Месячный бар времени ──────────────────────────────────────────
   var monthBar = '';

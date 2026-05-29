@@ -4532,9 +4532,29 @@ function buildMonthBar() {
     .filter(function(e){ return _dateFilter(e.date); })
     .reduce(function(s,e){ return s + (e.hours || 0); }, 0);
 
-  // Питание: 3 раза × 0.5ч = 1.5ч/день — фиксированный расчёт по дням периода
-  var _periodDays = Math.round(_tot / 24);
-  var _foodH = _periodDays * 1.5;
+  // Питание: 3 раза × 0.5ч = 1.5ч/день
+  // current = прошедшие дни × 1.5 (плавно растёт каждый день)
+  // target  = все дни периода × 1.5
+  var _periodDays = Math.round(_tot / 24); // полный период
+  var _todayStr = (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
+  var _elapsedDays; // фактически прошедших дней в периоде
+  if (mode === 'month') {
+    var _selMsBar2 = (view && view.statsMonth) ? view.statsMonth : _ms;
+    if (_selMsBar2 === _ms) {
+      // Текущий месяц: только прошедшие дни (включая сегодня)
+      _elapsedDays = new Date().getDate();
+    } else {
+      // Прошлый месяц: все дни
+      _elapsedDays = _periodDays;
+    }
+  } else if (mode === 'alltime') {
+    _elapsedDays = typeof daysPassed === 'function' ? daysPassed() : _periodDays;
+  } else {
+    // stage: дни с начала этапа до сегодня
+    _elapsedDays = Math.round(_tot / 24); // уже считается от start до today
+  }
+  var _foodH = _elapsedDays * 1.5;  // текущее (плавно растёт)
+  var _foodHTgt = _periodDays * 1.5; // цель (весь период)
 
   function _histOf(sphere) {
     var base = (state.history||[]).filter(function(h){ return h.sphere === sphere; });

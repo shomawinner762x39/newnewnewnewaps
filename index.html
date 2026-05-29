@@ -4483,38 +4483,62 @@ function makeClothAnimation(ax, ay) {
   return s;
 }
 
-// ── Общий расчёт месячного бара (используется на вкладках Путь и Древо) ──
+// ── Бар времени — режимы: month / alltime / stage ──────────────────
 function buildMonthBar() {
-  var compact = false;
-  var _mn   = new Date();
-  var _my   = _mn.getFullYear();
-  var _mm   = _mn.getMonth();
-  var _days = new Date(_my, _mm + 1, 0).getDate();
-  var _tot  = _days * 24;
-  var _ms   = _my + '-' + String(_mm + 1).padStart(2, '0');
+  var mode = (view && view.statsMode) || 'month';
 
-  // Сон — только этот месяц (вводится ежедневно)
-  var _sleepH  = (state.sleep && state.sleep.entries || [])
-    .filter(function(e){ return e.date && e.date.startsWith(_ms); })
+  var now  = new Date();
+  var _ms  = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+  var _daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  // Определяем период и общий пул часов
+  var _tot, _barLabel, _dateFilter;
+
+  if (mode === 'month') {
+    _tot = _daysInMonth * 24;
+    _barLabel = 'Месяц · ' + _tot + ' ч';
+    _dateFilter = function(d){ return d && d.startsWith(_ms); };
+  } else if (mode === 'alltime') {
+    var _dp = Math.max(1, (typeof daysPassed === 'function' ? daysPassed() : 1));
+    _tot = _dp * 24;
+    _barLabel = 'Всё время · ' + _dp + ' дн';
+    _dateFilter = function(){ return true; };
+  } else {
+    // stage — с даты старта текущего этапа
+    var _stgId  = typeof currentStageId === 'function' ? currentStageId() : 's1';
+    var _stgStart = (state.stagesUnlocked && state.stagesUnlocked[_stgId]) || (state.startedAt) || _ms;
+    var _stgDays = Math.max(1, typeof daysBetween === 'function' ? daysBetween(_stgStart, (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })()) : 1);
+    _tot = _stgDays * 24;
+    var _stgName = (PATH && PATH.find(function(p){ return p.id === _stgId; }));
+    _barLabel = (_stgName ? _stgName.title : 'Этап') + ' · ' + _stgDays + ' дн';
+    _dateFilter = function(d){ return d && d >= _stgStart; };
+  }
+
+  // Сон
+  var _sleepH = (state.sleep && state.sleep.entries || [])
+    .filter(function(e){ return _dateFilter(e.date); })
     .reduce(function(s,e){ return s + (e.hours || 0); }, 0);
 
-  // Карьера/Тело/Навыки — всё накопленное (совпадает со счётчиками прогресса)
+  // Карьера
   var _careerH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'career'; })
+    .filter(function(h){ return h.sphere === 'career' && _dateFilter(h.date); })
     .reduce(function(s,h){ return s + (parseFloat(h.hours) || 0); }, 0);
 
+  // Тело (тренировка = 2ч)
   var _bodyH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'body'; }).length * 2;
+    .filter(function(h){ return h.sphere === 'body' && _dateFilter(h.date); }).length * 2;
 
+  // Навыки
   var _skillH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'skills'; })
+    .filter(function(h){ return h.sphere === 'skills' && _dateFilter(h.date); })
     .reduce(function(s,h){ return s + (parseFloat(h.hours) || 0); }, 0);
 
-  // Молитвы: каждая = 10 минут = 1/6 часа
+  // Молитвы (10 мин = 1/6 ч)
   var _religH = (state.history || [])
-    .filter(function(h){ return h.sphere === 'religion'; }).length * (10 / 60);
+    .filter(function(h){ return h.sphere === 'religion' && _dateFilter(h.date); }).length * (10 / 60);
 
-  var _freeH = Math.max(0, _tot - _sleepH - _careerH - _bodyH - _skillH - _religH);
+  var _usedH = _sleepH + _careerH + _bodyH + _skillH + _religH;
+  var _freeH = Math.max(0, _tot - _usedH);
 
   var _segs = [
     { color: '#4a2a6a',                h: _sleepH,  label: 'Сон'      },
@@ -4525,27 +4549,22 @@ function buildMonthBar() {
     { color: 'rgba(255,255,255,0.10)', h: _freeH,   label: 'Свободно' },
   ].filter(function(s){ return s.h > 0; });
 
-  var _barH = compact ? '7px' : '10px';
   var _bars = _segs.map(function(s){
     return '<div title="'+s.label+': '+s.h.toFixed(1)+'ч" style="height:100%;width:'+(s.h/_tot*100).toFixed(2)+'%;background:'+s.color+';flex-shrink:0;"></div>';
   }).join('');
 
   var _leg = _segs.map(function(s){
-    var val = s.label === 'Молитвы'
-      ? s.h.toFixed(1) + 'ч'
-      : s.h.toFixed(0) + 'ч';
     return '<span style="display:inline-flex;align-items:center;gap:3px;">'
       +'<span style="width:7px;height:7px;border-radius:2px;background:'+s.color+';display:inline-block;flex-shrink:0;"></span>'
-      +'<span style="font-size:9px;color:#8870a8;">'+s.label+' '+val+'</span></span>';
+      +'<span style="font-size:9px;color:#8870a8;">'+s.label+' '+s.h.toFixed(1)+'ч</span></span>';
   }).join('');
 
-  // Полная версия для вкладки Путь
   return '<div style="margin-top:14px;">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px;">'
-    +'<span style="font-size:9px;color:#6a5a8a;letter-spacing:0.15em;text-transform:uppercase;font-weight:700;">Месяц · '+_tot+' ч</span>'
-    +'<span style="font-size:9px;color:'+(_freeH<24?'#c4621d':'#4a8a5a')+';font-weight:700;">▷ '+_freeH.toFixed(0)+' ч свободно</span>'
+    +'<span style="font-size:9px;color:#6a5a8a;letter-spacing:0.12em;text-transform:uppercase;font-weight:700;">'+_barLabel+'</span>'
+    +'<span style="font-size:9px;color:'+(_freeH < _tot * 0.1 ? '#c4621d' : '#4a8a5a')+';font-weight:700;">▷ '+_freeH.toFixed(0)+' ч свободно</span>'
     +'</div>'
-    +'<div style="height:'+_barH+';border-radius:5px;overflow:hidden;display:flex;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);">'+_bars+'</div>'
+    +'<div style="height:10px;border-radius:5px;overflow:hidden;display:flex;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.06);">'+_bars+'</div>'
     +'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">'+_leg+'</div>'
     +'</div>';
 }

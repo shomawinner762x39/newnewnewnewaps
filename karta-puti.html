@@ -3721,7 +3721,7 @@ function renderTree() {
   html += '</div>';
 
   // ── БЛОК «ПАРАМЕТРЫ РАСЧЁТА» — только внутри модала Цели ───────────────
-  if (view.goalsModal) {
+  if (inModal) {
   const _ps = !!view.paramsOpen;
   const _bs = state.bodySettings     || { weeklyCount: 3, hoursPerSession: 2 };
   const _cs = state.careerSettings   || { workDaysPerWeek: 5, hoursPerDay: 8 };

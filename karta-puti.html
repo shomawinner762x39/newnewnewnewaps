@@ -3720,17 +3720,7 @@ function renderTree() {
 
   html += '</div>';
 
-  // параметры расчёта добавляются в renderGoalsModal отдельно
-
-  html += `<div style="margin-top:20px;margin-bottom:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;">
-    <button onclick="window.__app.toggleParams()" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:none;border:none;cursor:pointer;color:#fff;">
-      <div style="display:flex;align-items:center;gap:8px;">
-        <span style="font-size:14px;">⚙️</span>
-        <span style="font-size:12px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:#b0a0d0;">Параметры расчёта</span>
-        <span style="font-size:10px;color:#5a4a78;">— меняй в любой момент</span>
-      </div>
-      <span style="font-size:14px;color:#5a4a78;">${_ps ? '▲' : '▼'}</span>
-    </button>`;
+  // параметры расчёта добавляются в renderGoalsModal отдельно через renderParamsBlock()
 
   if (_ps) {
     // ТЕЛО

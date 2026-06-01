@@ -1501,10 +1501,9 @@ function adjustedTarget(sphereId, stageId) {
   }
 
   if (sphereId === 'body') {
-    // Только тренировочные часы
+    // Количество тренировок (верхний бар = сессии, нижний бар считает часы отдельно)
     const bs = (state && state.bodySettings) || { weeklyCount: 3, hoursPerSession: 2 };
-    const trainingWeeks = days * 48 / 365;
-    return Math.round(bs.weeklyCount * bs.hoursPerSession * trainingWeeks);
+    return Math.round(bs.weeklyCount * days / 7);
   }
 
   if (sphereId === 'skills') {

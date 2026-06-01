@@ -2844,6 +2844,8 @@ function totalXP() { return state.history.reduce((s, h) => s + h.xp, 0); }
 function totalHours() { return state.history.reduce((s, h) => s + (h.hours || 0), 0); }
 // Авто-время на питание: 3 приёма × 0.5ч × дней пути (не требует ручного ввода)
 function autoMealHours() { return daysPassed() * 1.5; }
+// Авто-время на намазы: prayersPerDay × 10 мин × дней пути (не требует ручного ввода)
+function autoPrayerHours() { const ppd = (state.religionSettings || { prayersPerDay: 5 }).prayersPerDay; return daysPassed() * ppd * (10/60); }
 function sphereXP(id) { return state.history.filter(h => h.sphere === id).reduce((s, h) => s + h.xp, 0); }
 function sphereHours(id) { return state.history.filter(h => h.sphere === id).reduce((s, h) => s + (h.hours || 0), 0); }
 function daysPassed() { return Math.max(0, daysBetween(state.startedAt || today(), today())); }

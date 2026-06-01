@@ -4063,7 +4063,7 @@ function renderGoals(inModal) {
 
 // Модалка «Цели» — открывается кнопкой из Древо
 function renderGoalsModal() {
-  const content = renderGoals();
+  const content = renderGoals(true);
   return `<div onclick="window.__app.closeGoalsModal()" style="position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:1000;display:flex;flex-direction:column;justify-content:flex-end;-webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);">
     <div onclick="event.stopPropagation()" style="background:linear-gradient(180deg,#110d1f,#0a0612);border-radius:20px 20px 0 0;border-top:1px solid rgba(167,139,250,0.25);max-height:88vh;display:flex;flex-direction:column;overflow:hidden;padding-bottom:env(safe-area-inset-bottom);">
       <!-- Шапка -->

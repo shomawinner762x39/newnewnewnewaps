@@ -4942,9 +4942,11 @@ function buildMonthBar() {
 
   var _careerH = _histOf('career').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
   var _bsHours = ((state && state.bodySettings) || { hoursPerSession: 2 }).hoursPerSession;
-  var _bodyH   = _histOf('body').length * _bsHours; // сделанных тренировок × часов за тренировку
+  var _bodyH   = _histOf('body').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
   var _skillH  = _histOf('skills').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
-  var _religH  = _histOf('religion').length * (10 / 60);
+  // Намазы: авто × prayersPerDay × 10 мин × дней периода (не требует ручных отметок)
+  var _ppd = ((state && state.religionSettings) || { prayersPerDay: 5 }).prayersPerDay;
+  var _religH  = _elapsedDays * _ppd * (10 / 60);
 
   var _usedH = _sleepH + _foodH + _careerH + _bodyH + _skillH + _religH;
   var _freeH = Math.max(0, _tot - _usedH);

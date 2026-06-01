@@ -4940,8 +4940,8 @@ function buildMonthBar() {
   }
 
   var _careerH = _histOf('career').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
-  var _bsHours = ((state && state.bodySettings) || { hoursPerSession: 2 }).hoursPerSession;
-  var _bodyH   = _histOf('body').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
+  // Тело в нижнем баре = часы из истории (task type:'hours' → каждая тренировка логирует hoursPerSession)
+  var _bodyH = _histOf('body').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
   var _skillH  = _histOf('skills').reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0);
   // Намазы: только от ручных отметок × 10 мин за намаз
   var _religH  = _histOf('religion').length * (10 / 60);

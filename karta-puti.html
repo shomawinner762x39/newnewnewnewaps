@@ -3269,13 +3269,13 @@ function render() {
   if (!state.onboardingDone) { renderOnboarding(); return; }
   // Сохраняем позиции скролла перед рендером
   const _scrollApp = root ? root.scrollTop : 0;
-  const _modalEl = document.getElementById('modal-root');
-  const _modalScroll = _modalEl ? (_modalEl.querySelector('[style*="overflow-y:auto"]') || _modalEl.querySelector('[style*="overflow-y: auto"]')) : null;
-  const _scrollModal = _modalScroll ? _modalScroll.scrollTop : 0;
+  const _getModalScroll = () => { const m = document.getElementById('modal-root'); if (!m) return null; return m.querySelector('[style*="overflow-y:auto"]') || m.querySelector('[style*="overflow-y: auto"]'); };
+  const _scrollModal = (_getModalScroll() || {}).scrollTop || 0;
   renderApp();
-  // Восстанавливаем позиции скролла
+  // Восстанавливаем позиции скролла на НОВЫХ элементах после рендера
   if (root) root.scrollTop = _scrollApp;
-  if (_modalScroll) _modalScroll.scrollTop = _scrollModal;
+  const _newModalScroll = _getModalScroll();
+  if (_newModalScroll && _scrollModal > 0) _newModalScroll.scrollTop = _scrollModal;
   // После рендера — асинхронно обновляем плашку молитв
   setTimeout(() => updatePrayerStrip(), 100);
 }

@@ -3267,7 +3267,15 @@ function render() {
   const root = document.getElementById('app-root');
   if (!state) { root.innerHTML = '<div style="padding: 60px 20px; text-align: center; color: #888;">Загрузка...</div>'; return; }
   if (!state.onboardingDone) { renderOnboarding(); return; }
+  // Сохраняем позиции скролла перед рендером
+  const _scrollApp = root ? root.scrollTop : 0;
+  const _modalEl = document.getElementById('modal-root');
+  const _modalScroll = _modalEl ? (_modalEl.querySelector('[style*="overflow-y:auto"]') || _modalEl.querySelector('[style*="overflow-y: auto"]')) : null;
+  const _scrollModal = _modalScroll ? _modalScroll.scrollTop : 0;
   renderApp();
+  // Восстанавливаем позиции скролла
+  if (root) root.scrollTop = _scrollApp;
+  if (_modalScroll) _modalScroll.scrollTop = _scrollModal;
   // После рендера — асинхронно обновляем плашку молитв
   setTimeout(() => updatePrayerStrip(), 100);
 }

@@ -3274,8 +3274,11 @@ function render() {
   renderApp();
   // Восстанавливаем позиции скролла на НОВЫХ элементах после рендера
   if (root) root.scrollTop = _scrollApp;
-  const _newModalScroll = _getModalScroll();
-  if (_newModalScroll && _scrollModal > 0) _newModalScroll.scrollTop = _scrollModal;
+  requestAnimationFrame(function() {
+    if (root) root.scrollTop = _scrollApp;
+    const _newModalScroll = _getModalScroll();
+    if (_newModalScroll) _newModalScroll.scrollTop = _scrollModal;
+  });
   // После рендера — асинхронно обновляем плашку молитв
   setTimeout(() => updatePrayerStrip(), 100);
 }

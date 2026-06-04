@@ -7169,7 +7169,9 @@ function renderSphereModal() {
     var ms2 = state.moneySettings || {};
     var totalSaved = mh.reduce(function(s,e){ return s+(e.amount||0); }, 0);
     var goalAmt = ms2.totalGoalAmount || 0;
-    var curSign2 = ({'USD':'$','EUR':'€','RUB':'₽','GBP':'£','KZT':'₸','CNY':'¥','JPY':'¥'}[ms2.totalGoalCurrency||'RUB']||'₽');
+    var _mSignMap = { USD:'$', EUR:'€', RUB:'₽', GBP:'£', KZT:'₸', UAH:'₴', TRY:'₺', AED:'AED', CNY:'¥', JPY:'¥', INR:'₹', BRL:'R$', MXN:'M$', CLP:'CLP' };
+    var _mCur = ms2.totalGoalCurrency || 'USD';
+    var curSign2 = _mSignMap[_mCur] || (_mCur + ' ');
     savingsHtml = '<div style="margin-bottom:16px;padding:14px;background:rgba(90,122,42,0.08);border:1px solid rgba(90,122,42,0.25);border-radius:12px;">'
       + '<div style="font-size:11px;color:#5a7a2a;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">💰 Накопления</div>'
       + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'

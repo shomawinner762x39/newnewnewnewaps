@@ -1525,14 +1525,6 @@ function adjustedTarget(sphereId, stageId) {
     return Math.round(2 * days / 7);
   }
 
-  if (sphereId === 'love') {
-    // Сумма контактов по частоте × дни
-    const contacts = (state && state.familyContacts) || [];
-    const freqPW = { daily: 7, weekly: 1, monthly: 1/4.33, bimonthly: 1/8.66 };
-    const totalPW = contacts.reduce(function(s, c){ return s + (freqPW[c.frequency] || 0); }, 0);
-    return Math.round(totalPW * days / 7);
-  }
-
   return STAGE_TARGETS[stageId]?.[sphereId] || 0;
 }
 

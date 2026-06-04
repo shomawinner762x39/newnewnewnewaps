@@ -2300,23 +2300,6 @@ function ensureMandatoryTasks() {
       existing.title = `${sk.icon || ''} Занятие: ${sk.name}`.trim(); existing.skillId = sk.id; existing.mandatory = true;
     }
   });
-  // Динамические задачи для семьи (контакты)
-  if (!state.tasks.love) state.tasks.love = [];
-  const currentContactIds = (state.familyContacts || []).map(c => c.id);
-  state.tasks.love = state.tasks.love.filter(t => !t.contactId || currentContactIds.includes(t.contactId));
-  const freqLabel = { daily: 'ежедневно', weekly: '1×/нед', monthly: '1×/мес', bimonthly: '1×/2 мес' };
-  (state.familyContacts || []).forEach(c => {
-    const key = `love_contact_${c.id}`;
-    if (dismissed.includes(key)) return;
-    const existing = state.tasks.love.find(t => t.contactId === c.id);
-    const fl = freqLabel[c.frequency] || '';
-    const title = `${c.name}${fl ? ' (' + fl + ')' : ''}`;
-    if (!existing) {
-      state.tasks.love.push({ id: `mand_${key}`, taskKey: key, mandatory: true, mandatoryKey: key, createdAt: today(), title, type: 'simple', difficulty: 'medium', repeating: true, contactId: c.id });
-    } else {
-      existing.title = title; existing.contactId = c.id; existing.mandatory = true;
-    }
-  });
 }
 
 function makeInitial() {

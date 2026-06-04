@@ -1536,12 +1536,11 @@ function sphereProgressForStage(sphereId, stageId) {
   let current = 0;
   if (type === 'hours') {
     current = sphereHours(sphereId);
+  } else if (type === 'amount') {
+    // Финансы: сумма реальных накоплений из moneyHistory
+    current = (state.moneyHistory || []).reduce((s, e) => s + (e.amount || 0), 0);
   } else {
     current = state.history.filter(h => h.sphere === sphereId).length;
-    // Финансы: дополнительно засчитываем все записи в PnL калькуляторе
-    if (sphereId === 'money') {
-      current += (state.finance?.entries?.length || 0);
-    }
   }
   const pct = target === 0 ? 100 : Math.min(100, (current / target) * 100);
   return { current, target, pct, type };

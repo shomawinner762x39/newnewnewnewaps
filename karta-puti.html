@@ -3849,10 +3849,7 @@ function renderParamsBlock() {
   var ss = state.skills || [];
   var rs = state.religionSettings || { prayersPerDay: 5 };
   var ms = state.moneySettings || { monthlySavings: 0, totalGoalAmount: 0, totalGoalCurrency: 'USD' };
-  var fc = state.familyContacts || [];
   var ALL_CUR = ['USD','EUR','GBP','RUB','KZT','UAH','TRY','AED','CNY','JPY','INR','BRL','MXN','CLP'];
-  var freqLbl = { daily:'каждый день', weekly:'1×/нед', monthly:'1×/мес', bimonthly:'1×/2 мес' };
-  var obFq = window.__obFamilyFreq || 'weekly';
   var obSt = window.__obSkillType || 'language';
 
   var h = '<div style="margin-top:20px;margin-bottom:20px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:14px;overflow:hidden;">'

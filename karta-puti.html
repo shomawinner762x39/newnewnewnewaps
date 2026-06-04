@@ -7474,6 +7474,14 @@ function addSkillSession(skillId, subId, hours, date, note) {
 }
 
 window.__app = {
+  addMoneySaving: function() {
+    var amt = parseFloat(document.getElementById('money-save-amount')?.value || 0);
+    var note = document.getElementById('money-save-note')?.value || '';
+    if (!amt || amt <= 0) return;
+    if (!state.moneyHistory) state.moneyHistory = [];
+    state.moneyHistory.push({ id: Date.now().toString(), date: today(), amount: amt, note: note });
+    save(); render();
+  },
   editWhy() { view.editingWhy = true; render(); setTimeout(() => { const el = document.getElementById('why-input'); if (el) { el.focus(); el.setSelectionRange(el.value.length, el.value.length); } }, 50); },
   cancelWhy() { view.editingWhy = false; render(); },
   saveWhy() { const el = document.getElementById('why-input'); if (el) { state.why = el.value.trim(); view.editingWhy = false; save(); render(); } },

@@ -7038,7 +7038,7 @@ function renderSphereModal() {
       // Считаем сколько выполнено за сегодня в этой группе
       const todayStr = today();
       const doneToday = mandatoryTasks.filter(t => state.history.some(h => h.taskKey === t.taskKey && h.date === todayStr)).length;
-      const headerLabel = s.id === 'religion' ? 'Молитвы дня' : s.id === 'love' ? 'Семья' : 'Обязательные задачи';
+      const headerLabel = s.id === 'religion' ? 'Молитвы дня' : 'Обязательные задачи';
 
       tasksHtml += `<button onclick="window.__app.toggleGroup('${groupKey}')" style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: linear-gradient(135deg, ${s.color}20, ${s.color}05); border: 1px solid ${s.color}50; border-left: 3px solid ${s.color}; border-radius: 10px; cursor: pointer; margin-bottom: 5px; text-align: left;">
         <div style="font-size: 18px; flex-shrink: 0;">${isOpen ? '▾' : '▸'}</div>

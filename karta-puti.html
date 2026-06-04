@@ -57,6 +57,11 @@
     75%  { transform: scale(1.09) translate(-0.2%, 0.3%);  }
     100% { transform: scale(1.08) translate(0%,    0%);    }
   }
+  @keyframes char-breathe {
+    0%,100% { transform: scale(1.00) translateY(0px);   }
+    40%     { transform: scale(1.025) translateY(-3px); }
+    60%     { transform: scale(1.020) translateY(-2px); }
+  }
   #guts-eye-layer { display: none; }
   @keyframes cel-pop { 0% {transform: scale(0.4); opacity:0;} 50% {transform: scale(1.1);} 100% {transform: scale(1); opacity:1;} }
   @keyframes slide-down { from {transform: translateY(-20px); opacity: 0;} to {transform: translateY(0); opacity: 1;} }

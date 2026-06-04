@@ -7575,21 +7575,10 @@ window.__app = {
   setSkillsSetting: (key, val) => { if (!state.skillsSettings) state.skillsSettings = { hoursPerWeek: 7 }; state.skillsSettings[key] = val; save(); render(); },
   setReligionSetting: (key, val) => { if (!state.religionSettings) state.religionSettings = { prayersPerDay: 7 }; state.religionSettings[key] = val; save(); render(); },
   setMoneySetting: (key, val) => { if (!state.moneySettings) state.moneySettings = { monthlySavingsUSD: 400 }; state.moneySettings[key] = val; save(); render(); },
-  setFamilySetting: (key, val) => { if (!state.familySettings) state.familySettings = { contactsPerWeek: 5 }; state.familySettings[key] = val; save(); render(); },
   toggleParams: () => { view.paramsOpen = !view.paramsOpen; render(); },
   obSetSkillType: (type) => { window.__obSkillType = type; render(); },
   obSetSkillHours: (id, hours) => { const sk = (state.skills||[]).find(s => s.id === id); if (sk) { sk.hoursPerWeek = hours; save(); render(); } },
   obRemoveSkill: (id) => { state.skills = (state.skills||[]).filter(s => s.id !== id); save(); render(); },
-  obSetFamilyFreq: (f) => { window.__obFamilyFreq = f; render(); },
-  obAddFamilyContact: () => {
-    const name = (document.getElementById('ob-contact-name')||{}).value?.trim();
-    if (!name) return;
-    const freq = window.__obFamilyFreq || 'weekly';
-    if (!state.familyContacts) state.familyContacts = [];
-    state.familyContacts.push({ id: Date.now().toString(), name, frequency: freq });
-    save(); render();
-  },
-  obRemoveFamilyContact: (id) => { state.familyContacts = (state.familyContacts||[]).filter(c => c.id !== id); save(); render(); },
   obAddSkill: () => {
     const name = (document.getElementById('ob-skill-name')||{}).value?.trim();
     if (!name) return;

@@ -2239,16 +2239,6 @@ function buildMandatoryTasks() {
     });
   }
 
-  // Динамические задачи для семьи — по одному на каждый контакт из state.familyContacts
-  if (result.love !== undefined) {
-    const contacts = (typeof state !== 'undefined' && state && state.familyContacts) ? state.familyContacts : [];
-    const freqLabel = { daily: 'ежедневно', weekly: '1×/нед', monthly: '1×/мес', bimonthly: '1×/2 мес' };
-    contacts.forEach(c => {
-      const key = `love_contact_${c.id}`;
-      const fl = freqLabel[c.frequency] || '';
-      result.love.push({ id: `mand_${key}`, taskKey: key, mandatory: true, mandatoryKey: key, createdAt: today(), title: `${c.name}${fl ? ' (' + fl + ')' : ''}`, type: 'simple', difficulty: 'medium', repeating: true, contactId: c.id });
-    });
-  }
   getActiveSpheres().forEach(s => { if (!result[s.id]) result[s.id] = []; });
   return result;
 }

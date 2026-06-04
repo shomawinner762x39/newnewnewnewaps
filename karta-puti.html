@@ -5110,8 +5110,10 @@ function renderCharacterCard() {
     + getActiveSpheres().map(function(sp){
       var d = _sphereData(sp);
       var done = d.pct >= 100;
-      var cur  = d.type === 'hours' ? d.current.toFixed(1) : d.current;
-      var tgt  = d.type === 'hours' ? d.target + ' ч' : d.target;
+      var _mSign = (state.moneySettings && state.moneySettings.totalGoalCurrency) ?
+        ({'USD':'$','EUR':'€','RUB':'₽','GBP':'£','KZT':'₸','CNY':'¥','JPY':'¥'}[state.moneySettings.totalGoalCurrency] || state.moneySettings.totalGoalCurrency) : '₽';
+      var cur  = d.type === 'hours' ? d.current.toFixed(1) : d.type === 'amount' ? _mSign + Math.round(d.current).toLocaleString('ru') : Math.round(d.current);
+      var tgt  = d.type === 'hours' ? d.target + ' ч' : d.type === 'amount' ? _mSign + Math.round(d.target).toLocaleString('ru') : d.target;
       return '<div style="margin-bottom:6px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
         + '<span style="font-size:10px;color:' + (done ? sp.color : '#b0a0d0') + ';font-weight:' + (done ? '700' : '400') + ';">' + sp.emoji + ' ' + sp.name + '</span>'

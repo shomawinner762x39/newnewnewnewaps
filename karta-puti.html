@@ -3595,7 +3595,7 @@ function renderTree() {
   </button>`;
   html += '<div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">';
 
-  getActiveSpheres().forEach(s => {
+  getActiveSpheres().filter(s => s.id !== 'religion').forEach(s => {
     const sxp = sphereXP(s.id);
     const sh = sphereHours(s.id);
     const tc = state.tasks[s.id]?.length || 0;

@@ -3121,27 +3121,6 @@ function exportICal() {
   addWeeklyEvent('body_strength', '⚡ Силовая тренировка', 'MO,WE,FR', '18:00');
   addWeeklyEvent('body_joints', '⚡ Тренировка суставов', 'TU,TH,SA', '18:00');
 
-  // Нетворк — раз в неделю в субботу обзвон (твоё пожелание)
-  addWeeklyEvent('love_calls', '♥ Обзвон родных (мама, папа, Артур, Арсен, жена)', 'SA', '11:00');
-  // Али раз в месяц
-  lines.push('BEGIN:VEVENT');
-  lines.push('UID:love_ali@karta-puti');
-  lines.push(`DTSTAMP:${dtstamp}`);
-  lines.push(`DTSTART;TZID=America/Santiago:${startStr}T11:00:00`);
-  lines.push(`DTEND;TZID=America/Santiago:${startStr}T11:00:00`);
-  lines.push('RRULE:FREQ=MONTHLY;BYDAY=1SA');
-  lines.push('SUMMARY:♥ Связаться с Али (брат жены)');
-  lines.push('END:VEVENT');
-  // Родители жены раз в 2 месяца
-  lines.push('BEGIN:VEVENT');
-  lines.push('UID:love_wife_parents@karta-puti');
-  lines.push(`DTSTAMP:${dtstamp}`);
-  lines.push(`DTSTART;TZID=America/Santiago:${startStr}T11:00:00`);
-  lines.push(`DTEND;TZID=America/Santiago:${startStr}T11:00:00`);
-  lines.push('RRULE:FREQ=MONTHLY;INTERVAL=2;BYDAY=1SA');
-  lines.push('SUMMARY:♥ Связаться с родителями жены');
-  lines.push('END:VEVENT');
-
   // Финансы — раз в неделю воскресенье
   addWeeklyEvent('money_pnl', '◈ Записать траты и доходы за неделю', 'SU', '20:00');
 

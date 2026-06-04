@@ -1521,8 +1521,9 @@ function adjustedTarget(sphereId, stageId) {
   }
 
   if (sphereId === 'money') {
-    // ~2 финансовые записи в неделю × недели периода (минимальный учёт)
-    return Math.round(2 * days / 7);
+    const ms = state?.moneySettings || {};
+    const goal = ms.totalGoalAmount || 0;
+    return Math.round(goal * days / 1095);
   }
 
   return STAGE_TARGETS[stageId]?.[sphereId] || 0;

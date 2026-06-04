@@ -4993,14 +4993,15 @@ function renderCharacterCard() {
       ? _hist.reduce(function(s,h){ return s + (parseFloat(h.hours)||0); }, 0)
       : _hist.length;
 
-    if (sp.id === 'money') {
-      var _finAll = (state.finance && state.finance.entries) || [];
-      var _finFiltered = _mode === 'month' ? _filterBySelMonth(_finAll) : _finAll;
-      current += _finFiltered.length;
-    }
-
     var target;
-    if (sp.id === 'body') {
+    if (sp.id === 'money') {
+      var _ms2 = (state && state.moneySettings) || {};
+      var _goal = _ms2.totalGoalAmount || 0;
+      var _mhAll = state.moneyHistory || [];
+      var _mhFiltered = _mode === 'month' ? _filterBySelMonth(_mhAll) : _mhAll;
+      current = _mhFiltered.reduce(function(s, e){ return s + (e.amount || 0); }, 0);
+      target = _mode === 'alltime' ? _goal : Math.round(_goal * _daysInMonth / 1095);
+    } else if (sp.id === 'body') {
       // Тело: тренировок_в_неделю × недели_периода
       var _bs = (state && state.bodySettings) || { weeklyCount: 3, hoursPerSession: 2 };
       if (_mode === 'alltime') {

@@ -3656,6 +3656,55 @@ function renderTree() {
 
   html += '</div>';
 
+  // Религия — на всю ширину отдельной строкой
+  getActiveSpheres().filter(s => s.id === 'religion').forEach(s => {
+    const sxp = sphereXP(s.id);
+    const sh = sphereHours(s.id);
+    const lvl = Math.floor(sxp / 200) + 1;
+    const ctx = state.context?.[s.id] || {};
+    const goalText = ctx.goal || ctx.wanted || ctx.criteria || '';
+    const prog = sphereProgressForStage(s.id, 's8');
+    const pct = Math.min(100, Math.round(prog.pct));
+    html += `<button onclick="window.__app.openSphere('${s.id}')" style="
+      width:100%;margin-top:10px;
+      background: linear-gradient(160deg, ${s.color}1a, ${s.color}04);
+      border: 1px solid ${s.color}40;
+      border-radius: 16px;
+      padding: 14px 13px 12px;
+      cursor: pointer;
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+    ">
+      <div style="position: absolute; top: -16px; right: -16px; width: 70px; height: 70px; border-radius: 50%; background: radial-gradient(circle, ${s.color}35, transparent 70%); pointer-events: none;"></div>
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;">
+        <div style="position: relative; width: 58px; height: 58px;">
+          <svg width="58" height="58" viewBox="0 0 58 58" style="transform: rotate(-90deg); display: block;">
+            <circle cx="29" cy="29" r="25" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3"/>
+            <circle cx="29" cy="29" r="25" fill="none" stroke="${pct >= 100 ? '#10E891' : s.color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${(2*Math.PI*25).toFixed(2)}" stroke-dashoffset="${((2*Math.PI*25)*(1-pct/100)).toFixed(2)}" style="filter: drop-shadow(0 0 5px ${s.glow}); transition: stroke-dashoffset .8s ease;"/>
+          </svg>
+          <div style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 24px; color: ${s.color}; text-shadow: 0 0 10px ${s.glow}; line-height: 1;">${s.cardIcon || s.emoji}</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-size: 9px; color: #6a5a8a; letter-spacing: 0.12em;">УР.</div>
+          <div style="font-size: 20px; color: ${s.color}; font-weight: 800; line-height: 1; text-shadow: 0 0 10px ${s.glow};">${lvl}</div>
+        </div>
+      </div>
+      <div style="font-size: 15px; color: #fff; font-weight: 700; margin-bottom: 2px;">${s.name}</div>
+      ${goalText
+        ? `<div style="font-size: 10px; color: #8870a8; line-height: 1.35; margin-bottom: 10px; min-height: 28px;">${escapeHtml(goalText.length > 80 ? goalText.slice(0, 80) + '…' : goalText)}</div>`
+        : `<div style="font-size: 10px; color: #3a2a58; font-style: italic; margin-bottom: 10px; min-height: 28px;">Цель не задана</div>`
+      }
+      <div style="display: flex; justify-content: space-between; align-items: baseline;">
+        <div style="font-size: 10px; color: #6a5a8a;">${sxp} XP${sh > 0 ? ` · ${sh.toFixed(0)}ч` : ''}</div>
+        <div style="font-size: 11px; color: ${pct >= 100 ? '#10E891' : s.color}; font-weight: 700;">${pct}%</div>
+      </div>
+    </button>`;
+  });
+
   // ── БЛОК «СЕГОДНЯ» ──────────────────────────────────────────────────────
   if (!state.dailyTodos) state.dailyTodos = [];
   const todos = state.dailyTodos;

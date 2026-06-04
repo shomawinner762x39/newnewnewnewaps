@@ -5109,14 +5109,13 @@ function renderCharacterCard() {
     + getActiveSpheres().map(function(sp){
       var d = _sphereData(sp);
       var done = d.pct >= 100;
-      var _mSign = (state.moneySettings && state.moneySettings.totalGoalCurrency) ?
-        ({'USD':'$','EUR':'€','RUB':'₽','GBP':'£','KZT':'₸','CNY':'¥','JPY':'¥'}[state.moneySettings.totalGoalCurrency] || state.moneySettings.totalGoalCurrency) : '₽';
-      var cur  = d.type === 'hours' ? d.current.toFixed(1) : d.type === 'amount' ? _mSign + Math.round(d.current).toLocaleString('ru') : Math.round(d.current);
-      var tgt  = d.type === 'hours' ? d.target + ' ч' : d.type === 'amount' ? _mSign + Math.round(d.target).toLocaleString('ru') : d.target;
+      var cur  = d.type === 'hours' ? d.current.toFixed(1) : Math.round(d.current);
+      var tgt  = d.type === 'hours' ? d.target + ' ч' : d.target;
+      var label = d.type === 'amount' ? Math.round(d.pct) + '%' : cur + '/' + tgt;
       return '<div style="margin-bottom:6px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
         + '<span style="font-size:10px;color:' + (done ? sp.color : '#b0a0d0') + ';font-weight:' + (done ? '700' : '400') + ';">' + sp.emoji + ' ' + sp.name + '</span>'
-        + '<span style="font-size:10px;color:' + sp.color + ';font-weight:700;">' + cur + '/' + tgt + '</span>'
+        + '<span style="font-size:10px;color:' + sp.color + ';font-weight:700;">' + label + '</span>'
         + '</div>'
         + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
         + '<div style="height:100%;width:' + d.pct + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'

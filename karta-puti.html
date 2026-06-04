@@ -2714,6 +2714,7 @@ function load() {
   if (!state.achievementsUnlocked) state.achievementsUnlocked = {};
   if (state.lastBackup === undefined) state.lastBackup = null;
   if (state.bannerDismissedDate === undefined) state.bannerDismissedDate = null;
+  if (!state.moneyHistory) state.moneyHistory = [];
   if (!state.finance) state.finance = { entries: [], cushion: 0, currency: 'USD' };
   if (!state.finance.selectedCurrencies) state.finance.selectedCurrencies = ['USD', 'RUB'];
   if (!state.finance.entries) state.finance.entries = [];

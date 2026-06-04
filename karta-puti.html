@@ -4997,10 +4997,9 @@ function renderCharacterCard() {
     if (sp.id === 'money') {
       var _ms2 = (state && state.moneySettings) || {};
       var _goal = _ms2.totalGoalAmount || 0;
-      var _mhAll = state.moneyHistory || [];
-      var _mhFiltered = _mode === 'month' ? _filterBySelMonth(_mhAll) : _mhAll;
-      current = _mhFiltered.reduce(function(s, e){ return s + (e.amount || 0); }, 0);
-      target = _mode === 'alltime' ? _goal : Math.round(_goal * _daysInMonth / 1095);
+      // Всегда показываем накопленное vs финальная цель — никакой пропорции по периоду
+      current = (state.moneyHistory || []).reduce(function(s, e){ return s + (e.amount || 0); }, 0);
+      target = _goal;
     } else if (sp.id === 'body') {
       // Тело: тренировок_в_неделю × недели_периода
       var _bs = (state && state.bodySettings) || { weeklyCount: 3, hoursPerSession: 2 };

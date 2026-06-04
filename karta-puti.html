@@ -4915,7 +4915,7 @@ function renderCharacterCard() {
   if (charArt) {
     // Арт — чистое изображение без оверлеев
     charDisplay = '<div style="position:relative;width:130px;height:230px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 24px rgba(0,0,0,0.7);">'
-      + '<img src="'+charArt+'" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;"/>'
+      + '<img src="'+charArt+'" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;animation:char-breathe 4s ease-in-out infinite;transform-origin:center bottom;"/>'
       + '</div>';
   } else {
     // SVG-персонаж + ткань от lv1

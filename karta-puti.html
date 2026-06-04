@@ -4945,14 +4945,6 @@ function renderCharacterCard() {
       target = _mode === 'alltime'
         ? Math.round(_cs.workDaysPerWeek * _cs.hoursPerDay * 48 * 3)
         : Math.round(_cs.workDaysPerWeek * _cs.hoursPerDay * _daysInMonth / 7 * 10) / 10;
-    } else if (sp.id === 'love') {
-      // Семья: сумма контактов по частоте × дни
-      var _contacts = (state && state.familyContacts) || [];
-      var _freqPW = { daily: 7, weekly: 1, monthly: 1/4.33, bimonthly: 1/8.66 };
-      var _totalCPW = _contacts.reduce(function(s,c){ return s+(_freqPW[c.frequency]||0); }, 0);
-      target = _mode === 'alltime'
-        ? Math.round(_totalCPW * 1095 / 7)
-        : Math.round(_totalCPW * _daysInMonth / 7);
     } else if (_mode === 'alltime') {
       target = adjustedTarget(sp.id, 's8');
     } else {

@@ -7165,6 +7165,37 @@ function renderSphereModal() {
 
   let contextHtml = '';
 
+  let savingsHtml = '';
+  if (s.id === 'money') {
+    var mh = state.moneyHistory || [];
+    var ms2 = state.moneySettings || {};
+    var totalSaved = mh.reduce(function(s,e){ return s+(e.amount||0); }, 0);
+    var goalAmt = ms2.totalGoalAmount || 0;
+    var curSign2 = ({'USD':'$','EUR':'€','RUB':'₽','GBP':'£','KZT':'₸','CNY':'¥','JPY':'¥'}[ms2.totalGoalCurrency||'RUB']||'₽');
+    savingsHtml = '<div style="margin-bottom:16px;padding:14px;background:rgba(90,122,42,0.08);border:1px solid rgba(90,122,42,0.25);border-radius:12px;">'
+      + '<div style="font-size:11px;color:#5a7a2a;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:10px;">💰 Накопления</div>'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">'
+      + '<div><div style="font-size:20px;color:#fff;font-weight:800;">' + curSign2 + totalSaved.toLocaleString('ru') + '</div>'
+      + '<div style="font-size:10px;color:#888;">из ' + curSign2 + goalAmt.toLocaleString('ru') + ' цели</div></div>'
+      + '<div style="font-size:22px;color:#5a7a2a;">' + (goalAmt > 0 ? Math.round(totalSaved/goalAmt*100) + '%' : '—') + '</div>'
+      + '</div>'
+      + '<div style="display:flex;gap:8px;margin-bottom:10px;">'
+      + '<input id="money-save-amount" type="number" placeholder="Сумма" style="flex:1;padding:8px 10px;background:rgba(0,0,0,0.4);border:1px solid rgba(90,122,42,0.3);border-radius:8px;color:#fff;font-size:14px;outline:none;" />'
+      + '<input id="money-save-note" type="text" placeholder="Заметка (необязательно)" style="flex:2;padding:8px 10px;background:rgba(0,0,0,0.4);border:1px solid rgba(90,122,42,0.3);border-radius:8px;color:#fff;font-size:14px;outline:none;" />'
+      + '<button onclick="window.__app.addMoneySaving()" style="padding:8px 14px;background:rgba(90,122,42,0.3);border:1px solid rgba(90,122,42,0.5);border-radius:8px;color:#fff;font-size:13px;font-weight:700;cursor:pointer;">+</button>'
+      + '</div>';
+    if (mh.length > 0) {
+      savingsHtml += '<div style="max-height:120px;overflow-y:auto;">';
+      mh.slice().reverse().slice(0,5).forEach(function(e){
+        savingsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);font-size:11px;">'
+          + '<span style="color:#888;">' + e.date + (e.note ? ' · ' + e.note : '') + '</span>'
+          + '<span style="color:#5a7a2a;font-weight:700;">+' + curSign2 + (e.amount||0).toLocaleString('ru') + '</span>'
+          + '</div>';
+      });
+      savingsHtml += '</div>';
+    }
+    savingsHtml += '</div>';
+  }
   const financeHtml = s.id === 'money' ? renderFinancePanel(s) : '';
   const hasSkillsForSphere = (state.skills || []).some(sk => (sk.sphereId || 'skills') === s.id);
   const skillsHtml = hasSkillsForSphere ? renderSkillsPanel(s) : '';

@@ -7935,7 +7935,7 @@ window.__app = {
   startAddSkill: () => {
     view.skillAdding = true;
     // Дефолтный тип зависит от сферы
-    const defaults = { skills: 'language', career: 'fleet' };
+    const defaults = { skills: 'language', career: 'custom' };
     window.__newSkillType = defaults[view.sphereId] || 'custom';
     render();
   },

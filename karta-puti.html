@@ -5144,13 +5144,19 @@ function renderCharacterCard() {
       var cur  = d.type === 'hours' ? d.current.toFixed(1) : Math.round(d.current);
       var tgt  = d.type === 'hours' ? d.target + ' ч' : d.target;
       var label = d.type === 'amount' ? Math.round(d.pct) + '%' : cur + '/' + tgt;
+      var rc = state.relapseCount || 0;
+      var barFillStyle = rc === 0
+        ? 'background:' + sp.color + ';'
+        : rc <= 10
+          ? 'background:linear-gradient(90deg,' + sp.color + ',' + sp.color + '88);box-shadow:2px 0 6px rgba(200,30,30,0.4);'
+          : 'background:repeating-linear-gradient(45deg,' + sp.color + ' 0,' + sp.color + ' 5px,rgba(60,0,0,0.5) 5px,rgba(60,0,0,0.5) 8px);';
       return '<div style="margin-bottom:6px;">'
         + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
         + '<span style="font-size:10px;color:' + (done ? sp.color : '#b0a0d0') + ';font-weight:' + (done ? '700' : '400') + ';">' + sp.emoji + ' ' + sp.name + '</span>'
         + '<span style="font-size:10px;color:' + sp.color + ';font-weight:700;">' + label + '</span>'
         + '</div>'
         + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
-        + '<div style="height:100%;width:' + d.pct + '%;background:' + sp.color + ';border-radius:2px;' + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
+        + '<div style="height:100%;width:' + d.pct + '%;border-radius:2px;' + barFillStyle + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
         + '</div></div>';
     }).join('')
     + _sleepBarHtml;

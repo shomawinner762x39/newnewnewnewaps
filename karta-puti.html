@@ -4898,6 +4898,42 @@ function buildMonthBar() {
     +'</div>';
 }
 
+// ── Механика срывов ──────────────────────────────────────────────────────────
+function handleRelapse() {
+  if (!state.relapseCount) state.relapseCount = 0;
+  state.relapseCount = Math.min(30, state.relapseCount + 1);
+  state.lastRelapseDate = today();
+  const pct = state.relapseCount;
+  view.relapseNotif = { count: pct };
+  save();
+  render();
+}
+
+function renderRelapseNotif() {
+  if (!view.relapseNotif) return '';
+  var rn = view.relapseNotif;
+  var mult = 1 + Math.min(30, rn.count) / 100;
+  var prevMult = 1 + Math.min(30, rn.count - 1) / 100;
+  var sphereChanges = SPHERES.map(function(s) {
+    var newTarget = adjustedTarget(s.id, 's8');
+    var oldTarget = prevMult > 0 ? Math.round(newTarget / mult * prevMult) : newTarget;
+    var diff = newTarget - oldTarget;
+    var unit = SPHERE_TARGET_TYPE[s.id] === 'hours' ? ' ч' : '';
+    return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px;">'
+      + '<span style="color:#b0a0d0">' + s.emoji + ' ' + s.name + '</span>'
+      + '<span style="color:#ff5050;font-weight:700">+' + diff + unit + '</span>'
+      + '</div>';
+  }).join('');
+  return '<div style="background:linear-gradient(135deg,rgba(30,5,5,0.98),rgba(20,2,2,0.98));border:1px solid rgba(200,30,30,0.6);border-radius:16px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;">'
+    + '<div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#ff3030,transparent)"></div>'
+    + '<div style="font-size:28px;text-align:center;margin-bottom:8px">💀</div>'
+    + '<div style="font-size:14px;font-weight:800;color:#ff4040;text-align:center;margin-bottom:4px;letter-spacing:0.05em">СРЫВ #' + rn.count + '</div>'
+    + '<div style="font-size:11px;color:#8a4040;text-align:center;margin-bottom:12px">Стрик сброшен. Последствия применены.</div>'
+    + sphereChanges
+    + '<button onclick="window.__app.dismissRelapseNotif()" style="width:100%;padding:9px;background:rgba(200,30,30,0.15);border:1px solid rgba(200,30,30,0.3);border-radius:8px;color:#ff6060;font-size:11px;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;margin-top:10px;">Понял</button>'
+    + '</div>';
+}
+
 function renderCharacterCard() {
   if (!state.stagesUnlocked) state.stagesUnlocked = {};
   const lv = ['s1','s2','s3','s4','s5','s6','s7','s8'].filter(function(k){ return state.stagesUnlocked[k]; }).length;

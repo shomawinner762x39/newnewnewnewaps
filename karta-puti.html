@@ -2706,6 +2706,8 @@ function load() {
     state = raw ? JSON.parse(raw) : makeInitial();
   } catch { state = makeInitial(); }
   if (!state.tasks) state = makeInitial();
+  // Если онбординг не завершён — сбрасываем навыки чтобы не тащить чужие данные
+  if (!state.onboardingDone) state.skills = [];
   if (!state.achievementsUnlocked) state.achievementsUnlocked = {};
   if (state.lastBackup === undefined) state.lastBackup = null;
   if (state.bannerDismissedDate === undefined) state.bannerDismissedDate = null;

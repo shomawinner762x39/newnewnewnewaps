@@ -8394,6 +8394,9 @@ window.__app = {
   },
   bodyRemoveMeasurement: (id) => { bodyRemoveMeasurement(id); },
 
+  handleRelapse: handleRelapse,
+  dismissRelapseNotif: function() { view.relapseNotif = null; render(); },
+  toggleRelapseInfo: function() { view.relapseInfoOpen = !view.relapseInfoOpen; render(); },
   editPurity: () => { view.purityEditing = true; render(); },
   cancelEditPurity: () => { view.purityEditing = false; render(); },
   savePurity: () => {

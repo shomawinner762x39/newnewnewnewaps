@@ -2306,6 +2306,8 @@ function makeInitial() {
     religionSettings: { prayersPerDay: 7 },
     moneySettings: { monthlySavings: 0, monthlySavingsUSD: 0, totalGoalAmount: 0, totalGoalCurrency: 'USD' },
     moneyHistory: [],   // [{id, date, amount, note}]
+    relapseCount: 0,        // количество срывов всего
+    lastRelapseDate: null,  // дата последнего срыва
     dismissedMandatory: [],
     startedAt: today(), lastBackup: null, bannerDismissedDate: null,
     finance: {

@@ -2767,6 +2767,7 @@ function load() {
   // Гарантируем что обязательные задачи всегда есть
   ensureMandatoryTasks();
   state.history.forEach(h => { if (!h.taskKey) h.taskKey = null; });
+  checkRelapseRehab();
   render();
 }
 function save() {

@@ -4899,6 +4899,21 @@ function buildMonthBar() {
 }
 
 // ── Механика срывов ──────────────────────────────────────────────────────────
+function checkRelapseRehab() {
+  if (!state.purityDate || !state.relapseCount || state.relapseCount <= 0) return false;
+  const cleanDays = Math.floor((new Date() - new Date(state.purityDate)) / 86400000);
+  if (cleanDays <= 0) return false;
+  var changed = false;
+  if (cleanDays >= 365) {
+    state.relapseCount = 0;
+    changed = true;
+  } else if (cleanDays > 0 && cleanDays % 30 === 0) {
+    state.relapseCount = Math.max(0, state.relapseCount - 1);
+    changed = true;
+  }
+  return changed;
+}
+
 function handleRelapse() {
   if (!state.relapseCount) state.relapseCount = 0;
   state.relapseCount = Math.min(30, state.relapseCount + 1);

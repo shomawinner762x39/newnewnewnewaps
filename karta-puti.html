@@ -3397,7 +3397,7 @@ function renderOnboarding() {
       career:   { unit: 'часы',        how: 'Рабочий день = ' + (state.careerSettings ? `${state.careerSettings.hoursPerDay}ч` : '8ч') + '. Каждый отмеченный рабочий день прибавляет часы к прогрессу.' },
       skills:   { unit: 'часы',        how: 'Каждое занятие по навыку логируется. ' + (state.skills && state.skills.length ? 'Навыки: ' + state.skills.map(sk => sk.name + ' ' + (sk.hoursPerWeek||1) + 'ч/нед').join(', ') : '') },
       religion: { unit: 'намазы',      how: 'Каждый отмеченный намаз = +1 к счётчику. ' + (state.religionSettings ? `Цель ${state.religionSettings.prayersPerDay} намазов/день` : '7 намазов/день') },
-      money:    { unit: 'записи',      how: 'Каждая запись дохода или расхода = +1. ' + (state.moneySettings ? `Цель: откладывать $${state.moneySettings.monthlySavingsUSD}/мес` : '') }
+      money:    { unit: 'сумма',        how: 'Прогресс считается от фактически накопленной суммы. ' + (state.moneySettings && state.moneySettings.totalGoalAmount ? `Цель: ${state.moneySettings.totalGoalAmount.toLocaleString('ru')} ${state.moneySettings.totalGoalCurrency || 'USD'}` : 'Укажи цель в Параметрах расчёта') }
     };
     const sphereRows = activeSph.map(s => {
       const m = sphMeta[s.id] || { unit: 'единицы', how: '' };

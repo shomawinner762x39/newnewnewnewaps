@@ -8401,6 +8401,7 @@ window.__app = {
     if (!el || !el.value) return;
     state.purityDate = el.value;
     view.purityEditing = false;
+    checkRelapseRehab();
     save(); render();
     showToast('☽ Отсчёт начат', '#A78BFA');
   },

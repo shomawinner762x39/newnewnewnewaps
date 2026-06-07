@@ -4957,9 +4957,29 @@ function renderCharacterCard() {
   // ── Отображение персонажа (арт или SVG) ──────────────────────
   var charDisplay;
   if (charArt) {
-    // Арт — чистое изображение без оверлеев
+    // Арт — с визуальной коррупцией при срывах
+    var rc = state.relapseCount || 0;
+    var charFilter = rc === 0 ? ''
+      : rc <= 10 ? 'filter:saturate(0.8) brightness(0.9);'
+      : rc <= 20 ? 'filter:saturate(0.5) brightness(0.8) sepia(0.25) hue-rotate(330deg);'
+      : 'filter:saturate(0.15) brightness(0.65) sepia(0.5) hue-rotate(315deg) contrast(1.2);';
+    var corruptOverlay = rc > 10
+      ? '<div style="position:absolute;inset:0;border-radius:14px;pointer-events:none;background:radial-gradient(ellipse at 75% 100%,rgba(180,20,20,' + Math.min(0.7, rc * 0.025).toFixed(3) + ') 0%,transparent 50%);animation:flicker 3s ease-in-out infinite"></div>'
+      : '';
+    var particles = rc > 15
+      ? (function(){
+          var p = '';
+          var cnt = Math.min(5, Math.floor(rc/6));
+          for (var i = 0; i < cnt; i++) {
+            p += '<div style="position:absolute;border-radius:50%;top:0;left:' + (15+i*18) + '%;width:' + (2+i%2) + 'px;height:' + (2+i%2) + 'px;background:#8b0000;animation:char-breathe ' + (1.5+i*0.5).toFixed(1) + 's linear infinite;animation-delay:' + (i*0.3).toFixed(1) + 's"></div>';
+          }
+          return p;
+        })()
+      : '';
     charDisplay = '<div style="position:relative;width:130px;height:230px;border-radius:14px;overflow:hidden;flex-shrink:0;box-shadow:0 4px 24px rgba(0,0,0,0.7);">'
-      + '<img src="'+charArt+'" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;animation:char-breathe 4s ease-in-out infinite;transform-origin:center bottom;"/>'
+      + '<img src="'+charArt+'" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;animation:char-breathe 4s ease-in-out infinite;transform-origin:center bottom;' + charFilter + '"/>'
+      + corruptOverlay
+      + particles
       + '</div>';
   } else {
     // SVG-персонаж + ткань от lv1

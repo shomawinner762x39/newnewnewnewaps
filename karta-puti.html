@@ -1491,6 +1491,7 @@ function workdaysInPeriod(startISO, numDays) {
 
 // Динамические цели — все считаются из данных онбординга, не из захардкоженной таблицы
 function adjustedTarget(sphereId, stageId) {
+  const _relapseMult = 1 + Math.min(30, (state && state.relapseCount || 0)) / 100;
   const stage = PATH.find(function(p){ return p.id === stageId; });
   if (!stage || !stage.days) return 0;
   const days = stage.days;
@@ -1498,34 +1499,34 @@ function adjustedTarget(sphereId, stageId) {
   if (sphereId === 'career') {
     const cs = (state && state.careerSettings) || { workDaysPerWeek: 5, hoursPerDay: 8 };
     const wd = workdaysInPeriod(state && state.startedAt, days);
-    return Math.round(wd * cs.hoursPerDay);
+    return Math.round(Math.round(wd * cs.hoursPerDay) * _relapseMult);
   }
 
   if (sphereId === 'body') {
     // Количество тренировок (верхний бар = сессии, нижний бар считает часы отдельно)
     const bs = (state && state.bodySettings) || { weeklyCount: 3, hoursPerSession: 2 };
-    return Math.round(bs.weeklyCount * days / 7);
+    return Math.round(Math.round(bs.weeklyCount * days / 7) * _relapseMult);
   }
 
   if (sphereId === 'skills') {
     // Сумма часов по всем навыкам × недели периода
     const skills = (state && state.skills) || [];
     const totalHPW = skills.reduce(function(s, sk){ return s + (sk.hoursPerWeek || 0); }, 0);
-    return Math.round(totalHPW * days / 7);
+    return Math.round(Math.round(totalHPW * days / 7) * _relapseMult);
   }
 
   if (sphereId === 'religion') {
     // Намазов в день × дни периода
     const rs = (state && state.religionSettings) || { prayersPerDay: 7 };
-    return Math.round(rs.prayersPerDay * days);
+    return Math.round(Math.round(rs.prayersPerDay * days) * _relapseMult);
   }
 
   if (sphereId === 'money') {
     const ms = state?.moneySettings || {};
-    return ms.totalGoalAmount || 0;
+    return Math.round((ms.totalGoalAmount || 0) * _relapseMult);
   }
 
-  return STAGE_TARGETS[stageId]?.[sphereId] || 0;
+  return Math.round((STAGE_TARGETS[stageId]?.[sphereId] || 0) * _relapseMult);
 }
 
 function sphereProgressForStage(sphereId, stageId) {

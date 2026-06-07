@@ -2706,6 +2706,8 @@ function load() {
   if (state.lastBackup === undefined) state.lastBackup = null;
   if (state.bannerDismissedDate === undefined) state.bannerDismissedDate = null;
   if (!state.moneyHistory) state.moneyHistory = [];
+  if (state.relapseCount === undefined) state.relapseCount = 0;
+  if (state.lastRelapseDate === undefined) state.lastRelapseDate = null;
   if (!state.finance) state.finance = { entries: [], cushion: 0, currency: 'USD' };
   if (!state.finance.selectedCurrencies) state.finance.selectedCurrencies = ['USD', 'RUB'];
   if (!state.finance.entries) state.finance.entries = [];

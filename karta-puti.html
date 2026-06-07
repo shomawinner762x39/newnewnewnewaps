@@ -4974,6 +4974,7 @@ function renderCharacterCard() {
   // Данные по сфере — все записи сферы за период (с taskKey и без)
   function _sphereData(sp) {
     var type = SPHERE_TARGET_TYPE[sp.id] || 'count';
+    var _rm = 1 + Math.min(30, (state.relapseCount || 0)) / 100;
 
     if (_mode === 'stage') {
       var prog2 = sphereProgressForStage(sp.id, currentStageId());
@@ -4994,35 +4995,35 @@ function renderCharacterCard() {
       var _goal = _ms2.totalGoalAmount || 0;
       // Всегда показываем накопленное vs финальная цель — никакой пропорции по периоду
       current = (state.moneyHistory || []).reduce(function(s, e){ return s + (e.amount || 0); }, 0);
-      target = _goal;
+      target = Math.round(_goal * _rm);
     } else if (sp.id === 'body') {
       // Тело: тренировок_в_неделю × недели_периода
       var _bs = (state && state.bodySettings) || { weeklyCount: 3, hoursPerSession: 2 };
       if (_mode === 'alltime') {
-        target = Math.round(_bs.weeklyCount * 1095 / 7);
+        target = Math.round(Math.round(_bs.weeklyCount * 1095 / 7) * _rm);
       } else {
         // Месяц: недели в выбранном месяце
-        target = Math.round(_bs.weeklyCount * _daysInMonth / 7);
+        target = Math.round(Math.round(_bs.weeklyCount * _daysInMonth / 7) * _rm);
       }
     } else if (sp.id === 'religion') {
       // Религия: намазов_в_день × дней периода (из настроек онбординга)
       var _rs = (state && state.religionSettings) || { prayersPerDay: 5 };
       target = _mode === 'alltime'
-        ? _rs.prayersPerDay * 1095
-        : _rs.prayersPerDay * _daysInMonth;
+        ? Math.round(_rs.prayersPerDay * 1095 * _rm)
+        : Math.round(_rs.prayersPerDay * _daysInMonth * _rm);
     } else if (sp.id === 'skills') {
       // Навыки: сумма часов по навыкам × недели периода
       var _skills = (state && state.skills) || [];
       var _totalHPW = _skills.reduce(function(s,sk){ return s+(sk.hoursPerWeek||0); }, 0);
       target = _mode === 'alltime'
-        ? Math.round(_totalHPW * 1095 / 7)
-        : Math.round(_totalHPW * _daysInMonth / 7 * 10) / 10;
+        ? Math.round(Math.round(_totalHPW * 1095 / 7) * _rm)
+        : Math.round(Math.round(_totalHPW * _daysInMonth / 7 * 10) / 10 * _rm * 10) / 10;
     } else if (sp.id === 'career') {
       // Карьера: рабочих_дней × часов_в_день
       var _cs = (state && state.careerSettings) || { workDaysPerWeek: 5, hoursPerDay: 8 };
       target = _mode === 'alltime'
-        ? Math.round(_cs.workDaysPerWeek * _cs.hoursPerDay * 48 * 3)
-        : Math.round(_cs.workDaysPerWeek * _cs.hoursPerDay * _daysInMonth / 7 * 10) / 10;
+        ? Math.round(Math.round(_cs.workDaysPerWeek * _cs.hoursPerDay * 48 * 3) * _rm)
+        : Math.round(Math.round(_cs.workDaysPerWeek * _cs.hoursPerDay * _daysInMonth / 7 * 10) / 10 * _rm * 10) / 10;
     } else if (_mode === 'alltime') {
       target = adjustedTarget(sp.id, 's8');
     } else {

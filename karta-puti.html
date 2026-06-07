@@ -4933,20 +4933,36 @@ function renderRelapseNotif() {
   var rn = view.relapseNotif;
   var mult = 1 + Math.min(30, rn.count) / 100;
   var prevMult = 1 + Math.min(30, rn.count - 1) / 100;
-  // Показываем понятные единицы за 1 срыв (1% от цели текущего этапа)
+  // Показываем прибавку ЗА ОДИН срыв = ceil(base/100) для каждой сферы
   var stageId = currentStageId ? currentStageId() : 's1';
   var sphereChanges = SPHERES.map(function(s) {
-    var newTarget = adjustedTarget(s.id, stageId);
-    var baseTarget = Math.round(newTarget / mult);
-    var diff = newTarget - baseTarget; // прирост от всех срывов / rn.count = за 1 срыв
-    var perOne = Math.max(1, Math.round(diff / rn.count));
+    var stage = PATH.find(function(p){ return p.id === stageId; });
+    var days = stage ? stage.days : 180;
+    var base = 0;
+    if (s.id === 'body') {
+      var bs2 = state.bodySettings || {weeklyCount:3};
+      base = Math.round(bs2.weeklyCount * days / 7);
+    } else if (s.id === 'career') {
+      var cs2 = state.careerSettings || {workDaysPerWeek:5, hoursPerDay:8};
+      base = Math.round(cs2.workDaysPerWeek * cs2.hoursPerDay * days / 7);
+    } else if (s.id === 'skills') {
+      var sk2 = state.skills || [];
+      var hpw2 = sk2.reduce(function(a,sk){ return a+(sk.hoursPerWeek||0); }, 0);
+      base = Math.round(hpw2 * days / 7);
+    } else if (s.id === 'religion') {
+      var rs2 = state.religionSettings || {prayersPerDay:7};
+      base = Math.round(rs2.prayersPerDay * days);
+    } else if (s.id === 'money') {
+      base = (state.moneySettings || {}).totalGoalAmount || 0;
+    }
+    var perOne = Math.ceil(base / 100);
     var label = '';
     if (s.id === 'body') {
       label = '+' + perOne + ' тр.';
     } else if (s.id === 'career') {
-      var cs2 = (state.careerSettings || {hoursPerDay:8});
-      var days2 = Math.max(1, Math.round(perOne / cs2.hoursPerDay));
-      label = '+' + days2 + ' раб. ' + (days2 === 1 ? 'день' : 'дня');
+      var cs3 = state.careerSettings || {hoursPerDay:8};
+      var wdays = Math.max(1, Math.round(perOne / cs3.hoursPerDay));
+      label = '+' + wdays + ' раб. ' + (wdays === 1 ? 'день' : 'дня');
     } else if (s.id === 'skills') {
       label = '+' + perOne + ' ч';
     } else if (s.id === 'religion') {

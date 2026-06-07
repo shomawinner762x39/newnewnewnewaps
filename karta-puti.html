@@ -4930,14 +4930,30 @@ function renderRelapseNotif() {
   var rn = view.relapseNotif;
   var mult = 1 + Math.min(30, rn.count) / 100;
   var prevMult = 1 + Math.min(30, rn.count - 1) / 100;
+  // Показываем понятные единицы за 1 срыв (1% от цели текущего этапа)
+  var stageId = currentStageId ? currentStageId() : 's1';
   var sphereChanges = SPHERES.map(function(s) {
-    var newTarget = adjustedTarget(s.id, 's8');
-    var oldTarget = prevMult > 0 ? Math.round(newTarget / mult * prevMult) : newTarget;
-    var diff = newTarget - oldTarget;
-    var unit = SPHERE_TARGET_TYPE[s.id] === 'hours' ? ' ч' : '';
+    var newTarget = adjustedTarget(s.id, stageId);
+    var baseTarget = Math.round(newTarget / mult);
+    var diff = newTarget - baseTarget; // прирост от всех срывов / rn.count = за 1 срыв
+    var perOne = Math.max(1, Math.round(diff / rn.count));
+    var label = '';
+    if (s.id === 'body') {
+      label = '+' + perOne + ' тр.';
+    } else if (s.id === 'career') {
+      var cs2 = (state.careerSettings || {hoursPerDay:8});
+      var days2 = Math.max(1, Math.round(perOne / cs2.hoursPerDay));
+      label = '+' + days2 + ' раб. ' + (days2 === 1 ? 'день' : 'дня');
+    } else if (s.id === 'skills') {
+      label = '+' + perOne + ' ч';
+    } else if (s.id === 'religion') {
+      label = '+' + perOne + ' нм.';
+    } else if (s.id === 'money') {
+      label = '+1%';
+    }
     return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:10px;">'
       + '<span style="color:#b0a0d0">' + s.emoji + ' ' + s.name + '</span>'
-      + '<span style="color:#ff5050;font-weight:700">+' + diff + unit + '</span>'
+      + '<span style="color:#ff5050;font-weight:700">' + label + '</span>'
       + '</div>';
   }).join('');
   return '<div style="background:linear-gradient(135deg,rgba(30,5,5,0.98),rgba(20,2,2,0.98));border:1px solid rgba(200,30,30,0.6);border-radius:16px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;">'

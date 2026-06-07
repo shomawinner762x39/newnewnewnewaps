@@ -8405,10 +8405,10 @@ window.__app = {
     showToast('☽ Отсчёт начат', '#A78BFA');
   },
   resetPurity: () => {
+    handleRelapse();
     state.purityDate = null;
     view.purityEditing = false;
     save(); render();
-    showToast('Сброшено', '#FF3D71');
   },
   // ──────────────────────────────────────────────────────────────────────────
   bodyOpenPhoto: (id) => {

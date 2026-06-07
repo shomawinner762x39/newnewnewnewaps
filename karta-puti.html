@@ -7360,6 +7360,35 @@ function renderSphereModal() {
         + '</div>';
     }
 
+    // ── Счётчик срывов ──
+    const rcCount = state.relapseCount || 0;
+    const rcColor = rcCount === 0 ? '#6a5a8a' : rcCount <= 10 ? '#FFAA00' : rcCount <= 20 ? '#FF7A3C' : '#FF3D3D';
+    const cleanDaysForInfo = purity ? Math.floor((new Date() - new Date(purity)) / 86400000) : 0;
+    const daysToNext = Math.max(0, 30 - (cleanDaysForInfo % 30));
+    purityHtml += '<div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;">'
+      + '<div onclick="window.__app.toggleRelapseInfo()" style="display:flex;align-items:center;gap:5px;padding:5px 9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;cursor:pointer;">'
+      + '<span style="font-size:10px">💀</span>'
+      + '<span style="font-size:10px;color:#6a5a8a">срывов: <b style="color:' + rcColor + '">' + rcCount + '</b></span>'
+      + '</div>'
+      + '</div>';
+    if (view.relapseInfoOpen) {
+      purityHtml += '<div style="background:rgba(10,4,20,0.98);border:1px solid rgba(167,139,250,0.2);border-radius:14px;padding:14px;margin-top:8px;">'
+        + '<div style="font-size:11px;color:#A78BFA;font-weight:700;letter-spacing:0.2em;text-transform:uppercase;margin-bottom:12px;text-align:center">💀 Система срывов</div>'
+        + '<div style="display:flex;gap:8px;margin-bottom:8px;"><div style="font-size:16px;flex-shrink:0">📈</div>'
+        + '<div><div style="font-size:11px;color:#fff;font-weight:700;margin-bottom:2px">Каждый срыв усложняет путь</div>'
+        + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5">За каждый срыв все цели вырастают на <b style="color:#ff5050">+1%</b>. Сейчас у тебя <b style="color:#ff5050">+' + rcCount + '%</b> к каждой цели.</div></div></div>'
+        + '<div style="display:flex;gap:8px;margin-bottom:8px;"><div style="font-size:16px;flex-shrink:0">🛡️</div>'
+        + '<div><div style="font-size:11px;color:#fff;font-weight:700;margin-bottom:2px">Максимальный штраф</div>'
+        + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5">Штраф не превысит <b style="color:#ff5050">+30%</b> — путь останется проходимым.</div></div></div>'
+        + '<div style="display:flex;gap:8px;margin-bottom:8px;"><div style="font-size:16px;flex-shrink:0">🌱</div>'
+        + '<div><div style="font-size:11px;color:#fff;font-weight:700;margin-bottom:2px">Как снять штраф</div>'
+        + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5">Каждые <b style="color:#10E891">30 дней чистоты</b> списывается <b style="color:#10E891">1 срыв</b>. Год без срывов — <b style="color:#10E891">полная амнистия</b>.</div></div></div>'
+        + '<div style="display:flex;gap:8px;"><div style="font-size:16px;flex-shrink:0">⏱</div>'
+        + '<div><div style="font-size:11px;color:#fff;font-weight:700;margin-bottom:2px">Прогресс реабилитации</div>'
+        + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5">Стрик: <b style="color:#fff">' + cleanDaysForInfo + ' дней</b>. Следующее списание через <b style="color:#10E891">' + daysToNext + ' дней</b>.</div></div></div>'
+        + '</div>';
+    }
+
     purityHtml += '</div>';
   }
   // ────────────────────────────────────────────────────────────────────────

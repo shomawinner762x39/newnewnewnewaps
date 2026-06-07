@@ -2724,20 +2724,7 @@ function load() {
   state.skills.forEach(sk => { if (!sk.sphereId) sk.sphereId = 'skills'; });
   // Удаляем устаревший навык флит-менеджмента (теперь в карьере просто часы рабочего дня)
   state.skills = state.skills.filter(sk => sk.id !== 'fleet_kpi');
-  // Если нет испанского — добавим
-  if (!state.skills.find(sk => sk.id === 'spanish')) {
-    state.skills.push({
-      id: 'spanish',
-      name: 'Испанский',
-      type: 'language',
-      target: 'B2',
-      sphereId: 'skills',
-      color: '#FFAA00',
-      icon: '🇪🇸',
-      createdAt: today(),
-      subs: JSON.parse(JSON.stringify(SKILL_TYPES.language.defaultSubs))
-    });
-  }
+  // Навыки добавляются только через онбординг — никаких дефолтных навыков
   SPHERES.forEach(s => {
     if (!state.tasks[s.id]) state.tasks[s.id] = [];
     if (!state.context[s.id]) state.context[s.id] = {};

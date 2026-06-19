@@ -4927,6 +4927,298 @@ function handleRelapse() {
   render();
 }
 
+// ── Система контрактов ────────────────────────────────────────────────────────
+var CONTRACT_RANKS = {
+  C: { days: 14, multiplier: 1.3,  rewardRelapses: 1, label: 'РАНГ C — РЕДКИЙ',      symbol: '◆', color: '#44ff88', bg: 'rgba(0,60,20,0.4)',    border: '#1a5a2a' },
+  B: { days: 21, multiplier: 1.5,  rewardRelapses: 1, label: 'РАНГ B — ЭПИЧЕСКИЙ',   symbol: '◈', color: '#44aaff', bg: 'rgba(0,25,60,0.4)',    border: '#0a3060' },
+  A: { days: 30, multiplier: 1.75, rewardRelapses: 2, label: 'РАНГ A — ЛЕГЕНДАРНЫЙ', symbol: '⬡', color: '#cc88ff', bg: 'rgba(40,0,80,0.4)',    border: '#3a0a5a' },
+  S: { days: 30, multiplier: 2.0,  rewardRelapses: 3, label: 'РАНГ S — МИФИЧЕСКИЙ',  symbol: '🔱', color: '#aaa0ff', bg: 'rgba(25,20,60,0.5)',  border: '#2a2060' },
+};
+var RELIGION_EXTRA_LABELS = {
+  azkarMorning: { label: 'Утренний азкар', sub: 'После фаджра · ~5 мин' },
+  azkarEvening: { label: 'Вечерний азкар', sub: 'После магриба · ~5 мин' },
+  quran:        { label: 'Коран · 1 страница', sub: 'После фаджра' },
+};
+var CONTRACT_UNIT = { body: 'тренировок', career: 'часов работы', skills: 'часов обучения', money: '' };
+
+function contractAddDays(dateStr, n) {
+  var d = new Date(dateStr + 'T00:00:00');
+  d.setDate(d.getDate() + n);
+  return d.toISOString().split('T')[0];
+}
+
+function contractSphereGap(sphereId) {
+  var stageId = currentStageId();
+  var stage = PATH.find(function(p){ return p.id === stageId; });
+  if (!stage || !stage.days) return 0;
+  var elapsed = daysPassed();
+  if (!elapsed) return 0;
+  var expectedPct = Math.min(100, elapsed / stage.days * 100);
+  var prog = sphereProgressForStage(sphereId, stageId);
+  return Math.max(0, expectedPct - Math.min(100, prog.pct));
+}
+
+function calcContractTarget(sphereId, contractDays, multiplier) {
+  if (sphereId === 'body') {
+    var bs = state.bodySettings || { weeklyCount: 3 };
+    return Math.ceil(bs.weeklyCount / 7 * contractDays * multiplier);
+  }
+  if (sphereId === 'career') {
+    var cs = state.careerSettings || { workDaysPerWeek: 5, hoursPerDay: 8 };
+    return Math.ceil(cs.workDaysPerWeek / 7 * contractDays * cs.hoursPerDay * multiplier);
+  }
+  if (sphereId === 'skills') {
+    var totalHPW = (state.skills || []).reduce(function(s, sk){ return s + (sk.hoursPerWeek || 0); }, 0);
+    return Math.ceil(totalHPW / 7 * contractDays * multiplier);
+  }
+  if (sphereId === 'religion') return contractDays;
+  if (sphereId === 'money') {
+    var ms = state.moneySettings || {};
+    var dailyRate = (ms.totalGoalAmount || 0) / 1095;
+    return Math.ceil(dailyRate * contractDays * multiplier);
+  }
+  return 0;
+}
+
+function checkContractTrigger() {
+  if (!state || !state.onboardingDone) return;
+  if (state.pendingContract || state.activeContract) return;
+  if (state.contractCooldownDate && today() <= state.contractCooldownDate) return;
+  var gaps = getActiveSpheres().map(function(s){ return { id: s.id, gap: contractSphereGap(s.id) }; });
+  gaps.sort(function(a, b){ return b.gap - a.gap; });
+  var weakest = gaps[0];
+  if (!weakest || weakest.gap < 5) return;
+  var gap = weakest.gap;
+  var rank = gap >= 40 ? 'S' : gap >= 25 ? 'A' : gap >= 15 ? 'B' : 'C';
+  if (rank === 'S') {
+    var sSeals = (state.contractSeals || []).filter(function(x){ return x.rank === 'S'; });
+    var stageS  = sSeals.filter(function(x){ return x.stageId === currentStageId(); });
+    if (stageS.length >= 2) rank = 'A';
+    if (sSeals.length > 0 && daysBetween(sSeals[sSeals.length-1].earnedDate, today()) < 30) return;
+  }
+  var cfg = CONTRACT_RANKS[rank];
+  var sphereId = weakest.id;
+  var extras = []; var tahajjudTarget = 0;
+  if (sphereId === 'religion') {
+    if (rank === 'C') extras = ['azkarMorning'];
+    else if (rank === 'B') extras = ['azkarMorning','azkarEvening'];
+    else if (rank === 'A') extras = ['azkarMorning','azkarEvening','quran'];
+    else { extras = ['azkarMorning','azkarEvening','quran']; tahajjudTarget = 8; }
+  }
+  state.pendingContract = {
+    rank: rank, sphereId: sphereId, gap: Math.round(gap),
+    startDate: today(), endDate: contractAddDays(today(), cfg.days),
+    daysTotal: cfg.days, rewardRelapses: cfg.rewardRelapses,
+    target: calcContractTarget(sphereId, cfg.days, cfg.multiplier),
+    multiplier: cfg.multiplier,
+    extras: extras, tahajjudTarget: tahajjudTarget,
+    dailyLog: {}, tahajjudCount: 0, generatedDate: today(),
+  };
+  save();
+}
+
+function getContractProgress() {
+  var c = state.activeContract;
+  if (!c) return null;
+  if (c.sphereId === 'religion') {
+    var elapsed = Math.min(c.daysTotal, daysBetween(c.startDate, today()) + 1);
+    var completeDays = 0;
+    for (var i = 0; i < elapsed; i++) {
+      var d = contractAddDays(c.startDate, i);
+      if (d > today()) break;
+      var fardKeys = ['fajr','dhuhr','asr','maghrib','isha'];
+      var fardTasks = (state.tasks.religion || []).filter(function(t){ return t.mandatory && fardKeys.indexOf(t.prayerKey) >= 0; });
+      var allFard = fardTasks.every(function(t){ return state.history.some(function(h){ return h.taskKey === t.taskKey && h.date === d; }); });
+      var allExtras = (c.extras || []).every(function(e){ return c.dailyLog[d] && c.dailyLog[d][e]; });
+      if (allFard && allExtras) completeDays++;
+    }
+    var tahajjudOk = !c.tahajjudTarget || (c.tahajjudCount || 0) >= c.tahajjudTarget;
+    return { current: completeDays, target: c.daysTotal, pct: Math.min(100, Math.round(completeDays/c.daysTotal*100)), tahajjudCurrent: c.tahajjudCount||0, tahajjudTarget: c.tahajjudTarget||0, isComplete: completeDays >= c.daysTotal && tahajjudOk };
+  }
+  var ph = state.history.filter(function(h){ return h.sphere === c.sphereId && h.date >= c.startDate && h.date <= c.endDate; });
+  var current;
+  if (c.sphereId === 'career' || c.sphereId === 'skills') current = Math.round(ph.reduce(function(s,h){ return s+(parseFloat(h.hours)||0); },0)*10)/10;
+  else if (c.sphereId === 'money') current = (state.moneyHistory||[]).filter(function(m){ return m.date>=c.startDate&&m.date<=c.endDate; }).reduce(function(s,m){ return s+(m.amount||0); },0);
+  else current = ph.length;
+  return { current: current, target: c.target, pct: c.target>0?Math.min(100,Math.round(current/c.target*100)):0, isComplete: current >= c.target };
+}
+
+function checkContractCompletion() {
+  var c = state.activeContract;
+  if (!c) return;
+  var prog = getContractProgress();
+  if (!prog) return;
+  if (prog.isComplete) {
+    var credits = (state.pendingRelapseCredits||0) + c.rewardRelapses;
+    var use = Math.min(state.relapseCount||0, credits);
+    state.relapseCount = Math.max(0, (state.relapseCount||0) - use);
+    state.pendingRelapseCredits = credits - use;
+    state.contractSeals.push({ rank: c.rank, sphereId: c.sphereId, earnedDate: today(), stageId: currentStageId() });
+    view.contractCompleted = { rank: c.rank, rewardRelapses: c.rewardRelapses, sphereId: c.sphereId };
+    state.activeContract = null;
+    state.contractCooldownDate = contractAddDays(today(), 7);
+    save();
+  } else if (today() > c.endDate) {
+    state.activeContract = null;
+    state.contractCooldownDate = contractAddDays(today(), 3);
+    save();
+  }
+}
+
+function renderContractPopup() {
+  var c = state.pendingContract;
+  if (!c) return '';
+  var cfg = CONTRACT_RANKS[c.rank];
+  var s = SPHERES.find(function(x){ return x.id === c.sphereId; });
+  var stageId = currentStageId();
+  var stage = PATH.find(function(p){ return p.id === stageId; });
+  var elapsed = daysPassed();
+  var totalDays = stage ? stage.days : 90;
+  var elapsedPct = Math.round(Math.min(100, elapsed/totalDays*100));
+  var actualPct = Math.max(0, elapsedPct - c.gap);
+
+  var taskLines = '';
+  if (c.sphereId === 'religion') {
+    taskLines += '<div style="display:flex;gap:8px;padding:5px 0;"><span style="color:'+cfg.color+';margin-top:1px;flex-shrink:0;">◆</span><span style="font-size:13px;color:#9898b8;">Все <strong style="color:#c0b8d8;">5 намазов</strong> ежедневно, без пропусков</span></div>';
+    (c.extras||[]).forEach(function(e){ var ex=RELIGION_EXTRA_LABELS[e]; if(ex) taskLines+='<div style="display:flex;gap:8px;padding:5px 0;"><span style="color:'+cfg.color+';margin-top:1px;flex-shrink:0;">◆</span><span style="font-size:13px;color:#9898b8;">'+ex.label+' — <strong style="color:#c0b8d8;">каждый день</strong></span></div>'; });
+    if (c.tahajjudTarget>0) taskLines+='<div style="display:flex;gap:8px;padding:5px 0;"><span style="color:'+cfg.color+';margin-top:1px;flex-shrink:0;">◆</span><span style="font-size:13px;color:#9898b8;">Тахаджуд — <strong style="color:#c0b8d8;">'+c.tahajjudTarget+' раз</strong> за контракт</span></div>';
+  } else {
+    var unit = CONTRACT_UNIT[c.sphereId]||'ед.';
+    var baseTarget = Math.round(c.target/c.multiplier);
+    var msCur = c.sphereId==='money'?((state.moneySettings||{}).totalGoalCurrency||'USD'):'';
+    taskLines += '<div style="display:flex;gap:8px;padding:5px 0;"><span style="color:'+cfg.color+';margin-top:1px;flex-shrink:0;">◆</span><span style="font-size:13px;color:#9898b8;"><strong style="color:#c0b8d8;">'+c.target+' '+(c.sphereId==='money'?msCur:unit)+'</strong> за '+c.daysTotal+' дней <span style="color:#44445a;">(обычно '+baseTarget+')</span></span></div>';
+    taskLines += '<div style="display:flex;gap:8px;padding:5px 0;"><span style="color:'+cfg.color+';margin-top:1px;flex-shrink:0;">◆</span><span style="font-size:13px;color:#9898b8;">Фиксировать каждое выполнение в приложении</span></div>';
+  }
+  var rewardLine = c.rewardRelapses===1?'1 срыв удалён из истории навсегда':c.rewardRelapses+' срыва удалены из истории навсегда';
+
+  return '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.88);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;">'
+    +'<div style="width:100%;max-width:480px;background:linear-gradient(160deg,#0d0d1f,#080814);border:1px solid '+cfg.border+';border-radius:20px 20px 0 0;padding:20px 18px 40px;position:relative;overflow:hidden;max-height:92vh;overflow-y:auto;">'
+    +'<div style="position:absolute;top:8px;left:10px;font-size:18px;opacity:0.15;animation:rune-pulse 3s ease-in-out infinite;">ᚠ</div>'
+    +'<div style="position:absolute;top:8px;right:10px;font-size:18px;opacity:0.15;animation:rune-pulse 3s ease-in-out infinite;animation-delay:.7s;">ᚨ</div>'
+    +'<div style="width:36px;height:4px;background:rgba(255,255,255,0.12);border-radius:2px;margin:0 auto 16px;"></div>'
+    +'<div style="font-size:9px;color:#33335a;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">СИСТЕМА · '+(s?s.name.toUpperCase():'')+'· ОТСТАВАНИЕ '+c.gap+'%</div>'
+    +'<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:16px;margin-bottom:12px;font-size:12px;font-weight:800;letter-spacing:1px;background:'+cfg.bg+';color:'+cfg.color+';border:1px solid '+cfg.border+';">'+cfg.symbol+' '+cfg.label+'</div>'
+    +'<div style="font-size:19px;font-weight:800;color:#eee8ff;margin-bottom:4px;">Контракт · '+(s?s.name:'')+'</div>'
+    +'<div style="font-size:12px;color:#44445a;margin-bottom:16px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border-left:2px solid '+cfg.border+';line-height:1.5;">Ты прошёл <strong style="color:#9090b8;">'+elapsedPct+'% пути</strong>, а '+(s?s.name.toLowerCase():'')+'выполнено на <strong style="color:#9090b8;">'+actualPct+'%</strong>. Разрыв '+c.gap+'%.</div>'
+    +'<div style="background:rgba(255,255,255,0.03);border:1px solid #1e1e30;border-radius:8px;padding:14px;margin-bottom:12px;">'
+    +'<div style="font-size:9px;color:'+cfg.color+'80;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Задача · '+c.daysTotal+' дней</div>'
+    +taskLines
+    +'<div style="font-size:11px;color:#33334a;margin-top:8px;padding-top:8px;border-top:1px solid #1a1a2a;">Напряжённо, но выполнимо — это вызов сверху.</div>'
+    +'</div>'
+    +'<div style="background:'+cfg.bg+';border:1px solid '+cfg.border+';border-radius:8px;padding:12px;margin-bottom:18px;">'
+    +'<div style="font-size:9px;color:'+cfg.color+'80;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Награда за выполнение</div>'
+    +'<div style="display:flex;align-items:center;gap:10px;padding:4px 0;"><span style="font-size:16px;">💫</span><span style="font-size:13px;color:'+cfg.color+';">'+rewardLine+'</span></div>'
+    +'<div style="display:flex;align-items:center;gap:10px;padding:4px 0;"><span style="font-size:15px;">'+cfg.symbol+'</span><span style="font-size:13px;color:'+cfg.color+';">Печать '+c.rank+'-ранга на карточку персонажа</span></div>'
+    +'</div>'
+    +'<div style="display:flex;gap:10px;">'
+    +'<button onclick="window.__app.acceptContract()" style="flex:1;padding:13px;border:1px solid '+cfg.border+';border-radius:10px;background:'+cfg.bg+';color:'+cfg.color+';font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.5px;">Принять контракт</button>'
+    +'<button onclick="window.__app.declineContract()" style="padding:13px 18px;border:1px solid #222238;border-radius:10px;background:transparent;color:#44445a;font-size:14px;cursor:pointer;">Отказать</button>'
+    +'</div>'
+    +'<div style="text-align:center;font-size:11px;color:#33334a;margin-top:12px;font-style:italic;">Контракт действителен 24 часа · Отказ не наказывается</div>'
+    +'</div></div>';
+}
+
+function renderContractCompleteScreen() {
+  var cc = view.contractCompleted;
+  if (!cc) return '';
+  var cfg = CONTRACT_RANKS[cc.rank];
+  var s = SPHERES.find(function(x){ return x.id === cc.sphereId; });
+  return '<div style="position:fixed;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;">'
+    +'<div style="width:100%;max-width:360px;text-align:center;">'
+    +'<div style="font-size:60px;margin-bottom:14px;animation:pop-in 0.5s cubic-bezier(.2,1.4,.4,1);">⚡</div>'
+    +'<div style="font-size:22px;font-weight:800;color:#eee8ff;margin-bottom:4px;">КОНТРАКТ ВЫПОЛНЕН</div>'
+    +'<div style="font-size:13px;color:#44445a;margin-bottom:24px;">'+(s?s.name:'')+' · '+cc.rank+'-ранг</div>'
+    +'<div style="background:#0d0d1a;border:1px solid #2a2a45;border-radius:12px;padding:18px;margin-bottom:18px;text-align:left;">'
+    +'<div style="font-size:9px;color:#44446a;letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:12px;">НАГРАДЫ ПОЛУЧЕНЫ</div>'
+    +'<div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid #1a1a28;">'
+    +'<span style="font-size:20px;">💫</span>'
+    +'<div><div style="font-size:13px;color:#c0b8d8;font-weight:600;">'+(cc.rewardRelapses===1?'1 срыв удалён':cc.rewardRelapses+' срыва удалены')+'</div><div style="font-size:11px;color:#44445a;">Из истории навсегда</div></div>'
+    +'<div style="margin-left:auto;font-size:15px;font-weight:800;color:#44ff88;">−'+cc.rewardRelapses+'</div>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;gap:12px;padding:8px 0;">'
+    +'<span style="font-size:20px;">'+cfg.symbol+'</span>'
+    +'<div><div style="font-size:13px;color:#c0b8d8;font-weight:600;">Печать '+cc.rank+'-ранга</div><div style="font-size:11px;color:#44445a;">Добавлена на карточку</div></div>'
+    +'<div style="margin-left:auto;font-size:14px;font-weight:800;color:'+cfg.color+';">'+cfg.symbol+' '+cc.rank+'</div>'
+    +'</div>'
+    +'</div>'
+    +'<button onclick="window.__app.dismissContractComplete()" style="width:100%;padding:13px;border:1px solid #2a2a45;border-radius:10px;background:rgba(40,40,80,0.3);color:#8888cc;font-size:14px;cursor:pointer;">Закрыть</button>'
+    +'</div></div>';
+}
+
+function renderActiveContractInline(s) {
+  var c = state.activeContract;
+  if (!c || c.sphereId !== s.id) return '';
+  var cfg = CONTRACT_RANKS[c.rank];
+  var prog = getContractProgress();
+  if (!prog) return '';
+  var daysLeft = Math.max(0, daysBetween(today(), c.endDate));
+  var todayStr = today();
+
+  var html = '<div style="background:linear-gradient(135deg,'+cfg.bg+',rgba(0,0,0,0.2));border:1px solid '+cfg.border+';border-radius:12px;padding:14px;margin-bottom:14px;">'
+    +'<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">'
+    +'<div style="font-size:16px;font-weight:900;color:'+cfg.color+';">'+cfg.symbol+'</div>'
+    +'<div style="flex:1;"><div style="font-size:12px;font-weight:700;color:'+cfg.color+';">Активный контракт '+c.rank+'-ранга</div>'
+    +'<div style="font-size:11px;color:#44445a;">осталось '+daysLeft+' дн · выполнено '+prog.pct+'%</div></div>'
+    +'</div>'
+    +'<div style="height:4px;background:rgba(255,255,255,0.06);border-radius:2px;overflow:hidden;margin-bottom:12px;">'
+    +'<div style="height:100%;width:'+prog.pct+'%;background:'+cfg.color+';border-radius:2px;box-shadow:0 0 6px '+cfg.color+'60;transition:width .5s;"></div>'
+    +'</div>';
+
+  if (s.id === 'religion') {
+    // Задача: все 5 намазов — показываем сколько сегодня выполнено
+    var fardKeys = ['fajr','dhuhr','asr','maghrib','isha'];
+    var fardTasks = (state.tasks.religion||[]).filter(function(t){ return t.mandatory && fardKeys.indexOf(t.prayerKey)>=0; });
+    var fardDoneToday = fardTasks.filter(function(t){ return state.history.some(function(h){ return h.taskKey===t.taskKey&&h.date===todayStr; }); }).length;
+    html += '<div style="font-size:10px;color:#44445a;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">Сегодня</div>';
+    html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'
+      +'<div style="width:22px;height:22px;border-radius:6px;background:'+(fardDoneToday>=5?cfg.bg:'rgba(255,255,255,0.05)')+';border:1px solid '+(fardDoneToday>=5?cfg.border:'#2a2a3a')+';display:flex;align-items:center;justify-content:center;font-size:12px;">'+(fardDoneToday>=5?'✓':'')+'</div>'
+      +'<div style="flex:1;"><div style="font-size:13px;color:#9898b8;">Намазы</div></div>'
+      +'<div style="font-size:12px;color:'+(fardDoneToday>=5?cfg.color:'#44445a')+';">'+fardDoneToday+'/5</div>'
+      +'</div>';
+    (c.extras||[]).forEach(function(e) {
+      var ex = RELIGION_EXTRA_LABELS[e]; if (!ex) return;
+      var done = !!(c.dailyLog[todayStr] && c.dailyLog[todayStr][e]);
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);">'
+        +'<button onclick="window.__app.toggleContractExtra(\''+todayStr+'\',\''+e+'\')" style="width:22px;height:22px;border-radius:6px;background:'+(done?cfg.bg:'rgba(255,255,255,0.05)')+';border:1px solid '+(done?cfg.border:'#2a2a3a')+';color:'+cfg.color+';font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;">'+(done?'✓':'')+'</button>'
+        +'<div style="flex:1;"><div style="font-size:13px;color:#9898b8;">'+ex.label+'</div><div style="font-size:10px;color:#33334a;">'+ex.sub+'</div></div>'
+        +'</div>';
+    });
+    if (c.tahajjudTarget > 0) {
+      html += '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;">'
+        +'<div style="font-size:16px;">🌌</div>'
+        +'<div style="flex:1;"><div style="font-size:13px;color:#9898b8;">Тахаджуд</div><div style="font-size:10px;color:#33334a;">не каждый день</div></div>'
+        +'<div style="display:flex;align-items:center;gap:6px;">'
+        +'<span style="font-size:12px;color:'+cfg.color+';">'+(c.tahajjudCount||0)+'/'+c.tahajjudTarget+'</span>'
+        +'<button onclick="window.__app.incrementTahajjud()" style="width:24px;height:24px;border-radius:6px;background:'+cfg.bg+';border:1px solid '+cfg.border+';color:'+cfg.color+';font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;">+</button>'
+        +'</div></div>';
+    }
+    html += '<div style="font-size:11px;color:#33334a;margin-top:10px;">Выполненных дней: <strong style="color:'+cfg.color+';">'+prog.current+' / '+prog.target+'</strong></div>';
+  } else {
+    // Non-religion: show simple progress
+    var unit2 = CONTRACT_UNIT[s.id]||'ед.';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;">'
+      +'<div style="font-size:12px;color:#9898b8;">'+unit2+'</div>'
+      +'<div style="font-size:14px;font-weight:700;color:'+cfg.color+';">'+prog.current+' / '+prog.target+'</div>'
+      +'</div>';
+  }
+
+  html += '</div>';
+  return html;
+}
+
+function renderContractSeals() {
+  var seals = state.contractSeals || [];
+  if (seals.length === 0) return '';
+  var html = '<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:6px;">';
+  seals.forEach(function(seal) {
+    var cfg = CONTRACT_RANKS[seal.rank];
+    if (!cfg) return;
+    html += '<span style="font-size:10px;font-weight:800;padding:2px 8px;border-radius:10px;background:'+cfg.bg+';color:'+cfg.color+';border:1px solid '+cfg.border+';">'+cfg.symbol+' '+seal.rank+'</span>';
+  });
+  html += '</div>';
+  return html;
+}
+
 function renderRelapseNotif() {
   if (!view.relapseNotif) return '';
   var rn = view.relapseNotif;

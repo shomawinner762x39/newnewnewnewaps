@@ -3569,7 +3569,10 @@ function renderApp() {
 
   // Модалки рендерим в отдельный корень вне #app-root (иначе на iOS position:fixed подрезается)
   const modalRoot = document.getElementById('modal-root');
-  if (modalRoot) modalRoot.innerHTML = modal + skillModal;
+  checkContractTrigger();
+  checkContractCompletion();
+  var contractOverlay = state.pendingContract ? renderContractPopup() : (view.contractCompleted ? renderContractCompleteScreen() : '');
+  if (modalRoot) modalRoot.innerHTML = contractOverlay || (modal + skillModal);
 
   // Лочим скролл фона когда открыта модалка
   const hasModalOpen = !!(view.sphereId || view.stageId || view.achId || view.skillId);

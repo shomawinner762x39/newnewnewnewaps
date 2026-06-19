@@ -2719,6 +2719,11 @@ function load() {
   if (!state.moneyHistory) state.moneyHistory = [];
   if (state.relapseCount === undefined) state.relapseCount = 0;
   if (state.lastRelapseDate === undefined) state.lastRelapseDate = null;
+  if (!state.contractSeals) state.contractSeals = [];
+  if (state.activeContract === undefined) state.activeContract = null;
+  if (state.pendingContract === undefined) state.pendingContract = null;
+  if (state.contractCooldownDate === undefined) state.contractCooldownDate = null;
+  if (state.pendingRelapseCredits === undefined) state.pendingRelapseCredits = 0;
   if (!state.finance) state.finance = { entries: [], cushion: 0, currency: 'USD' };
   if (!state.finance.selectedCurrencies) state.finance.selectedCurrencies = ['USD', 'RUB'];
   if (!state.finance.entries) state.finance.entries = [];

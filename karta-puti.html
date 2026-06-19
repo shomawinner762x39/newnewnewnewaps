@@ -8727,6 +8727,40 @@ window.__app = {
 
   handleRelapse: handleRelapse,
   dismissRelapseNotif: function() { view.relapseNotif = null; render(); },
+
+  // ── Контракты ──────────────────────────────────────────────────────
+  acceptContract: function() {
+    if (!state.pendingContract) return;
+    state.activeContract = state.pendingContract;
+    state.pendingContract = null;
+    save(); render();
+    showToast('Контракт принят · ' + state.activeContract.rank + '-ранг', CONTRACT_RANKS[state.activeContract.rank].color);
+  },
+  declineContract: function() {
+    state.pendingContract = null;
+    state.contractCooldownDate = contractAddDays(today(), 14);
+    save(); render();
+  },
+  dismissContractComplete: function() {
+    view.contractCompleted = null;
+    render();
+  },
+  toggleContractExtra: function(date, extra) {
+    var c = state.activeContract;
+    if (!c) return;
+    if (!c.dailyLog) c.dailyLog = {};
+    if (!c.dailyLog[date]) c.dailyLog[date] = {};
+    c.dailyLog[date][extra] = !c.dailyLog[date][extra];
+    checkContractCompletion();
+    save(); render();
+  },
+  incrementTahajjud: function() {
+    var c = state.activeContract;
+    if (!c || !c.tahajjudTarget) return;
+    c.tahajjudCount = Math.min(c.tahajjudTarget, (c.tahajjudCount || 0) + 1);
+    checkContractCompletion();
+    save(); render();
+  },
   toggleRelapseInfo: function() { view.relapseInfoOpen = !view.relapseInfoOpen; render(); },
   editPurity: () => { view.purityEditing = true; render(); },
   cancelEditPurity: () => { view.purityEditing = false; render(); },

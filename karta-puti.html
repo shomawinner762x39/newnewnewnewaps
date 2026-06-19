@@ -2312,6 +2312,11 @@ function makeInitial() {
     moneyHistory: [],   // [{id, date, amount, note}]
     relapseCount: 0,        // количество срывов всего
     lastRelapseDate: null,  // дата последнего срыва
+    activeContract: null,        // текущий активный контракт
+    pendingContract: null,       // контракт ожидающий ответа (24ч)
+    contractSeals: [],           // [{rank,sphereId,earnedDate,stageId}]
+    contractCooldownDate: null,  // до этой даты новый контракт не появится
+    pendingRelapseCredits: 0,    // накопленные кредиты срывов от контрактов
     dismissedMandatory: [],
     startedAt: today(), lastBackup: null, bannerDismissedDate: null,
     finance: {

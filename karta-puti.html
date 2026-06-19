@@ -5049,6 +5049,7 @@ function getContractProgress() {
 }
 
 function checkContractCompletion() {
+  if (!state || !state.onboardingDone) return;
   var c = state.activeContract;
   if (!c) return;
   var prog = getContractProgress();

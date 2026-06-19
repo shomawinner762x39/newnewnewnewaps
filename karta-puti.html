@@ -5106,7 +5106,7 @@ function renderContractPopup() {
     +'<div style="font-size:9px;color:#33335a;letter-spacing:2px;text-transform:uppercase;margin-bottom:10px;">СИСТЕМА · '+(s?s.name.toUpperCase():'')+'· ОТСТАВАНИЕ '+c.gap+'%</div>'
     +'<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:16px;margin-bottom:12px;font-size:12px;font-weight:800;letter-spacing:1px;background:'+cfg.bg+';color:'+cfg.color+';border:1px solid '+cfg.border+';">'+cfg.symbol+' '+cfg.label+'</div>'
     +'<div style="font-size:19px;font-weight:800;color:#eee8ff;margin-bottom:4px;">Контракт · '+(s?s.name:'')+'</div>'
-    +'<div style="font-size:12px;color:#44445a;margin-bottom:16px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border-left:2px solid '+cfg.border+';line-height:1.5;">Ты прошёл <strong style="color:#9090b8;">'+elapsedPct+'% пути</strong>, а '+(s?s.name.toLowerCase()+' ':'')+' выполнено на <strong style="color:#9090b8;">'+actualPct+'%</strong>. Разрыв '+c.gap+'%.</div>'
+    +'<div style="font-size:12px;color:#44445a;margin-bottom:16px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:6px;border-left:2px solid '+cfg.border+';line-height:1.5;">Ты прошёл <strong style="color:#9090b8;">'+elapsedPct+'% пути</strong>, а '+(s?s.name.toLowerCase():'')+' выполнено на <strong style="color:#9090b8;">'+actualPct+'%</strong>. Разрыв '+c.gap+'%.</div>'
     +'<div style="background:rgba(255,255,255,0.03);border:1px solid #1e1e30;border-radius:8px;padding:14px;margin-bottom:12px;">'
     +'<div style="font-size:9px;color:'+cfg.color+'80;letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;">Задача · '+c.daysTotal+' дней</div>'
     +taskLines

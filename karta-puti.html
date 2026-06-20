@@ -7525,13 +7525,51 @@ function renderSphereModal() {
     const otherTasks = sorted.filter(t => !t.mandatory);
     const shouldGroup = mandatoryTasks.length >= 4;
 
-    if (shouldGroup) {
+    // РЕЛИГИЯ: иконки-тайлы вместо чеклиста
+    if (s.id === 'religion') {
+      const todayStr = today();
+      const PRAYER_ICONS = {
+        fajr:     { emoji: '🌅', name: 'Фаджр' },
+        dhuhr:    { emoji: '☀️',  name: 'Зухр' },
+        asr:      { emoji: '⛅', name: 'Аср' },
+        maghrib:  { emoji: '🌆', name: 'Магриб' },
+        isha:     { emoji: '🌙', name: 'Иша' },
+        tahajjud: { emoji: '🌟', name: 'Тахаджуд' },
+        duha:     { emoji: '🌄', name: 'Духа' },
+        sunnah:   { emoji: '📿', name: 'Сунна' },
+      };
+      const FARD_KEYS = ['fajr','dhuhr','asr','maghrib','isha'];
+      const fardTasks = mandatoryTasks.filter(t => FARD_KEYS.includes(t.prayerKey));
+      const naflTasks = mandatoryTasks.filter(t => !FARD_KEYS.includes(t.prayerKey));
+
+      const renderPrayerTile = (t) => {
+        const pd = PRAYER_ICONS[t.prayerKey] || { emoji: '🕌', name: t.prayerKey };
+        const done = state.history.some(h => h.taskKey === t.taskKey && h.date === todayStr);
+        const bg      = done ? 'rgba(184,144,40,0.18)' : 'rgba(255,255,255,0.03)';
+        const border  = done ? '#b89040' : 'rgba(255,255,255,0.1)';
+        const glow    = done ? '0 0 16px rgba(184,144,40,0.3)' : 'none';
+        const txtClr  = done ? '#d4a840' : '#9898b8';
+        const check   = done ? `<div style="position:absolute;top:4px;right:6px;font-size:10px;color:#d4a840;font-weight:800;">✓</div>` : '';
+        return `<button onclick="window.__app.completeQuick('religion','${t.id}')" style="flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:${bg};border:1.5px solid ${border};border-radius:12px;padding:10px 4px 9px;cursor:pointer;position:relative;box-shadow:${glow};">${check}<div style="font-size:26px;line-height:1.15;margin-bottom:5px;">${pd.emoji}</div><div style="font-size:10px;color:${txtClr};font-weight:700;text-align:center;letter-spacing:0.02em;">${pd.name}</div></button>`;
+      };
+
+      const fardDone = fardTasks.filter(t => state.history.some(h => h.taskKey === t.taskKey && h.date === todayStr)).length;
+      tasksHtml += `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><div style="font-size:9px;color:#b89040;letter-spacing:0.18em;font-weight:700;text-transform:uppercase;">Намазы дня</div><div style="font-size:10px;color:#b89040;font-weight:700;">${fardDone} / ${fardTasks.length}</div></div><div style="display:flex;gap:5px;">${fardTasks.map(renderPrayerTile).join('')}</div></div>`;
+
+      if (naflTasks.length > 0) {
+        const naflDone = naflTasks.filter(t => state.history.some(h => h.taskKey === t.taskKey && h.date === todayStr)).length;
+        tasksHtml += `<div style="margin-bottom:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;"><div style="font-size:9px;color:#7870a0;letter-spacing:0.18em;font-weight:700;text-transform:uppercase;">Желательные</div><div style="font-size:10px;color:#7870a0;font-weight:700;">${naflDone} / ${naflTasks.length}</div></div><div style="display:flex;gap:5px;flex-wrap:wrap;">${naflTasks.map(renderPrayerTile).join('')}</div></div>`;
+      }
+
+      tasksHtml += otherTasks.map(t => renderTaskRow(t)).join('');
+
+    } else if (shouldGroup) {
       const groupKey = `mandatoryGroup_${s.id}`;
       const isOpen = view.expandedGroups && view.expandedGroups[groupKey];
       // Считаем сколько выполнено за сегодня в этой группе
       const todayStr = today();
       const doneToday = mandatoryTasks.filter(t => state.history.some(h => h.taskKey === t.taskKey && h.date === todayStr)).length;
-      const headerLabel = s.id === 'religion' ? 'Молитвы дня' : 'Обязательные задачи';
+      const headerLabel = 'Обязательные задачи';
 
       tasksHtml += `<button onclick="window.__app.toggleGroup('${groupKey}')" style="width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 14px; background: linear-gradient(135deg, ${s.color}20, ${s.color}05); border: 1px solid ${s.color}50; border-left: 3px solid ${s.color}; border-radius: 10px; cursor: pointer; margin-bottom: 5px; text-align: left;">
         <div style="font-size: 18px; flex-shrink: 0;">${isOpen ? '▾' : '▸'}</div>

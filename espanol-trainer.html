@@ -1,0 +1,2001 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0612">
+<title>Español Trainer · 3 tiempos</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Español">
+<style>
+:root{
+  --bg:#0a0612; --bg2:#120b22; --card:#181030; --card2:#1f1540;
+  --line:#2a1f4d; --txt:#f2ecff; --mut:#9a8bc4; --mut2:#6f5fa0;
+  --acc:#7c5cff; --acc2:#a87bff; --ok:#2fd180; --okbg:#0f3a2a;
+  --bad:#ff5d73; --badbg:#3a1320; --warn:#ffc857; --gold:#ffd24a;
+  --r:18px; --sh:0 10px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:radial-gradient(1200px 700px at 50% -10%,#1b1038 0%,var(--bg) 55%) no-repeat;
+  background-color:var(--bg);
+  color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;
+  min-height:100vh;-webkit-font-smoothing:antialiased;padding-bottom:env(safe-area-inset-bottom);
+}
+.wrap{max-width:720px;margin:0 auto;padding:14px 14px 90px}
+button{font-family:inherit;cursor:pointer;border:none;color:inherit}
+.hidden{display:none!important}
+
+/* Top bar */
+.top{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:12px 14px;background:var(--bg)}
+.brand{font-weight:800;font-size:18px;letter-spacing:.3px;display:flex;align-items:center;gap:8px;cursor:pointer}
+.brand .flag{filter:drop-shadow(0 2px 6px rgba(0,0,0,.4))}
+.stats-mini{margin-left:auto;display:flex;gap:8px;align-items:center}
+.chip{background:var(--card);border:1px solid var(--line);border-radius:999px;
+  padding:6px 11px;font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px}
+.chip.streak{color:var(--warn)} .chip.xp{color:var(--acc2)} .chip.gem{color:#5ad6ff} .chip.time{color:#5ad6ff}
+@media(max-width:430px){.chip{padding:6px 9px;font-size:12px}}
+
+/* Generic card */
+.card{background:linear-gradient(160deg,var(--card),var(--card2));border:1px solid var(--line);
+  border-radius:var(--r);box-shadow:var(--sh)}
+.pad{padding:18px}
+
+/* Home / map */
+.hello{padding:6px 4px 14px}
+.hello h1{margin:6px 0 2px;font-size:24px}
+.hello p{margin:0;color:var(--mut)}
+.goalbar{height:12px;border-radius:999px;background:var(--card);border:1px solid var(--line);overflow:hidden;margin-top:12px}
+.goalbar > i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:999px;transition:width .5s}
+.goal-row{display:flex;justify-content:space-between;font-size:13px;color:var(--mut);margin-top:7px}
+
+.chapter{margin-top:22px}
+.ch-head{display:flex;align-items:center;gap:10px;margin:0 4px 12px}
+.ch-emoji{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;font-size:22px;
+  background:var(--card);border:1px solid var(--line)}
+.ch-title{font-weight:800;font-size:17px}
+.ch-sub{color:var(--mut);font-size:12.5px}
+.ch-bar{flex:0 0 auto;width:64px;height:8px;border-radius:999px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.ch-bar > i{display:block;height:100%;background:linear-gradient(90deg,var(--gold),#ffb300)}
+
+.path{position:relative;display:flex;flex-direction:column;gap:18px;padding:8px 0 4px}
+.node-row{display:flex;align-items:center;gap:14px}
+.node-row.r{flex-direction:row-reverse;justify-content:flex-start;margin-left:auto}
+.node{width:74px;height:74px;border-radius:50%;display:grid;place-items:center;position:relative;
+  background:var(--card);border:2px solid var(--line);font-size:26px;flex:0 0 auto;
+  transition:transform .15s}
+.node:active{transform:scale(.94)}
+.node.done{background:linear-gradient(160deg,#22183f,#2a1d52);border-color:var(--acc)}
+.node.gold{background:linear-gradient(160deg,#3a2c12,#4a3713);border-color:var(--gold);box-shadow:0 0 22px rgba(255,210,74,.25)}
+.node.locked{opacity:.45;filter:grayscale(.5)}
+.node .stars{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);font-size:12px;
+  background:var(--bg2);border:1px solid var(--line);border-radius:999px;padding:1px 6px;white-space:nowrap}
+.node .lk{font-size:20px}
+.node-meta{max-width:230px}
+.node-meta .nm{font-weight:700;font-size:14.5px}
+.node-meta .ns{color:var(--mut);font-size:12px;margin-top:2px}
+
+/* Buttons */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;
+  padding:14px 18px;font-weight:800;font-size:15.5px;background:var(--card2);border:1px solid var(--line);
+  transition:transform .12s,filter .12s;width:100%}
+.btn:active{transform:translateY(1px)}
+.btn.primary{background:linear-gradient(120deg,var(--acc),var(--acc2));border:none;
+  box-shadow:0 8px 22px rgba(124,92,255,.35)}
+.btn.primary:disabled{opacity:.5;box-shadow:none}
+.btn.ghost{background:transparent}
+.btn.sm{padding:10px 14px;font-size:14px;width:auto}
+.btn.ok{background:linear-gradient(120deg,#21b46b,var(--ok));border:none}
+.btn.warn-b{background:transparent;border:1px solid var(--warn);color:var(--warn)}
+
+/* Bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;gap:6px;
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:linear-gradient(0deg,var(--bg) 70%,transparent)}
+.nav .ni{flex:1;max-width:140px;background:transparent;border:none;color:var(--mut2);
+  display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;padding:6px 0;border-radius:12px}
+.nav .ni .ic{font-size:21px}
+.nav .ni.active{color:var(--acc2)}
+
+/* Lesson screen */
+.lesson{display:flex;flex-direction:column}
+.lh{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.lh .x{font-size:24px;background:var(--card);border:1px solid var(--line);border-radius:12px;width:42px;height:42px}
+.prog{flex:1;height:14px;border-radius:999px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.prog > i{display:block;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));transition:width .35s}
+.hearts{font-size:15px;letter-spacing:1px}
+.q-type{display:inline-flex;align-items:center;gap:6px;align-self:flex-start;font-size:12px;font-weight:800;
+  letter-spacing:.4px;text-transform:uppercase;color:var(--acc2);background:rgba(124,92,255,.12);
+  border:1px solid var(--line);border-radius:999px;padding:5px 11px;margin-bottom:14px}
+.q-stem{font-size:15px;color:var(--mut);margin-bottom:8px}
+.q-main{font-size:23px;font-weight:800;line-height:1.35;margin-bottom:4px;color:#ffffff;-webkit-text-fill-color:#ffffff;opacity:1}
+.q-main .blank{color:var(--acc2);border-bottom:2px dashed var(--acc);padding:0 22px}
+.q-main .hl{color:var(--gold)}
+.q-hint{color:var(--mut);font-size:14px;margin-top:8px}
+.tag-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
+.tag{font-size:12px;font-weight:700;padding:5px 10px;border-radius:999px;background:var(--card);border:1px solid var(--line);color:var(--mut)}
+.tag.t-pres{color:#5ad6ff;border-color:#1d4a55} .tag.t-pret{color:#ff9d6e;border-color:#5a3320} .tag.t-fut{color:#9cff9c;border-color:#2a5a2a}
+
+.answer-area{margin-top:24px;padding-top:0}
+.field{width:100%;font-size:20px;font-weight:700;text-align:center;color:var(--txt);
+  background:var(--card);border:2px solid var(--line);border-radius:14px;padding:15px 14px;outline:none}
+.field:focus{border-color:var(--acc)}
+.field.good{border-color:var(--ok);background:var(--okbg)}
+.field.wrong{border-color:var(--bad);background:var(--badbg)}
+.accents{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin-top:10px}
+.accents button{background:var(--card);border:1px solid var(--line);border-radius:10px;
+  min-width:40px;height:42px;font-size:18px;font-weight:700}
+.choices{display:flex;flex-direction:column;gap:10px}
+.choice{text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;
+  padding:15px 16px;font-size:18px;font-weight:700;transition:transform .1s}
+.choice:active{transform:translateY(1px)}
+.choice.good{border-color:var(--ok);background:var(--okbg)}
+.choice.wrong{border-color:var(--bad);background:var(--badbg)}
+.choice.dim{opacity:.5}
+
+.ladder-step{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ladder-step .tlabel{flex:0 0 96px;font-size:13px;font-weight:800}
+.ladder-step input{flex:1;font-size:18px;font-weight:700;background:var(--card);border:2px solid var(--line);
+  border-radius:12px;padding:12px;color:var(--txt);outline:none;text-align:center}
+.ladder-step input:focus{border-color:var(--acc)}
+.ladder-step input.good{border-color:var(--ok);background:var(--okbg)}
+.ladder-step input.wrong{border-color:var(--bad);background:var(--badbg)}
+.ladder-step .cue{flex:0 0 auto;font-size:12px;color:var(--mut)}
+
+/* Feedback bar */
+.fb{position:fixed;left:0;right:0;bottom:0;z-index:60;transform:translateY(110%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.fb.show{transform:translateY(0)}
+.fb-inner{max-width:720px;margin:0 auto;padding:16px 16px calc(18px + env(safe-area-inset-bottom));
+  border-top-left-radius:22px;border-top-right-radius:22px}
+.fb.ok .fb-inner{background:linear-gradient(180deg,#0f3a2a,#0b2c20)}
+.fb.bad .fb-inner{background:linear-gradient(180deg,#3a1320,#2c0e18)}
+.fb-title{font-weight:800;font-size:17px;display:flex;align-items:center;gap:8px}
+.fb.ok .fb-title{color:var(--ok)} .fb.bad .fb-title{color:var(--bad)}
+.fb-correct{margin-top:6px;font-size:16px;font-weight:700}
+.fb-extra{margin-top:8px;font-size:13.5px;color:#cdbef5;line-height:1.5}
+.fb-extra b{color:#fff}
+.fb-actions{display:flex;gap:10px;margin-top:14px}
+.fb-actions .btn{flex:1}
+.spk{background:var(--card);border:1px solid var(--line);border-radius:12px;height:46px;min-width:52px;font-size:20px}
+
+/* Stats */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{padding:16px}
+.stat .v{font-size:28px;font-weight:800}
+.stat .l{color:var(--mut);font-size:13px;margin-top:2px}
+.bar-line{display:flex;align-items:center;gap:10px;margin-top:12px}
+.bar-line .nm{flex:0 0 110px;font-size:13px;font-weight:700}
+.bar-line .bt{flex:1;height:12px;border-radius:999px;background:var(--card);border:1px solid var(--line);overflow:hidden}
+.bar-line .bt>i{display:block;height:100%}
+.bar-line .pc{flex:0 0 44px;text-align:right;font-size:13px;font-weight:700;color:var(--mut)}
+
+/* Reference */
+.ref-search{width:100%;font-size:16px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--txt);outline:none}
+.ref-search:focus{border-color:var(--acc)}
+.verb-card{margin-top:12px}
+.verb-card h3{margin:0;display:flex;align-items:baseline;gap:10px;font-size:20px}
+.verb-card h3 .ru{font-size:14px;color:var(--mut);font-weight:600}
+.conj-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
+.conj-table th,.conj-table td{padding:8px 6px;border-bottom:1px solid var(--line);text-align:left}
+.conj-table th{color:var(--mut);font-weight:700;font-size:12px}
+.conj-table td:first-child{color:var(--mut)}
+.conj-table .c-pres{color:#7fd9ff} .conj-table .c-pret{color:#ffb088} .conj-table .c-fut{color:#a6ffa6}
+
+/* Settings / add */
+.set-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--line)}
+.set-row:last-child{border-bottom:none}
+.set-row .t{font-weight:700} .set-row .d{color:var(--mut);font-size:12.5px;margin-top:2px;max-width:380px}
+.toggle{width:52px;height:30px;border-radius:999px;background:var(--card);border:1px solid var(--line);position:relative;flex:0 0 auto}
+.toggle > i{position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--mut2);transition:.2s}
+.toggle.on{background:linear-gradient(120deg,var(--acc),var(--acc2));border-color:transparent}
+.toggle.on > i{left:25px;background:#fff}
+textarea.add{width:100%;min-height:160px;background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:12px;color:var(--txt);font-size:14px;font-family:inherit;outline:none;resize:vertical}
+textarea.add:focus{border-color:var(--acc)}
+.note{font-size:12.5px;color:var(--mut);line-height:1.6}
+.seg{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:4px}
+.seg button{flex:1;padding:9px;border-radius:9px;font-weight:700;font-size:13px;background:transparent;color:var(--mut)}
+.seg button.on{background:var(--acc);color:#fff}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%) translateY(20px);opacity:0;
+  background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:11px 16px;font-weight:700;
+  font-size:14px;transition:.25s;z-index:80;pointer-events:none;box-shadow:var(--sh)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.confetti{position:fixed;top:-10px;font-size:18px;z-index:90;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(105vh) rotate(540deg);opacity:.2}}
+.section-title{font-weight:800;font-size:15px;margin:22px 4px 10px;color:var(--mut)}
+
+/* Сборка предложения (scramble) */
+.scr-answer{min-height:56px;border:2px dashed var(--line);border-radius:14px;padding:10px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start;margin-bottom:14px}
+.scr-answer:empty::before{content:'Нажимай слова ниже, чтобы собрать фразу…';color:var(--mut2);font-size:13.5px;font-weight:600}
+.scr-pool{display:flex;flex-wrap:wrap;gap:8px}
+.chip{background:var(--card);border:2px solid var(--line);border-radius:11px;padding:11px 14px;font-size:17px;font-weight:700;color:var(--txt)}
+.chip:active{transform:translateY(1px)}
+.chip.used{opacity:.25}
+.chip.pick{background:var(--card2);border-color:var(--acc)}
+.chip.good{border-color:var(--ok);background:var(--okbg)}
+.chip.wrong{border-color:var(--bad);background:var(--badbg)}
+
+/* Словарь */
+.dict-cats{display:flex;gap:6px;overflow-x:auto;padding:4px 0 4px;margin-bottom:8px;-webkit-overflow-scrolling:touch}
+.dict-cats::-webkit-scrollbar{display:none}
+.dict-cats button{white-space:nowrap;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--mut);flex:0 0 auto}
+.dict-cats button.on{background:linear-gradient(120deg,var(--acc),var(--acc2));color:#fff;border-color:transparent}
+.word-card{display:flex;align-items:center;gap:12px;padding:13px 14px;margin-top:10px}
+.word-card .we{font-size:17px;font-weight:800}
+.word-card .wr{color:var(--mut);font-size:13px;margin-top:2px}
+.word-card .wp{margin-left:auto;font-size:11px;font-weight:700;color:var(--mut2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 10px;white-space:nowrap}
+
+/* Аудирование */
+.ep-head{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.ep-head .x{font-size:22px;background:var(--card);border:1px solid var(--line);border-radius:12px;width:42px;height:42px}
+.ep-player iframe{display:block}
+.yt-poster{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--line);background:#000}
+.yt-poster img{width:100%;display:block;aspect-ratio:16/9;object-fit:cover}
+.yt-poster .yt-play{position:absolute;top:42%;left:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;
+  background:rgba(220,30,30,.92);color:#fff;display:grid;place-items:center;font-size:26px;text-decoration:none;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.yt-poster .yt-actions{position:absolute;left:0;right:0;bottom:0;display:flex;gap:8px;padding:10px;background:linear-gradient(0deg,rgba(0,0,0,.75),transparent)}
+.yt-poster .yt-actions .btn{flex:1;text-decoration:none}
+
+.seg-b{flex:1;padding:9px;border-radius:9px;font-weight:700;font-size:13px;background:transparent;color:var(--mut);border:none}
+.seg-b.on{background:var(--acc);color:#fff}
+.scriptline{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-top:8px;cursor:pointer;transition:border-color .12s}
+.scriptline:active{border-color:var(--acc)}
+.scriptline .sl-es{font-size:16px;font-weight:700}
+.scriptline .sl-ru{font-size:13px;color:var(--mut);margin-top:3px}
+.scriptline .sl-play{font-size:12px;color:var(--acc2);margin-top:6px;font-weight:700}
+</style>
+</head>
+<body>
+<div class="top">
+  <div class="brand" onclick="homeEscape()" title="На карту"><span class="flag">🇨🇱</span> Español Trainer</div>
+  <div class="stats-mini">
+    <div class="chip time" id="cTime">⏱ 0:00</div>
+    <div class="chip streak" id="cStreak">🔥 0</div>
+    <div class="chip xp" id="cXp">⚡ 0</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div id="view"></div>
+</div>
+
+<!-- Feedback bar -->
+<div class="fb" id="fb">
+  <div class="fb-inner">
+    <div class="fb-title" id="fbTitle"></div>
+    <div class="fb-correct" id="fbCorrect"></div>
+    <div class="fb-extra" id="fbExtra"></div>
+    <div class="fb-actions">
+      <button class="spk" id="fbSpk">🔊</button>
+      <button class="btn" id="fbOverride" style="flex:0 0 auto;width:auto;padding:0 14px;font-size:13px">Я был прав</button>
+      <button class="btn primary" id="fbNext">Дальше</button>
+    </div>
+  </div>
+</div>
+
+<!-- Bottom nav -->
+<div class="nav" id="nav">
+  <button class="ni active" data-v="home"><span class="ic">🗺️</span>Карта</button>
+  <button class="ni" data-v="practice"><span class="ic">🎯</span>Практика</button>
+  <button class="ni" data-v="listen"><span class="ic">🎧</span>Аудио</button>
+  <button class="ni" data-v="stats"><span class="ic">📊</span>Прогресс</button>
+  <button class="ni" data-v="ref"><span class="ic">📖</span>Словарь</button>
+  <button class="ni" data-v="more"><span class="ic">⚙️</span>Ещё</button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   ESPAÑOL TRAINER — самодостаточное приложение-тренажёр
+   3 времени: Presente / Pretérito / Futuro
+   Автор-движок: спряжение + интервальные повторения (Leitner)
+   ============================================================ */
+
+/* ---------- Местоимения и времена ---------- */
+const PRON = [
+  {k:'yo',  es:'yo',          ru:'я',     ruS:'я', cap:'Yo'},
+  {k:'tu',  es:'tú',          ru:'ты',    ruS:'ты', cap:'Tú'},
+  {k:'el',  es:'él/ella',     ru:'он/она',ruS:'он', cap:'Él'},
+  {k:'nos', es:'nosotros',    ru:'мы',    ruS:'мы', cap:'Nosotros'},
+  {k:'ellos',es:'ellos/ellas',ru:'они',   ruS:'они', cap:'Ellos'},
+];
+const PIDX = {yo:0,tu:1,el:2,nos:3,ellos:4};
+const TEN = [
+  {k:'pres', es:'Presente',  ru:'Настоящее', cue:'Hoy',    cls:'t-pres',
+    cues:[['Hoy','сегодня'],['Normalmente','обычно'],['Cada día','каждый день']]},
+  {k:'pret', es:'Pretérito', ru:'Прошедшее', cue:'Ayer',   cls:'t-pret',
+    cues:[['Ayer','вчера'],['El lunes pasado','в прошлый понедельник'],['La semana pasada','на прошлой неделе']]},
+  {k:'fut',  es:'Futuro',    ru:'Будущее',   cue:'Mañana', cls:'t-fut',
+    cues:[['Mañana','завтра'],['La próxima semana','на следующей неделе'],['El año que viene','в следующем году']]},
+];
+const TIDX = {pres:0,pret:1,fut:2};
+
+/* ---------- Движок спряжения правильных глаголов ---------- */
+function regConj(inf){
+  const stem=inf.slice(0,-2), end=inf.slice(-2);
+  let pres,pret,fut;
+  if(end==='ar'){
+    pres=['o','as','a','amos','an'].map(s=>stem+s);
+    pret=['é','aste','ó','amos','aron'].map(s=>stem+s);
+  } else { // er / ir
+    pres=(end==='ir')
+      ? ['o','es','e','imos','en'].map(s=>stem+s)
+      : ['o','es','e','emos','en'].map(s=>stem+s);
+    pret=['í','iste','ió','imos','ieron'].map(s=>stem+s);
+  }
+  fut=['é','ás','á','emos','án'].map(s=>inf+s);
+  return {pres,pret,fut};
+}
+
+/* ---------- Неправильные / с изменением корня (вручную, проверено) ---------- */
+const IRREG = {
+  // stem-changing
+  pensar:{pres:['pienso','piensas','piensa','pensamos','piensan'],pret:['pensé','pensaste','pensó','pensamos','pensaron'],fut:['pensaré','pensarás','pensará','pensaremos','pensarán']},
+  perder:{pres:['pierdo','pierdes','pierde','perdemos','pierden'],pret:['perdí','perdiste','perdió','perdimos','perdieron'],fut:['perderé','perderás','perderá','perderemos','perderán']},
+  entender:{pres:['entiendo','entiendes','entiende','entendemos','entienden'],pret:['entendí','entendiste','entendió','entendimos','entendieron'],fut:['entenderé','entenderás','entenderá','entenderemos','entenderán']},
+  empezar:{pres:['empiezo','empiezas','empieza','empezamos','empiezan'],pret:['empecé','empezaste','empezó','empezamos','empezaron'],fut:['empezaré','empezarás','empezará','empezaremos','empezarán']},
+  volver:{pres:['vuelvo','vuelves','vuelve','volvemos','vuelven'],pret:['volví','volviste','volvió','volvimos','volvieron'],fut:['volveré','volverás','volverá','volveremos','volverán']},
+  dormir:{pres:['duermo','duermes','duerme','dormimos','duermen'],pret:['dormí','dormiste','durmió','dormimos','durmieron'],fut:['dormiré','dormirás','dormirá','dormiremos','dormirán']},
+  preferir:{pres:['prefiero','prefieres','prefiere','preferimos','prefieren'],pret:['preferí','preferiste','prefirió','preferimos','prefirieron'],fut:['preferiré','preferirás','preferirá','preferiremos','preferirán']},
+  querer:{pres:['quiero','quieres','quiere','queremos','quieren'],pret:['quise','quisiste','quiso','quisimos','quisieron'],fut:['querré','querrás','querrá','querremos','querrán']},
+  // irregular
+  ser:{pres:['soy','eres','es','somos','son'],pret:['fui','fuiste','fue','fuimos','fueron'],fut:['seré','serás','será','seremos','serán']},
+  ir:{pres:['voy','vas','va','vamos','van'],pret:['fui','fuiste','fue','fuimos','fueron'],fut:['iré','irás','irá','iremos','irán']},
+  estar:{pres:['estoy','estás','está','estamos','están'],pret:['estuve','estuviste','estuvo','estuvimos','estuvieron'],fut:['estaré','estarás','estará','estaremos','estarán']},
+  tener:{pres:['tengo','tienes','tiene','tenemos','tienen'],pret:['tuve','tuviste','tuvo','tuvimos','tuvieron'],fut:['tendré','tendrás','tendrá','tendremos','tendrán']},
+  hacer:{pres:['hago','haces','hace','hacemos','hacen'],pret:['hice','hiciste','hizo','hicimos','hicieron'],fut:['haré','harás','hará','haremos','harán']},
+  venir:{pres:['vengo','vienes','viene','venimos','vienen'],pret:['vine','viniste','vino','vinimos','vinieron'],fut:['vendré','vendrás','vendrá','vendremos','vendrán']},
+  decir:{pres:['digo','dices','dice','decimos','dicen'],pret:['dije','dijiste','dijo','dijimos','dijeron'],fut:['diré','dirás','dirá','diremos','dirán']},
+  poder:{pres:['puedo','puedes','puede','podemos','pueden'],pret:['pude','pudiste','pudo','pudimos','pudieron'],fut:['podré','podrás','podrá','podremos','podrán']},
+  poner:{pres:['pongo','pones','pone','ponemos','ponen'],pret:['puse','pusiste','puso','pusimos','pusieron'],fut:['pondré','pondrás','pondrá','pondremos','pondrán']},
+  saber:{pres:['sé','sabes','sabe','sabemos','saben'],pret:['supe','supiste','supo','supimos','supieron'],fut:['sabré','sabrás','sabrá','sabremos','sabrán']},
+  traer:{pres:['traigo','traes','trae','traemos','traen'],pret:['traje','trajiste','trajo','trajimos','trajeron'],fut:['traeré','traerás','traerá','traeremos','traerán']},
+  dar:{pres:['doy','das','da','damos','dan'],pret:['di','diste','dio','dimos','dieron'],fut:['daré','darás','dará','daremos','darán']},
+  ver:{pres:['veo','ves','ve','vemos','ven'],pret:['vi','viste','vio','vimos','vieron'],fut:['veré','verás','verá','veremos','verán']},
+  salir:{pres:['salgo','sales','sale','salimos','salen'],pret:['salí','saliste','salió','salimos','salieron'],fut:['saldré','saldrás','saldrá','saldremos','saldrán']},
+  quedarse:{pres:['me quedo','te quedas','se queda','nos quedamos','se quedan'],pret:['me quedé','te quedaste','se quedó','nos quedamos','se quedaron'],fut:['me quedaré','te quedarás','se quedará','nos quedaremos','se quedarán']},
+  contar:{pres:['cuento','cuentas','cuenta','contamos','cuentan'],pret:['conté','contaste','contó','contamos','contaron'],fut:['contaré','contarás','contará','contaremos','contarán']},
+  dirigir:{pres:['dirijo','diriges','dirige','dirigimos','dirigen'],pret:['dirigí','dirigiste','dirigió','dirigimos','dirigieron'],fut:['dirigiré','dirigirás','dirigirá','dirigiremos','dirigirán']},
+  caer:{pres:['caigo','caes','cae','caemos','caen'],pret:['caí','caíste','cayó','caímos','cayeron'],fut:['caeré','caerás','caerá','caeremos','caerán']},
+  lanzarse:{pres:['me lanzo','te lanzas','se lanza','nos lanzamos','se lanzan'],pret:['me lancé','te lanzaste','se lanzó','nos lanzamos','se lanzaron'],fut:['me lanzaré','te lanzarás','se lanzará','nos lanzaremos','se lanzarán']},
+  encontrar:{pres:['encuentro','encuentras','encuentra','encontramos','encuentran'],pret:['encontré','encontraste','encontró','encontramos','encontraron'],fut:['encontraré','encontrarás','encontrará','encontraremos','encontrarán']},
+  registrarse:{pres:['me registro','te registras','se registra','nos registramos','se registran'],pret:['me registré','te registraste','se registró','nos registramos','se registraron'],fut:['me registraré','te registrarás','se registrará','nos registraremos','se registrarán']},
+  hospedarse:{pres:['me hospedo','te hospedas','se hospeda','nos hospedamos','se hospedan'],pret:['me hospedé','te hospedaste','se hospedó','nos hospedamos','se hospedaron'],fut:['me hospedaré','te hospedarás','se hospedará','nos hospedaremos','se hospedarán']},
+  desaparecer:{pres:['desaparezco','desapareces','desaparece','desaparecemos','desaparecen'],pret:['desaparecí','desapareciste','desapareció','desaparecimos','desaparecieron'],fut:['desapareceré','desaparecerás','desaparecerá','desapareceremos','desaparecerán']},
+  sentir:{pres:['siento','sientes','siente','sentimos','sienten'],pret:['sentí','sentiste','sintió','sentimos','sintieron'],fut:['sentiré','sentirás','sentirá','sentiremos','sentirán']},
+  construir:{pres:['construyo','construyes','construye','construimos','construyen'],pret:['construí','construiste','construyó','construimos','construyeron'],fut:['construiré','construirás','construirá','construiremos','construirán']},
+  convertirse:{pres:['me convierto','te conviertes','se convierte','nos convertimos','se convierten'],pret:['me convertí','te convertiste','se convirtió','nos convertimos','se convirtieron'],fut:['me convertiré','te convertirás','se convertirá','nos convertiremos','se convertirán']},
+  parecer:{pres:['parezco','pareces','parece','parecemos','parecen'],pret:['parecí','pareciste','pareció','parecimos','parecieron'],fut:['pareceré','parecerás','parecerá','pareceremos','parecerán']},
+  aparecer:{pres:['aparezco','apareces','aparece','aparecemos','aparecen'],pret:['aparecí','apareciste','apareció','aparecimos','aparecieron'],fut:['apareceré','aparecerás','aparecerá','apareceremos','aparecerán']},
+  continuar:{pres:['continúo','continúas','continúa','continuamos','continúan'],pret:['continué','continuaste','continuó','continuamos','continuaron'],fut:['continuaré','continuarás','continuará','continuaremos','continuarán']},
+};
+// орфографические правки для правильных глаголов
+const SPELL = { practicar:{pret:{0:'practiqué'}}, investigar:{pret:{0:'investigué'}}, buscar:{pret:{0:'busqué'}}, explicar:{pret:{0:'expliqué'}} };
+
+/* ---------- Список глаголов (inf, перевод, комплемент для «лестницы») ---------- */
+/* у каждого глагола несколько дополнений [es, ru] — для разнообразных комбинаций */
+const VERBS_RAW = [
+  // -AR правильные
+  ['trabajar','работать',[['en Chile','в Чили'],['desde casa','из дома'],['mucho','много']]],
+  ['caminar','гулять / идти пешком',[['por el parque','по парку'],['por la tarde','днём'],['con mi amigo','с другом']]],
+  ['visitar','посещать / навещать',[['a un amigo','друга'],['a mi familia','семью'],['un museo','музей']]],
+  ['viajar','путешествовать',[['a otra ciudad','в другой город'],['con mi familia','с семьёй'],['en tren','на поезде']]],
+  ['comprar','покупать',[['un regalo','подарок'],['ropa nueva','новую одежду'],['comida','еду']]],
+  ['cocinar','готовить (еду)',[['una pasta','пасту'],['una sopa','суп'],['para mi familia','для семьи']]],
+  ['llamar','звонить',[['a mi amigo','другу'],['a mi jefe','начальнику'],['por la mañana','утром']]],
+  ['descansar','отдыхать',[['en casa','дома'],['después del trabajo','после работы'],['un poco','немного']]],
+  ['esperar','ждать',[['el autobús','автобус'],['a mi amigo','друга'],['una llamada','звонок']]],
+  ['terminar','заканчивать',[['el trabajo','работу'],['un proyecto','проект'],['tarde','поздно']]],
+  ['desayunar','завтракать',[['en casa','дома'],['con mi amigo','с другом'],['temprano','рано']]],
+  ['cenar','ужинать',[['en un restaurante','в ресторане'],['con mi familia','с семьёй'],['muy tarde','очень поздно']]],
+  ['pasar','проводить (время)',[['un buen día','хороший день'],['el fin de semana aquí','выходные здесь'],['la tarde en casa','день дома']]],
+  ['estudiar','учить / изучать',[['español','испанский'],['en casa','дома'],['una hora','час']]],
+  ['cambiar','менять',[['la decisión','решение'],['la ruta','маршрут'],['de planes','планы']]],
+  ['preguntar','спрашивать',[['por el horario','про расписание'],['por el precio','про цену'],['a mi jefe','у начальника']]],
+  ['preparar','готовить / подготавливать',[['todo','всё'],['la cena','ужин'],['la estrategia','стратегию']]],
+  ['mirar','смотреть',[['la presentación','презентацию'],['una película','фильм'],['el mapa','карту']]],
+  ['cuidar','заботиться',[['a mis padres','о родителях'],['a los niños','о детях'],['la casa','о доме']]],
+  ['practicar','практиковать',[['español','испанский'],['en casa','дома'],['mucho','много']]],
+  // -IR правильные
+  ['vivir','жить',[['cerca del mar','у моря'],['en Madrid','в Мадриде'],['solo','один']]],
+  // с изменением корня
+  ['pensar','думать',[['en ti','о тебе'],['en mis planes','о планах'],['mucho','много']]],
+  ['perder','терять / опоздать',[['las llaves','ключи'],['mucho tiempo','много времени'],['el dinero','деньги']]],
+  ['entender','понимать',[['el problema','проблему'],['la tarea','задание'],['todo','всё']]],
+  ['empezar','начинать',[['un curso','курс'],['un proyecto','проект'],['temprano','рано']]],
+  ['volver','возвращаться',[['a casa','домой'],['del trabajo','с работы'],['tarde','поздно']]],
+  ['dormir','спать',[['ocho horas','восемь часов'],['poco','мало'],['bien','хорошо']]],
+  ['preferir','предпочитать',[['caminar','гулять'],['descansar','отдохнуть'],['cocinar en casa','готовить дома']]],
+  ['querer','хотеть',[['descansar','отдохнуть'],['cocinar algo','что-то приготовить'],['viajar','путешествовать']]],
+  // неправильные I
+  ['ser','быть (постоянно)',[['de Chile','из Чили'],['de aquí','отсюда'],['de Madrid','из Мадрида']]],
+  ['ir','идти / ехать',[['al trabajo','на работу'],['al supermercado','в супермаркет'],['al gimnasio','в спортзал']]],
+  ['estar','быть / находиться',[['en casa','дома'],['en el trabajo','на работе'],['aquí','здесь']]],
+  ['tener','иметь',[['tiempo libre','свободное время'],['mucho trabajo','много работы'],['mucho que hacer','много дел']]],
+  ['hacer','делать',[['ejercicio','зарядку'],['la compra','покупки'],['la tarea','задание']]],
+  // неправильные II
+  ['venir','приходить',[['a verte','к тебе'],['temprano','рано'],['a la reunión','на собрание']]],
+  ['decir','говорить / сказать',[['la verdad','правду'],['gracias','спасибо'],['que sí','что да']]],
+  ['poder','мочь',[['descansar','отдохнуть'],['ayudar','помочь'],['ir contigo','пойти с тобой']]],
+  ['poner','класть / ставить',[['las llaves aquí','ключи сюда'],['el libro en la mesa','книгу на стол'],['la ropa aquí','одежду сюда']]],
+  ['saber','знать',[['la respuesta','ответ'],['la verdad','правду'],['qué hacer','что делать']]],
+  ['traer','приносить',[['mi portátil','свой ноутбук'],['un regalo','подарок'],['comida','еду']]],
+  ['dar','давать',[['mi opinión','своё мнение'],['una respuesta','ответ'],['un consejo','совет']]],
+  ['ver','видеть',[['a mi amigo','друга'],['una oferta','предложение'],['algo interesante','что-то интересное']]],
+  ['salir','выходить / уходить',[['temprano','рано'],['de casa','из дома'],['con amigos','с друзьями']]],
+  ['quedarse','оставаться',[['en casa','дома'],['en el trabajo','на работе'],['un rato más','ещё немного']]],
+  // --- новые глаголы из видео Hotel Cecil (полное спряжение) ---
+  ['guardar','хранить / держать',[['un secreto','секрет'],['la calma','спокойствие']]],
+  ['contar','рассказывать / считать',[['una historia','историю'],['un secreto','секрет']]],
+  ['dejar','оставлять / позволять',[['las llaves aquí','ключи здесь'],['una nota','записку']]],
+  ['amar','любить',[['a mi familia','свою семью'],['este lugar','это место']]],
+  ['investigar','расследовать',[['el caso','дело'],['la verdad','правду']]],
+  ['mezclar','смешивать',[['los colores','цвета'],['las ideas','идеи']]],
+  ['explicar','объяснять',[['el problema','проблему'],['la regla','правило']]],
+  ['dirigir','руководить',[['el proyecto','проектом'],['la empresa','компанией']]],
+  ['crear','создавать',[['un proyecto','проект'],['algo nuevo','что-то новое']]],
+  ['caer','падать',[['al suelo','на пол'],['en la trampa','в ловушку']]],
+  ['lanzarse','броситься',[['al agua','в воду'],['sin pensar','не думая']]],
+  ['discutir','спорить',[['con mi amigo','с другом'],['sobre el plan','о плане']]],
+  ['encontrar','находить',[['las llaves','ключи'],['una solución','решение']]],
+  ['buscar','искать',[['trabajo','работу'],['una respuesta','ответ']]],
+  ['registrarse','регистрироваться',[['en el hotel','в отеле'],['en la app','в приложении']]],
+  ['cometer','совершать',[['un error','ошибку'],['un crimen','преступление']]],
+  ['regresar','возвращаться',[['a casa','домой'],['tarde','поздно']]],
+  ['matar','убивать',[['el tiempo','время'],['una araña','паука']]],
+  ['hospedarse','останавливаться',[['en un hotel','в отеле'],['cerca del centro','рядом с центром']]],
+  ['desaparecer','исчезать',[['sin dejar rastro','бесследно'],['de repente','внезапно']]],
+  ['presionar','нажимать',[['el botón','кнопку'],['fuerte','сильно']]],
+  ['saltar','прыгать',[['de alegría','от радости'],['la cuerda','через скакалку']]],
+  ['empujar','толкать',[['la puerta','дверь'],['el carrito','тележку']]],
+  ['considerar','рассматривать / считать',[['una opción','вариант'],['la idea','идею']]],
+  ['sentir','чувствовать',[['miedo','страх'],['una energía rara','странную энергию']]],
+  ['construir','строить',[['una casa','дом'],['un futuro','будущее']]],
+  ['bajar','спускаться / снижать',[['las escaleras','по лестнице'],['el precio','цену']]],
+  ['convertirse','превращаться',[['en algo raro','во что-то странное'],['en costumbre','в привычку']]],
+  ['parecer','казаться',[['imposible','невозможным'],['una buena idea','хорошей идеей']]],
+  ['aparecer','появляться',[['de repente','внезапно'],['en las noticias','в новостях']]],
+  ['continuar','продолжать',[['el trabajo','работу'],['sin parar','без остановки']]],
+];
+
+const VERBS = {};
+VERBS_RAW.forEach(([inf,ru,comps])=>{
+  let c = IRREG[inf] ? IRREG[inf] : regConj(inf);
+  if(SPELL[inf]){ // применяем орфографические правки
+    c = JSON.parse(JSON.stringify(c));
+    for(const t in SPELL[inf]) for(const i in SPELL[inf][t]) c[t][+i]=SPELL[inf][t][i];
+  }
+  VERBS[inf]={inf,ru,comps,comp:comps[0][0],compRu:comps[0][1],pres:c.pres,pret:c.pret,fut:c.fut};
+});
+function form(inf,tense,p){ return VERBS[inf][tense][PIDX[p]]; }
+
+/* ---------- Русское спряжение для человеческих переводов ----------
+   pres:[я,ты,он,мы,они]  past:[ед.(муж),мн.]  fut:[я,ты,он,мы,они]
+   copula:true → ser/estar (связка опускается в наст.)  haben:true → tener (у кого-то есть) */
+const RUV = {
+  trabajar:{pres:['работаю','работаешь','работает','работаем','работают'],past:['работал','работали'],fut:['буду работать','будешь работать','будет работать','будем работать','будут работать']},
+  caminar:{pres:['гуляю','гуляешь','гуляет','гуляем','гуляют'],past:['гулял','гуляли'],fut:['буду гулять','будешь гулять','будет гулять','будем гулять','будут гулять']},
+  visitar:{pres:['навещаю','навещаешь','навещает','навещаем','навещают'],past:['навестил','навестили'],fut:['навещу','навестишь','навестит','навестим','навестят']},
+  viajar:{pres:['езжу','ездишь','ездит','ездим','ездят'],past:['ездил','ездили'],fut:['буду ездить','будешь ездить','будет ездить','будем ездить','будут ездить']},
+  comprar:{pres:['покупаю','покупаешь','покупает','покупаем','покупают'],past:['купил','купили'],fut:['куплю','купишь','купит','купим','купят']},
+  cocinar:{pres:['готовлю','готовишь','готовит','готовим','готовят'],past:['приготовил','приготовили'],fut:['приготовлю','приготовишь','приготовит','приготовим','приготовят']},
+  llamar:{pres:['звоню','звонишь','звонит','звоним','звонят'],past:['позвонил','позвонили'],fut:['позвоню','позвонишь','позвонит','позвоним','позвонят']},
+  descansar:{pres:['отдыхаю','отдыхаешь','отдыхает','отдыхаем','отдыхают'],past:['отдохнул','отдохнули'],fut:['отдохну','отдохнёшь','отдохнёт','отдохнём','отдохнут']},
+  esperar:{pres:['жду','ждёшь','ждёт','ждём','ждут'],past:['ждал','ждали'],fut:['буду ждать','будешь ждать','будет ждать','будем ждать','будут ждать']},
+  terminar:{pres:['заканчиваю','заканчиваешь','заканчивает','заканчиваем','заканчивают'],past:['закончил','закончили'],fut:['закончу','закончишь','закончит','закончим','закончат']},
+  desayunar:{pres:['завтракаю','завтракаешь','завтракает','завтракаем','завтракают'],past:['позавтракал','позавтракали'],fut:['позавтракаю','позавтракаешь','позавтракает','позавтракаем','позавтракают']},
+  cenar:{pres:['ужинаю','ужинаешь','ужинает','ужинаем','ужинают'],past:['поужинал','поужинали'],fut:['поужинаю','поужинаешь','поужинает','поужинаем','поужинают']},
+  pasar:{pres:['провожу','проводишь','проводит','проводим','проводят'],past:['провёл','провели'],fut:['проведу','проведёшь','проведёт','проведём','проведут']},
+  estudiar:{pres:['учу','учишь','учит','учим','учат'],past:['учил','учили'],fut:['буду учить','будешь учить','будет учить','будем учить','будут учить']},
+  cambiar:{pres:['меняю','меняешь','меняет','меняем','меняют'],past:['изменил','изменили'],fut:['изменю','изменишь','изменит','изменим','изменят']},
+  preguntar:{pres:['спрашиваю','спрашиваешь','спрашивает','спрашиваем','спрашивают'],past:['спросил','спросили'],fut:['спрошу','спросишь','спросит','спросим','спросят']},
+  preparar:{pres:['готовлю','готовишь','готовит','готовим','готовят'],past:['подготовил','подготовили'],fut:['подготовлю','подготовишь','подготовит','подготовим','подготовят']},
+  mirar:{pres:['смотрю','смотришь','смотрит','смотрим','смотрят'],past:['посмотрел','посмотрели'],fut:['посмотрю','посмотришь','посмотрит','посмотрим','посмотрят']},
+  cuidar:{pres:['забочусь','заботишься','заботится','заботимся','заботятся'],past:['заботился','заботились'],fut:['буду заботиться','будешь заботиться','будет заботиться','будем заботиться','будут заботиться']},
+  practicar:{pres:['практикую','практикуешь','практикует','практикуем','практикуют'],past:['практиковал','практиковали'],fut:['буду практиковать','будешь практиковать','будет практиковать','будем практиковать','будут практиковать']},
+  vivir:{pres:['живу','живёшь','живёт','живём','живут'],past:['жил','жили'],fut:['буду жить','будешь жить','будет жить','будем жить','будут жить']},
+  pensar:{pres:['думаю','думаешь','думает','думаем','думают'],past:['думал','думали'],fut:['буду думать','будешь думать','будет думать','будем думать','будут думать']},
+  perder:{pres:['теряю','теряешь','теряет','теряем','теряют'],past:['потерял','потеряли'],fut:['потеряю','потеряешь','потеряет','потеряем','потеряют']},
+  entender:{pres:['понимаю','понимаешь','понимает','понимаем','понимают'],past:['понял','поняли'],fut:['пойму','поймёшь','поймёт','поймём','поймут']},
+  empezar:{pres:['начинаю','начинаешь','начинает','начинаем','начинают'],past:['начал','начали'],fut:['начну','начнёшь','начнёт','начнём','начнут']},
+  volver:{pres:['возвращаюсь','возвращаешься','возвращается','возвращаемся','возвращаются'],past:['вернулся','вернулись'],fut:['вернусь','вернёшься','вернётся','вернёмся','вернутся']},
+  dormir:{pres:['сплю','спишь','спит','спим','спят'],past:['спал','спали'],fut:['буду спать','будешь спать','будет спать','будем спать','будут спать']},
+  preferir:{pres:['предпочитаю','предпочитаешь','предпочитает','предпочитаем','предпочитают'],past:['предпочёл','предпочли'],fut:['предпочту','предпочтёшь','предпочтёт','предпочтём','предпочтут']},
+  querer:{pres:['хочу','хочешь','хочет','хотим','хотят'],past:['хотел','хотели'],fut:['захочу','захочешь','захочет','захотим','захотят']},
+  ser:{copula:true}, estar:{copula:true}, tener:{haben:true},
+  ir:{pres:['иду','идёшь','идёт','идём','идут'],past:['пошёл','пошли'],fut:['пойду','пойдёшь','пойдёт','пойдём','пойдут']},
+  hacer:{pres:['делаю','делаешь','делает','делаем','делают'],past:['сделал','сделали'],fut:['сделаю','сделаешь','сделает','сделаем','сделают']},
+  venir:{pres:['прихожу','приходишь','приходит','приходим','приходят'],past:['пришёл','пришли'],fut:['приду','придёшь','придёт','придём','придут']},
+  decir:{pres:['говорю','говоришь','говорит','говорим','говорят'],past:['сказал','сказали'],fut:['скажу','скажешь','скажет','скажем','скажут']},
+  poder:{pres:['могу','можешь','может','можем','могут'],past:['смог','смогли'],fut:['смогу','сможешь','сможет','сможем','смогут']},
+  poner:{pres:['кладу','кладёшь','кладёт','кладём','кладут'],past:['положил','положили'],fut:['положу','положишь','положит','положим','положат']},
+  saber:{pres:['знаю','знаешь','знает','знаем','знают'],past:['узнал','узнали'],fut:['узнаю','узнаешь','узнает','узнаем','узнают']},
+  traer:{pres:['приношу','приносишь','приносит','приносим','приносят'],past:['принёс','принесли'],fut:['принесу','принесёшь','принесёт','принесём','принесут']},
+  dar:{pres:['даю','даёшь','даёт','даём','дают'],past:['дал','дали'],fut:['дам','дашь','даст','дадим','дадут']},
+  ver:{pres:['вижу','видишь','видит','видим','видят'],past:['увидел','увидели'],fut:['увижу','увидишь','увидит','увидим','увидят']},
+  salir:{pres:['выхожу','выходишь','выходит','выходим','выходят'],past:['вышел','вышли'],fut:['выйду','выйдешь','выйдет','выйдем','выйдут']},
+  quedarse:{pres:['остаюсь','остаёшься','остаётся','остаёмся','остаются'],past:['остался','остались'],fut:['останусь','останешься','останется','останемся','останутся']},
+  guardar:{pres:['храню','хранишь','хранит','храним','хранят'],past:['хранил','хранили'],fut:['буду хранить','будешь хранить','будет хранить','будем хранить','будут хранить']},
+  contar:{pres:['рассказываю','рассказываешь','рассказывает','рассказываем','рассказывают'],past:['рассказал','рассказали'],fut:['расскажу','расскажешь','расскажет','расскажем','расскажут']},
+  dejar:{pres:['оставляю','оставляешь','оставляет','оставляем','оставляют'],past:['оставил','оставили'],fut:['оставлю','оставишь','оставит','оставим','оставят']},
+  amar:{pres:['люблю','любишь','любит','любим','любят'],past:['любил','любили'],fut:['буду любить','будешь любить','будет любить','будем любить','будут любить']},
+  investigar:{pres:['расследую','расследуешь','расследует','расследуем','расследуют'],past:['расследовал','расследовали'],fut:['буду расследовать','будешь расследовать','будет расследовать','будем расследовать','будут расследовать']},
+  mezclar:{pres:['смешиваю','смешиваешь','смешивает','смешиваем','смешивают'],past:['смешал','смешали'],fut:['смешаю','смешаешь','смешает','смешаем','смешают']},
+  explicar:{pres:['объясняю','объясняешь','объясняет','объясняем','объясняют'],past:['объяснил','объяснили'],fut:['объясню','объяснишь','объяснит','объясним','объяснят']},
+  dirigir:{pres:['руковожу','руководишь','руководит','руководим','руководят'],past:['руководил','руководили'],fut:['буду руководить','будешь руководить','будет руководить','будем руководить','будут руководить']},
+  crear:{pres:['создаю','создаёшь','создаёт','создаём','создают'],past:['создал','создали'],fut:['создам','создашь','создаст','создадим','создадут']},
+  caer:{pres:['падаю','падаешь','падает','падаем','падают'],past:['упал','упали'],fut:['упаду','упадёшь','упадёт','упадём','упадут']},
+  lanzarse:{pres:['бросаюсь','бросаешься','бросается','бросаемся','бросаются'],past:['бросился','бросились'],fut:['брошусь','бросишься','бросится','бросимся','бросятся']},
+  discutir:{pres:['спорю','споришь','спорит','спорим','спорят'],past:['спорил','спорили'],fut:['буду спорить','будешь спорить','будет спорить','будем спорить','будут спорить']},
+  encontrar:{pres:['нахожу','находишь','находит','находим','находят'],past:['нашёл','нашли'],fut:['найду','найдёшь','найдёт','найдём','найдут']},
+  buscar:{pres:['ищу','ищешь','ищет','ищем','ищут'],past:['искал','искали'],fut:['буду искать','будешь искать','будет искать','будем искать','будут искать']},
+  registrarse:{pres:['регистрируюсь','регистрируешься','регистрируется','регистрируемся','регистрируются'],past:['зарегистрировался','зарегистрировались'],fut:['зарегистрируюсь','зарегистрируешься','зарегистрируется','зарегистрируемся','зарегистрируются']},
+  cometer:{pres:['совершаю','совершаешь','совершает','совершаем','совершают'],past:['совершил','совершили'],fut:['совершу','совершишь','совершит','совершим','совершат']},
+  regresar:{pres:['возвращаюсь','возвращаешься','возвращается','возвращаемся','возвращаются'],past:['вернулся','вернулись'],fut:['вернусь','вернёшься','вернётся','вернёмся','вернутся']},
+  matar:{pres:['убиваю','убиваешь','убивает','убиваем','убивают'],past:['убил','убили'],fut:['убью','убьёшь','убьёт','убьём','убьют']},
+  hospedarse:{pres:['останавливаюсь','останавливаешься','останавливается','останавливаемся','останавливаются'],past:['остановился','остановились'],fut:['остановлюсь','остановишься','остановится','остановимся','остановятся']},
+  desaparecer:{pres:['исчезаю','исчезаешь','исчезает','исчезаем','исчезают'],past:['исчез','исчезли'],fut:['исчезну','исчезнешь','исчезнет','исчезнем','исчезнут']},
+  presionar:{pres:['нажимаю','нажимаешь','нажимает','нажимаем','нажимают'],past:['нажал','нажали'],fut:['нажму','нажмёшь','нажмёт','нажмём','нажмут']},
+  saltar:{pres:['прыгаю','прыгаешь','прыгает','прыгаем','прыгают'],past:['прыгнул','прыгнули'],fut:['прыгну','прыгнешь','прыгнет','прыгнем','прыгнут']},
+  empujar:{pres:['толкаю','толкаешь','толкает','толкаем','толкают'],past:['толкнул','толкнули'],fut:['толкну','толкнёшь','толкнёт','толкнём','толкнут']},
+  considerar:{pres:['рассматриваю','рассматриваешь','рассматривает','рассматриваем','рассматривают'],past:['рассмотрел','рассмотрели'],fut:['рассмотрю','рассмотришь','рассмотрит','рассмотрим','рассмотрят']},
+  sentir:{pres:['чувствую','чувствуешь','чувствует','чувствуем','чувствуют'],past:['почувствовал','почувствовали'],fut:['почувствую','почувствуешь','почувствует','почувствуем','почувствуют']},
+  construir:{pres:['строю','строишь','строит','строим','строят'],past:['построил','построили'],fut:['построю','построишь','построит','построим','построят']},
+  bajar:{pres:['спускаюсь','спускаешься','спускается','спускаемся','спускаются'],past:['спустился','спустились'],fut:['спущусь','спустишься','спустится','спустимся','спустятся']},
+  convertirse:{pres:['превращаюсь','превращаешься','превращается','превращаемся','превращаются'],past:['превратился','превратились'],fut:['превращусь','превратишься','превратится','превратимся','превратятся']},
+  parecer:{pres:['кажусь','кажешься','кажется','кажемся','кажутся'],past:['казался','казались'],fut:['покажусь','покажешься','покажется','покажемся','покажутся']},
+  aparecer:{pres:['появляюсь','появляешься','появляется','появляемся','появляются'],past:['появился','появились'],fut:['появлюсь','появишься','появится','появимся','появятся']},
+  continuar:{pres:['продолжаю','продолжаешь','продолжает','продолжаем','продолжают'],past:['продолжил','продолжили'],fut:['продолжу','продолжишь','продолжит','продолжим','продолжат']},
+};
+const BUDU={yo:'буду',tu:'будешь',el:'будет',nos:'будем',ellos:'будут'};
+const POSS={yo:'меня',tu:'тебя',el:'него',nos:'нас',ellos:'них'};
+function isPlural(p){return p==='nos'||p==='ellos';}
+/* собрать естественный русский перевод предложения */
+function ruSentence(inf,t,p,compRu,cueRu){
+  const r=RUV[inf]||{}, pron=PRON[PIDX[p]].ruS, head=capFirst(cueRu);
+  if(r.copula){
+    const v = t==='pres' ? '' : (t==='pret' ? (isPlural(p)?'были':'был') : BUDU[p]);
+    return `${head} ${pron}${v?' '+v:''} ${compRu}.`.replace('  ',' ');
+  }
+  if(r.haben){
+    const v = t==='pres' ? 'есть' : (t==='pret' ? 'было' : 'будет');
+    return `${head} у ${POSS[p]} ${v} ${compRu}.`;
+  }
+  let vf;
+  if(t==='pres') vf=r.pres[PIDX[p]];
+  else if(t==='pret') vf=isPlural(p)?r.past[1]:r.past[0];
+  else vf=r.fut[PIDX[p]];
+  return `${head} ${pron} ${vf} ${compRu}.`;
+}
+
+/* ---------- Лексика (все части речи). pos: sus|adj|adv|fr|other ---------- */
+const VOCAB = [
+  ['el semáforo','светофор','sus'],['el bombero','пожарный','sus'],['la escalera','лестница','sus'],
+  ['la manguera','шланг','sus'],['la emergencia','чрезвычайная ситуация','sus'],['el encuentro','встреча','sus'],
+  ['el fuego','огонь','sus'],['el consejo','совет','sus'],['único','единственный','adj'],['la tarea','задание / задача','sus'],
+  ['el pedido','заказ','sus'],['el horario','расписание','sus'],['inesperado','неожиданный','adj'],['el sentido','смысл','sus'],
+  ['anoche','вчера вечером / ночью','adv'],['la ruta','маршрут','sus'],['la decisión','решение','sus'],['la fila','очередь / ряд','sus'],
+  ['antes','раньше / перед','adv'],['el sitio','место','sus'],['la fecha','дата','sus'],['con antelación','заранее','fr'],
+  ['la estrategia','стратегия','sus'],['la presentación','презентация','sus'],['los familiares','родственники','sus'],
+  ['el regalo','подарок','sus'],['la mochila','рюкзак','sus'],['el portátil','ноутбук','sus'],['la reunión','собрание','sus'],
+];
+
+/* ---------- Видео-эпизоды для аудирования (YouTube) ----------
+   Заполняется разбором присланных видео. Структура одного эпизода:
+   { id:'v1', title:'...', yt:'YOUTUBE_ID', level:'A1',
+     segs:[ {t:8, es:'...', ru:'...'}, ... ],            // t = старт фразы в секундах
+     vocab:[ ['la palabra','слово','sus'], ... ] }       // новые слова из видео
+*/
+const LISTEN = [
+{
+  id:'cecil', title:'Hotel Cecil — Historias Reales (Ep.1)', yt:'c4HtO4x1BQ8', file:'http://localhost:8765/hotel_cecil2.mp4', subs:[[1.5,11.02,"Hay lugares en el mundo que guardan historias, historias que no quieren ser contadas."],[11.02,17.29,"Este es el primer episodio de una serie muy interesante."],[17.29,28.38,"Una serie sobre historias reales, casos extraños, misteriosos y llenos de preguntas sin respuestas."],[28.38,36.56,"A mí me encantan este tipo de historias que me dejan con la boca abierta."],[36.56,43.62,"Yo amo investigar sobre historias extrañas, sobre casos reales."],[43.62,56.73,"Me encanta ver videos de YouTube sobre casos que sucedieron en la vida real y que no tienen una explicación racional."],[56.73,65.46,"Así que hoy vamos a hablar de un caso que ha sido investigado durante décadas."],[65.46,74.76,"Un caso que mezcla tragedias, asesinatos y energías oscuras imposibles de explicar."],[74.76,86.3,"Hoy vamos a hablar del famoso, o más bien extraño, caso del hotel Cecil, en Los Ángeles, en California."],[86.3,100.08,"Este misterioso lugar ha aparecido en documentales, series y 1000 de videos, porque su historia es realmente escalofriante."],[100.08,111.84,"El hotel Cecil está ubicado en el centro de Los Ángeles, específicamente en el número 640 de Main Street."],[111.84,127.18,"Su construcción empezó en el año 1924, y fue dirigido todo el proyecto por William Banks, un hombre de negocios especializado en hoteles."],[127.18,137.27,"Su sueño era crear un lugar elegante, un hotel lujoso para huéspedes con muchísimo dinero."],[137.27,148.24,"De hecho, en esa época, este hotel era visto como un lugar de glamour y de elegancia y de estatus."],[148.24,157.32,"Tenía un lobby hecho en mármol, tenía lámparas gigantes y detalles muy elegantes."],[157.32,168.86,"Toda la construcción de este hotel costó 1,000,000 de dólares, que en ese momento era muchísimo dinero."],[168.86,175.24,"Todavía es mucho dinero, pero en esa época era mucho más."],[175.24,183.42,"Todo empezó muy bien, pero poco a poco la suerte del hotel empezó a caer."],[183.42,203.47,"La suerte del hotel duró muy poco tiempo. Con el paso de los años, se empezaron a construir muchos más hoteles, más lujosos alrededor, y el hotel Cecil tuvo que bajar sus precios."],[203.47,214,"Además, llegó un momento muy importante para la historia de Estados Unidos, la Gran Depresión."],[214,228.23,"Muchas personas se quedaron sin trabajo, sin dinero, incluso sin casa, y muchos de ellos empezaron a vivir alrededor del hotel."],[228.23,239.54,"Esa mezcla de pobreza, tristeza y desesperación empezó a cambiar el ambiente alrededor de este lugar."],[239.54,255.11,"Con el paso del tiempo, el hotel Cecil pasó de ser un hotel muy lujoso a convertirse en un lugar extraño, con una vibra y un ambiente raro."],[255.11,265.42,"Y desde ese momento todo cambió, empezaron a pasar cosas muy misteriosas, incluso tragedias."],[265.42,275.27,"Pero para entender mucho mejor esta historia, vamos a la historia detrás de la historia."],[275.27,285.24,"Mucha gente decía que el terreno donde estaba construido el hotel era un terreno maldito."],[285.24,295.55,"Antes de que construyeran el hotel, en ese terreno vivía un hombre llamado Alistair Crawley."],[295.55,303.05,"Era un hombre ocultista, famoso por hacer prácticas de magia negra."],[303.05,311.12,"Dicen que hacía rituales muy oscuros, incluso lo llamaban la bestia 666."],[311.12,322.77,"Muchas personas creen que la energía que había en ese lugar era causada por este hombre y sus prácticas."],[322.77,333.63,"Pero bueno, ahora hablemos de las historias que hacen que el hotel Cecil sea un hotel muy famoso."],[333.63,341.48,"Una de las primeras tragedias ocurrió el 19 de noviembre del año 1931."],[341.48,351,"La policía estaba buscando a un hombre de 46 años que había cometido muchos crímenes."],[351,366.57,"No lo encontraban en ninguna parte hasta que se dieron cuenta de que este hombre se había registrado en el hotel Cecil con un nombre falso."],[366.57,373.85,"Cuando llegaron al hotel, lo encontraron muerto en su habitación."],[373.85,382.14,"Él había tomado cápsulas de veneno, se había causado la muerte a sí mismo."],[382.14,390.65,"Este fue el primer suicidio, pero no fue el último registrado en este hotel."],[390.65,399.84,"En el año 1937, una mujer llamada Grace Magro cayó desde el noveno piso del hotel."],[399.84,407.79,"Nadie sabe si saltó ella misma o si la empujaron, o qué pasó realmente."],[407.79,423.14,"Tan solo un año después, en el año 1938, otro hombre llamado Roy Thompson, un bombero de 35 años, cayó desde la parte más alta del hotel."],[423.14,433.55,"La policía tampoco encontró una prueba o una explicación de qué había pasado con este hombre."],[433.55,448.57,"Pero eso no es todo, la lista continúa. Durante la década entre 1940 y 1950, muchas personas se lanzaron desde las ventanas del hotel."],[448.57,456.63,"Uno de los casos más trágicos ocurrió con una mujer llamada Pauline Ott."],[456.63,465.82,"Ella discutió con su esposo en el hotel y después decidió lanzarse por la ventana."],[465.82,484.75,"Pero lo más terrible es que cuando se lanzó, había una mujer que estaba caminando por la calle y ella le cayó encima, lo que significa que las 2 murieron inmediatamente."],[484.75,491.47,"Y si todo esto ya suena fuerte, todavía vienen cosas peores."],[491.47,498.86,"El hotel Cecil también fue el hogar temporal de asesinos seriales."],[498.86,506.48,"El primero fue Richard Ramírez, más conocido como the Night Stalker."],[506.48,513.65,"Él vivió un año en el hotel Cecil, pagando 14 dólares por noche."],[513.65,521.94,"Durante ese tiempo cometió asesinatos terribles en el área de Los Ángeles."],[521.94,533.59,"Él no mató a nadie dentro del hotel, pero allí era donde él regresaba después de cometer estos crímenes."],[533.59,543.44,"Esto me parece impensable. Y el segundo fue un hombre austriaco llamado Jack Unterweger."],[543.44,552.07,"Pero este hombre vivió allí y mataba a sus víctimas dentro y fuera del hotel."],[552.07,562.94,"Y, finalmente, llegamos al caso más polémico, más viral, más fuerte, que es el caso de Elisa Lam."],[562.94,576.15,"Elisa era una joven estudiante que estaba visitando Los Ángeles y decidió hospedarse en el hotel Cecil en el año 2013."],[576.15,605.17,"Se hospedó allí, se quedó allí y desapareció. Su último video con vida fue en el ascensor del hotel Cecil, donde ella se veía actuando muy extraño, presionaba botones, salía, entraba, actuaba de manera muy extraña, como si hubiera alguien dentro del ascensor."],[605.17,614.13,"Semanas después, su cuerpo fue encontrado dentro de un tanque de agua del hotel."],[614.13,630.6,"Nunca se encontró una explicación clara para su caso. Algunas personas creen que fue un accidente y otras personas creen que es un caso paranormal."],[630.6,646.28,"Y con todos estos casos y todos estos eventos, el hotel Cecil es considerado como un lugar maldito, lleno de energías horribles y negativas."],[646.28,658.49,"Hay muchas personas que han visitado este hotel y dicen que se siente una energía oscura, una energía pesada."],[658.49,679.32,"Sea cual sea la razón, la verdad, ya sea problemas sociales, mentales o un caso paranormal, el hotel Cecil sigue siendo uno de los casos más extraños y misteriosos de los Estados Unidos."],[679.32,692.09,"Una historia realmente impactante. Me encantaría leer tus comentarios, qué piensas, qué sientes con esta historia."],[692.09,703.74,"Y nos vemos en el próximo video. En el próximo episodio voy a hablar de un caso muy extraño de un avión."],[703.74,708,"Muchísimas gracias y nos vemos pronto."]], level:'B1',
+  // глаголы эпизода (спрягаются во всех 3 временах в тесте)
+  verbs:['guardar','contar','dejar','amar','investigar','mezclar','explicar','dirigir','crear','caer','lanzarse','discutir','encontrar','buscar','registrarse','cometer','regresar','matar','hospedarse','desaparecer','presionar','saltar','empujar','considerar','sentir','construir','bajar','convertirse','parecer','aparecer','continuar'],
+  // новые слова из видео (попадают в Словарь и в контрольные)
+  vocab:[
+    // глаголы без спряжения по лицам (безличные / 3-е лицо) — только в словаре
+    ['suceder','происходить / случаться','vinf'],['durar','длиться','vinf'],['costar','стоить','vinf'],
+    ['sonar','звучать','vinf'],['significar','означать','vinf'],
+    // существительные
+    ['la historia','история','sus'],['el caso','случай / дело','sus'],['la serie','сериал / серия','sus'],['la boca','рот','sus'],
+    ['la explicación','объяснение','sus'],['la tragedia','трагедия','sus'],['el asesinato','убийство','sus'],['la energía','энергия','sus'],
+    ['el hotel','отель','sus'],['la construcción','строительство','sus'],['el proyecto','проект','sus'],['la tristeza','грусть','sus'],
+    ['el ambiente','атмосфера','sus'],['el terreno','участок / земля','sus'],['la práctica','практика','sus'],['el ritual','ритуал','sus'],
+    ['la policía','полиция','sus'],['el nombre','имя','sus'],['la cápsula','капсула','sus'],['la muerte','смерть','sus'],
+    ['la mujer','женщина','sus'],['la prueba','доказательство','sus'],['la década','десятилетие','sus'],['el hogar','дом / очаг','sus'],
+    ['la noche','ночь','sus'],['la estudiante','студентка','sus'],['el botón','кнопка','sus'],['el cuerpo','тело','sus'],
+    ['el área','зона / район','sus'],['el accidente','несчастный случай','sus'],['el esposo','муж','sus'],['el documental','документалка','sus'],
+    ['el hombre','мужчина','sus'],['el sueño','мечта / сон','sus'],['el huésped','постоялец / гость','sus'],['el dinero','деньги','sus'],
+    ['la época','эпоха','sus'],['el lobby','лобби','sus'],['el mármol','мрамор','sus'],['la lámpara','лампа','sus'],
+    ['el detalle','деталь','sus'],['la suerte','удача','sus'],['la pobreza','бедность','sus'],['la desesperación','отчаяние','sus'],
+    ['la vibra','вайб / ощущение','sus'],['la gente','люди','sus'],['la magia','магия','sus'],['la bestia','зверь','sus'],
+    ['el crimen','преступление','sus'],['la habitación','комната','sus'],['el veneno','яд','sus'],['el suicidio','самоубийство','sus'],
+    ['el piso','этаж','sus'],['la lista','список','sus'],['la ventana','окно','sus'],['el asesino','убийца','sus'],
+    ['la víctima','жертва','sus'],['el ascensor','лифт','sus'],['la semana','неделя','sus'],['el tanque','резервуар / бак','sus'],
+    ['la razón','причина','sus'],['el avión','самолёт','sus'],['la depresión','депрессия','sus'],['la elegancia','элегантность','sus'],
+    ['el problema','проблема','sus'],['el evento','событие','sus'],['el estatus','статус','sus'],
+    // прилагательные
+    ['extraño','странный','adj'],['misterioso','загадочный','adj'],['escalofriante','жуткий','adj'],['lujoso','роскошный','adj'],
+    ['elegante','элегантный','adj'],['gigante','гигантский','adj'],['maldito','проклятый','adj'],['oscuro','тёмный','adj'],
+    ['falso','фальшивый','adj'],['terrible','ужасный','adj'],['trágico','трагический','adj'],['polémico','спорный','adj'],
+    ['paranormal','паранормальный','adj'],['horrible','ужасный','adj'],['negativo','негативный','adj'],['pesado','тяжёлый','adj'],
+    ['impactante','шокирующий','adj'],['muerto','мёртвый','adj'],['impensable','немыслимый','adj'],['racional','рациональный','adj'],
+    // наречия / фразы / предлоги
+    ['realmente','действительно','adv'],['incluso','даже','adv'],['todavía','всё ещё','adv'],['nunca','никогда','adv'],
+    ['inmediatamente','немедленно','adv'],['finalmente','наконец','adv'],['tampoco','тоже не','adv'],['específicamente','конкретно','adv'],
+    ['poco a poco','постепенно','fr'],['tan solo','всего лишь','fr'],['alrededor','вокруг','adv'],['dentro','внутри','adv'],
+    ['fuera','снаружи','adv'],['durante','в течение','prep'],['desde','с / от','prep'],['hasta','до','prep'],
+  ],
+  // СВЕЖИЕ предложения (НЕ из ролика) — для тренажёров: ты сам составляешь фразы с новыми словами
+  practice:[
+    ['Ayer yo investigué un caso muy extraño.','Вчера я расследовал очень странное дело.','investigué'],
+    ['Este hotel guarda muchas historias oscuras.','Этот отель хранит много тёмных историй.','guarda'],
+    ['Mañana ella va a contar una historia escalofriante.','Завтра она расскажет жуткую историю.','contar'],
+    ['Nosotros dejamos las llaves en la habitación.','Мы оставили ключи в комнате.','dejamos'],
+    ['Esta serie mezcla tragedia y misterio.','Этот сериал смешивает трагедию и тайну.','mezcla'],
+    ['El proyecto empezó en una época difícil.','Проект начался в трудную эпоху.','empezó'],
+    ['Ellos crearon un lugar lujoso y elegante.','Они создали роскошное и элегантное место.','crearon'],
+    ['Una mujer cayó desde el noveno piso.','Женщина упала с девятого этажа.','cayó'],
+    ['La policía buscó al hombre durante semanas.','Полиция искала мужчину неделями.','buscó'],
+    ['El huésped se registró con un nombre falso.','Постоялец зарегистрировался под фальшивым именем.','registró'],
+    ['El asesino regresó al hotel por la noche.','Убийца вернулся в отель ночью.','regresó'],
+    ['Yo me hospedé en un hotel muy barato.','Я остановился в очень дешёвом отеле.','hospedé'],
+    ['Ella presionó todos los botones del ascensor.','Она нажала все кнопки лифта.','presionó'],
+    ['Alguien la empujó por la ventana.','Кто-то толкнул её из окна.','empujó'],
+    ['El estudiante desapareció sin explicación.','Студент исчез без объяснения.','desapareció'],
+    ['Mañana voy a visitar ese lugar maldito.','Завтра я навещу это проклятое место.','visitar'],
+    ['Este caso parece imposible de explicar.','Это дело кажется невозможным объяснить.','parece'],
+    ['La construcción costó un millón de dólares.','Строительство стоило миллион долларов.','costó'],
+    ['La suerte del hotel duró muy poco.','Удача отеля длилась очень недолго.','duró'],
+    ['Yo siento una energía muy pesada aquí.','Я чувствую очень тяжёлую энергию здесь.','siento'],
+    ['El hotel se convirtió en un lugar extraño.','Отель превратился в странное место.','convirtió'],
+    ['Ellos construyeron muchos hoteles alrededor.','Они построили много отелей вокруг.','construyeron'],
+    ['El hombre cometió muchos crímenes terribles.','Мужчина совершил много ужасных преступлений.','cometió'],
+    ['Nadie pudo encontrar una prueba clara.','Никто не смог найти ясное доказательство.','encontrar'],
+  ],
+  // транскрипт ролика (для чтения под видео)
+  segs:[
+    {t:0,es:'Hay lugares en el mundo que guardan historias, historias que no quieren ser contadas.',ru:'Есть места в мире, которые хранят истории — истории, которые не хотят быть рассказанными.'},
+    {t:0,es:'A mí me encantan este tipo de historias que me dejan con la boca abierta.',ru:'Я обожаю такие истории, от которых остаёшься с открытым ртом.'},
+    {t:0,es:'Hoy vamos a hablar de un caso que ha sido investigado durante décadas.',ru:'Сегодня поговорим о деле, которое расследовали десятилетиями.'},
+    {t:0,es:'Un caso que mezcla tragedias, asesinatos y energías oscuras imposibles de explicar.',ru:'Дело, которое смешивает трагедии, убийства и тёмные энергии, невозможные объяснить.'},
+    {t:0,es:'El hotel Cecil está ubicado en el centro de Los Ángeles.',ru:'Отель Сесил находится в центре Лос-Анджелеса.'},
+    {t:0,es:'Su construcción empezó en el año 1924 y fue dirigida por William Banks.',ru:'Его строительство началось в 1924 году, и руководил им Уильям Бэнкс.'},
+    {t:0,es:'Su sueño era crear un hotel lujoso para huéspedes con muchísimo dinero.',ru:'Его мечтой было создать роскошный отель для постояльцев с большими деньгами.'},
+    {t:0,es:'Toda la construcción costó un millón de dólares.',ru:'Всё строительство стоило миллион долларов.'},
+    {t:0,es:'Poco a poco la suerte del hotel empezó a caer.',ru:'Постепенно удача отеля начала падать.'},
+    {t:0,es:'Llegó la Gran Depresión y muchas personas se quedaron sin trabajo y sin casa.',ru:'Пришла Великая депрессия, и многие остались без работы и без дома.'},
+    {t:0,es:'Esa mezcla de pobreza y desesperación cambió el ambiente del lugar.',ru:'Эта смесь бедности и отчаяния изменила атмосферу места.'},
+    {t:0,es:'Mucha gente decía que el terreno donde estaba el hotel era un terreno maldito.',ru:'Многие говорили, что участок, где стоял отель, был проклятым.'},
+    {t:0,es:'La policía buscaba a un hombre que había cometido muchos crímenes.',ru:'Полиция искала мужчину, который совершил много преступлений.'},
+    {t:0,es:'Se había registrado en el hotel Cecil con un nombre falso.',ru:'Он зарегистрировался в отеле Сесил под фальшивым именем.'},
+    {t:0,es:'Lo encontraron muerto en su habitación; había tomado cápsulas de veneno.',ru:'Его нашли мёртвым в комнате; он принял капсулы с ядом.'},
+    {t:0,es:'En 1937 una mujer llamada Grace Magro cayó desde el noveno piso.',ru:'В 1937 году женщина по имени Грейс Магро упала с девятого этажа.'},
+    {t:0,es:'Durante los años cuarenta muchas personas se lanzaron desde las ventanas.',ru:'В сороковые годы многие бросались из окон.'},
+    {t:0,es:'El asesino Richard Ramírez regresaba al hotel después de cometer sus crímenes.',ru:'Убийца Ричард Рамирес возвращался в отель после своих преступлений.'},
+    {t:0,es:'Elisa Lam era una estudiante que decidió hospedarse en el hotel en 2013.',ru:'Элиза Лэм была студенткой, которая решила остановиться в отеле в 2013 году.'},
+    {t:0,es:'En el ascensor ella presionaba botones y actuaba de manera muy extraña.',ru:'В лифте она нажимала кнопки и вела себя очень странно.'},
+    {t:0,es:'Semanas después su cuerpo fue encontrado dentro de un tanque de agua.',ru:'Неделями позже её тело нашли внутри бака с водой.'},
+    {t:0,es:'Nunca se encontró una explicación clara para su caso.',ru:'Для её дела так и не нашли ясного объяснения.'},
+    {t:0,es:'El hotel Cecil sigue siendo uno de los casos más extraños de Estados Unidos.',ru:'Отель Сесил остаётся одним из самых странных дел в США.'},
+  ]
+}
+];
+
+/* ---------- Банк предложений (контекст) ---------- */
+/* {es, ru, v:инфинитив, t:время, p:местоимение, a:форма-для-пропуска} */
+const SENT_RAW = [
+  // Pretérito — yo
+  ['Caminé con mi amigo por la tarde.','Я гулял с другом днём.','caminar','pret','yo','Caminé'],
+  ['El domingo caminé en el parque.','В воскресенье я гулял в парке.','caminar','pret','yo','caminé'],
+  ['Visité a un amigo que vive cerca.','Я навестил друга, который живёт рядом.','visitar','pret','yo','Visité'],
+  ['Visité una nueva cafetería.','Я сходил в новое кафе.','visitar','pret','yo','Visité'],
+  ['Viajé con mi familia en verano.','Я путешествовал с семьёй летом.','viajar','pret','yo','Viajé'],
+  ['Viajé a otra ciudad por un día.','Я съездил в другой город на день.','viajar','pret','yo','Viajé'],
+  ['Compré un regalo para mi amigo.','Я купил подарок для друга.','comprar','pret','yo','Compré'],
+  ['Compré ropa nueva.','Я купил новую одежду.','comprar','pret','yo','Compré'],
+  ['Cociné una pasta para cenar.','Я приготовил пасту на ужин.','cocinar','pret','yo','Cociné'],
+  ['El domingo cociné una sopa.','В воскресенье я приготовил суп.','cocinar','pret','yo','cociné'],
+  ['Llamé a mi jefe por la mañana.','Я позвонил начальнику утром.','llamar','pret','yo','Llamé'],
+  ['Llamé para reservar una mesa.','Я позвонил, чтобы забронировать столик.','llamar','pret','yo','Llamé'],
+  ['Descansé después del trabajo.','Я отдохнул после работы.','descansar','pret','yo','Descansé'],
+  ['Ayer esperé el autobús diez minutos.','Вчера я ждал автобус десять минут.','esperar','pret','yo','esperé'],
+  ['Esperé una llamada importante.','Я ждал важный звонок.','esperar','pret','yo','Esperé'],
+  ['Ayer terminé el trabajo tarde.','Вчера я закончил работу поздно.','terminar','pret','yo','terminé'],
+  ['Ayer desayuné en casa.','Вчера я позавтракал дома.','desayunar','pret','yo','desayuné'],
+  ['Cené en un nuevo restaurante.','Я поужинал в новом ресторане.','cenar','pret','yo','Cené'],
+  ['Pasé un buen fin de semana.','Я провёл хорошие выходные.','pasar','pret','yo','Pasé'],
+  ['Viví cerca del mar.','Я жил у моря.','vivir','pret','yo','Viví'],
+  ['Pensé en ti ayer.','Я думал о тебе вчера.','pensar','pret','yo','Pensé'],
+  ['Perdí el autobús por dos minutos.','Я опоздал на автобус на две минуты.','perder','pret','yo','Perdí'],
+  ['Volví del trabajo cansado.','Я вернулся с работы усталым.','volver','pret','yo','Volví'],
+  ['Dormí ocho horas.','Я спал восемь часов.','dormir','pret','yo','Dormí'],
+  ['Preferí ver una película.','Я предпочёл посмотреть фильм.','preferir','pret','yo','Preferí'],
+  ['Entendí el problema.','Я понял проблему.','entender','pret','yo','Entendí'],
+  ['Ayer empecé un nuevo curso.','Вчера я начал новый курс.','empezar','pret','yo','empecé'],
+  ['Fui al supermercado por la tarde.','Я ходил в супермаркет днём.','ir','pret','yo','Fui'],
+  ['Estuve en casa todo el día.','Я был дома весь день.','estar','pret','yo','Estuve'],
+  ['Tuve tiempo libre por la mañana.','У меня было свободное время утром.','tener','pret','yo','Tuve'],
+  ['Ayer hice ejercicio.','Вчера я делал зарядку.','hacer','pret','yo','hice'],
+  ['Vine a ver a mi amigo.','Я пришёл навестить друга.','venir','pret','yo','Vine'],
+  ['Dije gracias por la ayuda.','Я сказал спасибо за помощь.','decir','pret','yo','Dije'],
+  ['Pude descansar un poco.','Я смог немного отдохнуть.','poder','pret','yo','Pude'],
+  ['Puse las llaves en la mochila.','Я положил ключи в рюкзак.','poner','pret','yo','Puse'],
+  ['Supe qué hacer en esta situación.','Я знал, что делать в этой ситуации.','saber','pret','yo','Supe'],
+  ['Quise cocinar algo rico.','Я захотел приготовить что-то вкусное.','querer','pret','yo','Quise'],
+  ['Traje mi portátil.','Я принёс свой ноутбук.','traer','pret','yo','Traje'],
+  ['Di mi número de teléfono.','Я дал свой номер телефона.','dar','pret','yo','Di'],
+  ['Vi una oferta interesante.','Я увидел интересное предложение.','ver','pret','yo','Vi'],
+  // другие лица
+  ['Ella estudió anoche.','Она училась вчера вечером.','estudiar','pret','el','estudió'],
+  ['Nosotros visitamos una exposición.','Мы посетили выставку.','visitar','pret','nos','visitamos'],
+  ['Tú cambiaste la decisión.','Ты изменил решение.','cambiar','pret','tu','cambiaste'],
+  ['Tú saliste temprano.','Ты вышел рано.','salir','pret','tu','saliste'],
+  ['Nosotros pasamos la tarde juntos.','Мы провели вечер вместе.','pasar','pret','nos','pasamos'],
+  ['Ellos fueron los primeros en la fila.','Они были первыми в очереди.','ser','pret','ellos','fueron'],
+  ['Ellos pusieron todo en su sitio.','Они положили всё на своё место.','poner','pret','ellos','pusieron'],
+  ['Nosotros trajimos todo lo necesario.','Мы принесли всё необходимое.','traer','pret','nos','trajimos'],
+  ['Ellos supieron la fecha.','Они узнали дату.','saber','pret','ellos','supieron'],
+  ['Ella preguntó por el horario.','Она спросила про расписание.','preguntar','pret','el','preguntó'],
+  // Futuro
+  ['Nosotros prepararemos todo con antelación.','Мы подготовим всё заранее.','preparar','fut','nos','prepararemos'],
+  ['Nosotros miraremos la presentación.','Мы посмотрим презентацию.','mirar','fut','nos','miraremos'],
+  ['Ellos visitarán a sus familiares.','Они навестят своих родственников.','visitar','fut','ellos','visitarán'],
+  ['Ellos cambiarán la decisión.','Они изменят решение.','cambiar','fut','ellos','cambiarán'],
+  // Presente
+  ['Trabajo desde casa los lunes.','Я работаю из дома по понедельникам.','trabajar','pres','yo','Trabajo'],
+  ['Practico español cada mañana.','Я практикую испанский каждое утро.','practicar','pres','yo','Practico'],
+  // Лексика в предложениях (чтобы слова учились в контексте)
+  ['Ayer vi un semáforo en rojo.','Вчера я увидел красный светофор.','ver','pret','yo','vi'],
+  ['Llamé por una emergencia anoche.','Я позвонил из-за чрезвычайной ситуации вчера ночью.','llamar','pret','yo','Llamé'],
+  ['Vi al bombero en la escalera.','Я увидел пожарного на лестнице.','ver','pret','yo','Vi'],
+  ['Vi la manguera del bombero cerca del fuego.','Я увидел шланг пожарного возле огня.','ver','pret','yo','Vi'],
+  ['Tuve un buen encuentro con mi amigo.','У меня была хорошая встреча с другом.','tener','pret','yo','Tuve'],
+  ['Mi jefe me dio un buen consejo.','Мой начальник дал мне хороший совет.','dar','pret','el','dio'],
+  ['Terminé la tarea anoche.','Я закончил задание вчера ночью.','terminar','pret','yo','Terminé'],
+  ['Ella esperó su pedido en la cafetería.','Она ждала свой заказ в кафе.','esperar','pret','el','esperó'],
+  ['Todo esto tuvo sentido para mí.','Всё это имело смысл для меня.','tener','pret','el','tuvo'],
+  ['Cambiamos la ruta por el tráfico.','Мы изменили маршрут из-за пробок.','cambiar','pret','nos','Cambiamos'],
+  ['Preparé la estrategia con antelación.','Я подготовил стратегию заранее.','preparar','pret','yo','Preparé'],
+  ['Vine antes a la reunión.','Я пришёл раньше на собрание.','venir','pret','yo','Vine'],
+  ['Fui el único que vino.','Я был единственным, кто пришёл.','ser','pret','yo','Fui'],
+  ['Esto fue inesperado.','Это было неожиданно.','ser','pret','el','fue'],
+  ['Miré la presentación ayer.','Я посмотрел презентацию вчера.','mirar','pret','yo','Miré'],
+  ['Esperé a mis familiares en la estación.','Я ждал родственников на станции.','esperar','pret','yo','Esperé'],
+  ['Puse el pedido en su sitio.','Я положил заказ на место.','poner','pret','yo','Puse'],
+  ['Vi la fecha en el calendario.','Я увидел дату в календаре.','ver','pret','yo','Vi'],
+];
+
+/* ---------- Главы / уровни ---------- */
+const CHAPTERS = [
+  {id:'c1', emoji:'🟢', title:'Правильные -AR (часть 1)', sub:'базовые глаголы',
+   verbs:['trabajar','caminar','visitar','viajar','comprar','cocinar','llamar','descansar','esperar','terminar','desayunar','cenar','pasar','estudiar']},
+  {id:'c2', emoji:'🔵', title:'Правильные -AR/-IR (часть 2)', sub:'+ глагол vivir',
+   verbs:['cambiar','preguntar','preparar','mirar','cuidar','practicar','vivir']},
+  {id:'c3', emoji:'🟣', title:'Изменение корня', sub:'pienso, vuelvo, duermo…',
+   verbs:['pensar','perder','entender','empezar','volver','dormir','preferir','querer']},
+  {id:'c4', emoji:'🟠', title:'Неправильные I', sub:'ser, ir, estar, tener, hacer',
+   verbs:['ser','ir','estar','tener','hacer']},
+  {id:'c5', emoji:'🔴', title:'Неправильные II', sub:'venir, decir, poner…',
+   verbs:['venir','decir','poder','poner','saber','traer','dar','ver','salir','quedarse']},
+  {id:'c6', emoji:'📚', title:'Лексика', sub:'существительные и слова', vocab:true},
+  {id:'c7', emoji:'👑', title:'Финальный микс', sub:'всё вместе — на автоматизм', boss:true},
+];
+
+/* собираем уровни: для каждого глагольного chapter — пачки по 3 глагола + ревью */
+function buildLevels(){
+  const levels=[];
+  CHAPTERS.forEach((ch,ci)=>{
+    if(ch.vocab){
+      const words=VOCAB.map(v=>v[0]);
+      const chunks=chunk(words,6);
+      chunks.forEach((w,i)=>levels.push({id:ch.id+'_l'+i,ch:ch.id,kind:'vocab',title:'Слова '+(i+1),words:w}));
+      levels.push({id:ch.id+'_rev',ch:ch.id,kind:'vocab',title:'Повторение слов',words:words,review:true});
+    } else if(ch.boss){
+      levels.push({id:ch.id+'_l0',ch:ch.id,kind:'mixall',title:'Микс: прошедшее'});
+      levels.push({id:ch.id+'_l1',ch:ch.id,kind:'mixall',title:'Микс: все времена'});
+      levels.push({id:ch.id+'_l2',ch:ch.id,kind:'mixall',title:'Лестница времён'});
+      levels.push({id:ch.id+'_l3',ch:ch.id,kind:'mixall',title:'Босс: предложения'});
+      levels.push({id:ch.id+'_l4',ch:ch.id,kind:'mixall',title:'Босс: финал'});
+    } else {
+      const chunks=chunk(ch.verbs,3);
+      chunks.forEach((vs,i)=>levels.push({id:ch.id+'_l'+i,ch:ch.id,kind:'verbs',title:'Урок '+(i+1),verbs:vs}));
+      levels.push({id:ch.id+'_rev',ch:ch.id,kind:'verbs',title:'Повторение главы',verbs:ch.verbs,review:true});
+    }
+    // общая контрольная: всё из глав 1..текущей (со 2-й главы и далее, кроме финального босса)
+    if(ci>=1 && !ch.boss){
+      levels.push({id:ch.id+'_ctrl',ch:ch.id,kind:'control',upto:ci,title:'Контрольная (главы 1–'+(ci+1)+')',control:true});
+    }
+  });
+  return levels;
+}
+function chaptersUpto(idx){return CHAPTERS.slice(0,idx+1);}
+function controlVerbs(idx){let v=[];chaptersUpto(idx).forEach(c=>{if(c.verbs)v=v.concat(c.verbs);});return v;}
+function controlHasVocab(idx){return chaptersUpto(idx).some(c=>c.vocab);}
+function chunk(a,n){const r=[];for(let i=0;i<a.length;i+=n)r.push(a.slice(i,i+n));return r;}
+const LEVELS = buildLevels();
+const LEVEL_BY_ID = {}; LEVELS.forEach(l=>LEVEL_BY_ID[l.id]=l);
+
+/* ============================================================
+   СОСТОЯНИЕ / ХРАНЕНИЕ
+   ============================================================ */
+const LS='espanol_trainer_v1';
+const DEF_STATE={
+  xp:0, streak:0, lastDay:null, dailyXp:0, dailyGoal:30, dailyDay:null,
+  levels:{},            // id -> {best:accuracy, stars, done}
+  time:{},              // 'YYYY-MM-DD' -> секунды занятий
+  srs:{},               // itemId -> {box:0..5, due:timestamp}
+  seen:{},              // itemId -> attempts/correct
+  customSent:[],        // пользовательские предложения
+  customVocab:[],       // пользовательская лексика
+  customListen:[],      // пользовательские видео-эпизоды
+  listen:{},            // прогресс по эпизодам: id -> {watched, best}
+  settings:{lenientAccents:true, tts:true, ttsRate:0.92, useTranslate:true}
+};
+let S=load();
+function load(){
+  try{const j=JSON.parse(localStorage.getItem(LS));if(j)return Object.assign({},DEF_STATE,j,{settings:Object.assign({},DEF_STATE.settings,j.settings||{})});}catch(e){}
+  return JSON.parse(JSON.stringify(DEF_STATE));
+}
+function save(){localStorage.setItem(LS,JSON.stringify(S));}
+function allSent(){return SENT_RAW.map(toSentObj).concat(S.customSent);}
+function allEpisodes(){return LISTEN.concat(S.customListen||[]);}
+function episodeVocab(){let v=[];allEpisodes().forEach(e=>(e.vocab||[]).forEach(w=>v.push(w)));return v;}
+function allVocab(){return VOCAB.concat(S.customVocab).concat(episodeVocab());}
+function toSentObj(r){return {es:r[0],ru:r[1],v:r[2],t:r[3],p:r[4],a:r[5]};}
+
+/* ============================================================
+   ИНТЕРВАЛЬНЫЕ ПОВТОРЕНИЯ (Leitner)
+   ============================================================ */
+const BOX_DAYS=[0,1,2,4,8,16];
+function srsGet(id){return S.srs[id]||{box:0,due:0};}
+function srsUpdate(id,correct){
+  const o=srsGet(id);
+  o.box = correct ? Math.min(5,o.box+1) : Math.max(0,o.box-1);
+  o.due = Date.now()+BOX_DAYS[o.box]*86400000;
+  S.srs[id]=o;
+  const sn=S.seen[id]||{a:0,c:0}; sn.a++; if(correct)sn.c++; S.seen[id]=sn;
+}
+function masteryOf(ids){ // 0..1
+  if(!ids.length)return 0;
+  let s=0; ids.forEach(id=>s+=Math.min(srsGet(id).box,4)); return s/(ids.length*4);
+}
+
+/* ============================================================
+   ГЕНЕРАЦИЯ УПРАЖНЕНИЙ
+   ============================================================ */
+function vFormId(inf,t,p){return 'v:'+inf+':'+t+':'+p;}
+function sentId(s){return 's:'+s.es;}
+function vocabId(w){return 'n:'+w[0];}
+
+function pick(a){return a[Math.floor(Math.random()*a.length)];}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+/* набор типов упражнений для глагола */
+/* синтез предложения с глаголом: "Ayer ellos desayunaron en casa." */
+function verbSentence(inf,t,p){
+  const cue=pick(TEN[TIDX[t]].cues);            // [es, ru] — случайный маркер времени
+  const comp=pick(VERBS[inf].comps);            // [es, ru] — случайное дополнение
+  const subj=PRON[PIDX[p]].cap.toLowerCase();   // yo, tú, él, nosotros, ellos
+  const vf=form(inf,t,p);
+  const ru=ruSentence(inf,t,p,comp[1],cue[1]);  // человеческий перевод-предложение
+  return {es:`${cue[0]} ${subj} ${vf} ${comp[0]}.`, masked:`${cue[0]} ${subj} __B__ ${comp[0]}.`, answer:vf, ru};
+}
+/* синтезированное предложение в формате банка (для пропуска/сборки) */
+function synthSent(inf,t,p){ const s=verbSentence(inf,t,p); return {es:s.es, ru:s.ru, v:inf, t, p, a:s.answer}; }
+/* три времени для конкретного местоимения — показываем под ответом */
+function formsRow(inf,p){
+  if(!VERBS[inf]||PIDX[p]===undefined)return '';
+  const pp=PRON[PIDX[p]];
+  return '<br><span style="color:var(--mut)">Формы для '+pp.es+':</span> '+
+    '<span class="c-pres">'+form(inf,'pres',p)+'</span> · '+
+    '<span class="c-pret">'+form(inf,'pret',p)+'</span> · '+
+    '<span class="c-fut">'+form(inf,'fut',p)+'</span>';
+}
+/* продакшн: вписать глагол в готовое предложение */
+function verbProdEx(inf,t,p){
+  const s=verbSentence(inf,t,p), tt=TEN[TIDX[t]], pp=PRON[PIDX[p]];
+  return {type:'blank', id:vFormId(inf,t,p), title:'Глагол в предложении',
+    qStem:'Поставь глагол в нужную форму', qMain:s.masked.replace('__B__','<span class="blank"></span>'),
+    qHint:'<b>'+inf+'</b> — '+VERBS[inf].ru,
+    tags:[{cls:tt.cls,txt:tt.es},{cls:'',txt:pp.es}],
+    answer:s.answer, speak:()=>tts(s.es),
+    extra:'Перевод: <b>'+s.ru+'</b><br>Полностью: <b>'+s.es+'</b>'+formsRow(inf,p)};
+}
+function exVerbType(inf){ return verbProdEx(inf,pick(TEN).k,pick(PRON).k); }
+/* выбор формы — тоже внутри предложения */
+function exVerbMC(inf){
+  const t=pick(TEN).k, p=pick(PRON).k, s=verbSentence(inf,t,p), ans=s.answer;
+  const pool=new Set();
+  TEN.forEach(tt=>PRON.forEach(pp=>{const f=form(inf,tt.k,pp.k);if(f!==ans)pool.add(f);}));
+  const opts=shuffle([ans,...shuffle([...pool]).slice(0,3)]);
+  const tt=TEN[TIDX[t]], pp=PRON[PIDX[p]];
+  return {type:'mc', id:vFormId(inf,t,p), title:'Выбери форму',
+    qStem:'Какая форма глагола подходит?', qMain:s.masked.replace('__B__','…'),
+    tags:[{cls:tt.cls,txt:tt.es},{cls:'',txt:pp.es}],
+    options:opts, answer:ans, speak:()=>tts(s.es),
+    extra:'Перевод: <b>'+s.ru+'</b><br>Полностью: <b>'+s.es+'</b>'+formsRow(inf,p)};
+}
+function exLadder(inf){
+  const p=pick(PRON), v=VERBS[inf];
+  const steps=TEN.map(t=>({tlabel:t.es,cls:t.cls,cue:t.cue,answer:form(inf,t.k,p.k),
+     sent:t.cue+' '+lower(p.cap)+' ___ '+v.comp}));
+  return {
+    type:'ladder', id:'ladder:'+inf+':'+p.k, title:'Лестница времён',
+    qStem:'Проспрягай по всем трём временам · '+v.ru,
+    qMain:'<b>'+inf+'</b> — '+p.es,
+    steps, answer:steps.map(s=>s.answer).join(' / '),
+    speak:()=>steps.forEach((s,i)=>setTimeout(()=>tts(s.sent.replace('___',s.answer)),i*1100))
+  };
+}
+function exBlank(s){
+  const masked=s.es.replace(s.a,'<span class="blank"></span>');
+  return {
+    type:'blank', id:vFormId(s.v,s.t,s.p), title:'Пропуск в предложении',
+    qStem:s.ru, qMain:masked,
+    qHint:'<b>'+s.v+'</b> — '+VERBS[s.v].ru,
+    tags:[{cls:TEN[TIDX[s.t]].cls,txt:TEN[TIDX[s.t]].es},{cls:'',txt:PRON[PIDX[s.p]].es}],
+    answer:s.a, speak:()=>tts(s.es), extra:'Полностью: <b>'+s.es+'</b>'+formsRow(s.v,s.p)
+  };
+}
+function exTranslate(s){
+  return {type:'translate', id:sentId(s), title:'Перевод на испанский',
+    qStem:'Переведи на испанский', qMain:s.ru,
+    qHint:'(подсказка: '+s.v+' · '+TEN[TIDX[s.t]].es+')',
+    answer:s.es, fullSentence:true, speak:()=>tts(s.es)};
+}
+function escapeReg(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
+/* пропуск ЛЮБОГО слова из словаря (сущ., прил., нареч.), а не только глагола */
+function exVocabBlank(s){
+  const cands=allVocab().filter(w=>{
+    const base=w[0].replace(/^(el|la|los|las) /,'');
+    if(VERBS[base])return false;
+    return new RegExp('\\b'+escapeReg(base)+'\\b','i').test(s.es);
+  });
+  if(!cands.length) return exBlank(s);
+  const w=pick(cands);
+  const base=w[0].replace(/^(el|la|los|las) /,'');
+  const masked=s.es.replace(new RegExp('\\b'+escapeReg(base)+'\\b'),'<span class="blank"></span>');
+  return {type:'blank', id:'n:'+w[0], title:'Пропуск: слово',
+    qStem:s.ru, qMain:masked, qHint:'Вставь слово: <b>'+w[1]+'</b>',
+    answer:base, speak:()=>tts(s.es), extra:'Полностью: <b>'+s.es+'</b>'};
+}
+function sentencesWithWord(base){return allSent().filter(s=>new RegExp('\\b'+escapeReg(base)+'\\b','i').test(s.es));}
+/* слово из словаря — внутри предложения (если есть), иначе карточка */
+function exVocabWord(w){
+  const base=w[0].replace(/^(el|la|los|las) /,'');
+  const ss=sentencesWithWord(base);
+  if(ss.length){ const s=pick(ss);
+    const masked=s.es.replace(new RegExp('\\b'+escapeReg(base)+'\\b'),'<span class="blank"></span>');
+    return {type:'blank', id:'n:'+w[0], title:'Слово в предложении', qStem:s.ru, qMain:masked,
+      qHint:'Вставь слово: <b>'+w[1]+'</b>', answer:base, speak:()=>tts(s.es), extra:'Полностью: <b>'+s.es+'</b>'};
+  }
+  return Math.random()<0.5?exVocab(w,true):exVocab(w,false);
+}
+/* собрать предложение из перемешанных слов */
+function exScramble(s){
+  const words=s.es.replace(/\s+/g,' ').trim().split(' ');
+  let pool=shuffle(words);
+  if(words.length>1 && pool.join(' ')===words.join(' ')) pool=[words[words.length-1]].concat(words.slice(0,-1));
+  const t=TEN[TIDX[s.t]];
+  const tags=[{cls:t.cls,txt:t.es}]; if(VERBS[s.v])tags.push({cls:'',txt:VERBS[s.v].inf});
+  return {type:'scramble', id:vFormId(s.v,s.t,s.p), title:'Собери предложение',
+    qStem:s.ru, qMain:'Расставь слова по порядку', pool, answer:s.es,
+    speak:()=>tts(s.es), tags, extra:'<b>'+s.es+'</b>'};
+}
+function exVocab(w,reverse){
+  if(reverse) return {type:'mc',id:vocabId(w),title:'Слово',qStem:'Что значит это слово?',
+    qMain:w[0], options:shuffle([w[1],...shuffle(allVocab().filter(x=>x[1]!==w[1])).slice(0,3).map(x=>x[1])]),
+    answer:w[1], speak:()=>tts(w[0])};
+  return {type:'type',id:vocabId(w),title:'Слово',qStem:'Напиши по-испански',qMain:w[1],
+    answer:w[0], speak:()=>tts(w[0]), extra:'<b>'+w[0]+'</b>'};
+}
+function rowExtra(inf){
+  const v=VERBS[inf];
+  return 'Все формы '+capFirst(PRON.find(x=>x.k==='yo').es)+': '+
+    '<b>'+v.pres[0]+'</b> · <b>'+v.pret[0]+'</b> · <b>'+v.fut[0]+'</b>';
+}
+function speakSentence(inf,t,p){
+  const v=VERBS[inf], cue=TEN[TIDX[t]].cue;
+  const sent=cue+' '+lower(PRON[PIDX[p]].cap)+' '+form(inf,t,p)+' '+v.comp;
+  return ()=>tts(sent);
+}
+
+/* собрать сессию упражнений для уровня */
+function buildSession(level){
+  const N=12;
+  if(level.kind==='vocab'){
+    const ws=allVocab().filter(v=>level.words.includes(v[0]));
+    const base = ws.length?ws:allVocab(); const out=[];
+    for(let i=0;i<N;i++){const w=pick(base); out.push(exVocabWord(w));}
+    return out;
+  }
+  if(level.kind==='control'){     // общая контрольная: глаголы + слова из всех пройденных глав
+    const verbs=controlVerbs(level.upto);
+    const useVocab=controlHasVocab(level.upto);
+    const vocabWords=useVocab?allVocab():[];
+    const curated=allSent().filter(s=>verbs.includes(s.v));
+    const anySent =()=> (curated.length&&Math.random()<0.45)?pick(curated):synthSent(pick(verbs),pick(TEN).k,pick(PRON).k);
+    const longSent=()=>{const cl=curated.filter(s=>s.es.split(/\s+/).length>=4);return (cl.length&&Math.random()<0.4)?pick(cl):synthSent(pick(verbs),pick(TEN).k,pick(PRON).k);};
+    const out=[]; const M=16;
+    for(let i=0;i<M;i++){
+      const r=Math.random();
+      if(useVocab && r<0.28) out.push(exVocabWord(pick(vocabWords)));
+      else if(r<0.46) out.push(exBlank(anySent()));
+      else if(r<0.60) out.push(exVerbMC(pick(verbs)));
+      else if(r<0.78) out.push(exScramble(longSent()));
+      else if(r<0.90 && curated.length && S.settings.useTranslate) out.push(exTranslate(pick(curated)));
+      else out.push(verbProdEx(pick(verbs),pick(TEN).k,pick(PRON).k));
+    }
+    return out;
+  }
+  const verbs = level.kind==='mixall'?Object.keys(VERBS):level.verbs;
+  const curated = allSent().filter(s=>verbs.includes(s.v));
+  const curatedLong = curated.filter(s=>s.es.replace(/\s+/g,' ').trim().split(' ').length>=4);
+  const wantTrans = S.settings.useTranslate;
+  // комбинируем: иногда из текста, иногда синтез (разные местоимения/времена/дополнения)
+  const anySent  = ()=> (curated.length && Math.random()<0.45) ? pick(curated) : synthSent(pick(verbs),pick(TEN).k,pick(PRON).k);
+  const longSent = ()=> (curatedLong.length && Math.random()<0.4) ? pick(curatedLong) : synthSent(pick(verbs),pick(TEN).k,pick(PRON).k);
+  const gens=[];
+  if(level.id==='c7_l2'){            // лестница времён
+    for(let i=0;i<8;i++) gens.push(()=>exLadder(pick(verbs)));
+  } else if(level.id==='c7_l3'){     // тренировка предложений
+    for(let i=0;i<N;i++){ const r=Math.random();
+      if(r<0.45) gens.push(()=>exScramble(longSent()));
+      else if(r<0.78 && curated.length && wantTrans) gens.push(()=>exTranslate(pick(curated)));
+      else if(curated.length) gens.push(()=>exVocabBlank(pick(curated)));
+      else gens.push(()=>exBlank(anySent()));
+    }
+  } else {
+    for(let i=0;i<N;i++){
+      const r=Math.random();
+      if(r<0.20) gens.push(()=>exVerbType(pick(verbs)));
+      else if(r<0.32) gens.push(()=>exVerbMC(pick(verbs)));
+      else if(r<0.50) gens.push(()=>exBlank(anySent()));
+      else if(r<0.62 && curated.length) gens.push(()=>exVocabBlank(pick(curated)));
+      else if(r<0.80) gens.push(()=>exScramble(longSent()));
+      else if(r<0.90 && curated.length && wantTrans) gens.push(()=>exTranslate(pick(curated)));
+      else gens.push(()=>exLadder(pick(verbs)));
+    }
+  }
+  gens.unshift(()=>exVerbMC(pick(verbs)));
+  return gens.slice(0,N).map(g=>g());
+}
+
+/* практика по «слабым местам» (SRS) */
+function buildReviewSession(){
+  const due=[];
+  Object.keys(S.srs).forEach(id=>{ if(srsGet(id).due<=Date.now()) due.push(id); });
+  const out=[];
+  const verbs=Object.keys(VERBS);
+  const curated=allSent(), curatedLong=curated.filter(s=>s.es.split(/\s+/).length>=4);
+  const anySent  = ()=> Math.random()<0.45 ? pick(curated) : synthSent(pick(verbs),pick(TEN).k,pick(PRON).k);
+  const longSent = ()=> Math.random()<0.4 ? pick(curatedLong) : synthSent(pick(verbs),pick(TEN).k,pick(PRON).k);
+  for(let i=0;i<14;i++){
+    const r=Math.random();
+    if(r<0.28) out.push(exVerbType(pick(verbs)));
+    else if(r<0.48) out.push(exBlank(anySent()));
+    else if(r<0.60) out.push(exVocabBlank(pick(curated)));
+    else if(r<0.80) out.push(exScramble(longSent()));
+    else if(r<0.90) out.push(exVerbMC(pick(verbs)));
+    else out.push(exLadder(pick(verbs)));
+  }
+  return out;
+}
+
+/* ============================================================
+   TTS
+   ============================================================ */
+let VOICES=[];
+function loadVoices(){VOICES=window.speechSynthesis?speechSynthesis.getVoices():[];}
+if(window.speechSynthesis){loadVoices();speechSynthesis.onvoiceschanged=loadVoices;}
+function tts(text){
+  if(!S.settings.tts||!window.speechSynthesis)return;
+  try{
+    speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='es-ES'; u.rate=S.settings.ttsRate;
+    const v=VOICES.find(x=>/es[-_]/i.test(x.lang)); if(v)u.voice=v;
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ============================================================
+   ПРОВЕРКА ОТВЕТА
+   ============================================================ */
+function norm(s){return (s||'').toLowerCase().trim().replace(/[.,!¡¿?;:"]/g,'').replace(/\s+/g,' ');}
+function stripAcc(s){return s.normalize('NFD').replace(/[̀-ͯ]/g,'');}
+function check(user,correct){
+  const u=norm(user), c=norm(correct);
+  if(u===c) return {ok:true,near:false};
+  if(S.settings.lenientAccents && stripAcc(u)===stripAcc(c)) return {ok:true,near:true};
+  // допускаем перепутанные ¿¡ и регистр уже учтены
+  return {ok:false,near:false};
+}
+
+/* ============================================================
+   РЕНДЕР / РОУТИНГ
+   ============================================================ */
+const view=document.getElementById('view');
+let CUR='home';
+function setNav(v){document.querySelectorAll('.nav .ni').forEach(b=>b.classList.toggle('active',b.dataset.v===v));}
+document.getElementById('nav').addEventListener('click',e=>{
+  const b=e.target.closest('.ni'); if(!b)return; go(b.dataset.v);
+});
+function go(v){
+  VIDEO_PLAYING=false;           // уходим с экрана видео — счётчик аудирования стоп
+  CUR=v; setNav(v); window.scrollTo(0,0);
+  if(v==='home')renderHome();
+  else if(v==='practice')renderPractice();
+  else if(v==='listen')renderListen();
+  else if(v==='stats')renderStats();
+  else if(v==='ref')renderRef();
+  else if(v==='more')renderMore();
+}
+function refreshMini(){
+  document.getElementById('cStreak').textContent='🔥 '+S.streak;
+  document.getElementById('cXp').textContent='⚡ '+S.xp;
+  const ct=document.getElementById('cTime'); if(ct)ct.textContent='⏱ '+fmtClock(S.time[localDay()]||0);
+}
+
+/* ----- HOME / карта ----- */
+function levelStatus(lvl){
+  const st=S.levels[lvl.id];
+  return st&&st.done?'done':'open';
+}
+function chapterAll3Stars(chId){
+  return LEVELS.filter(l=>l.ch===chId).every(l=>S.levels[l.id]&&S.levels[l.id].stars>=3);
+}
+function chapterNeed3(chId){
+  return LEVELS.filter(l=>l.ch===chId).filter(l=>!(S.levels[l.id]&&S.levels[l.id].stars>=3)).length;
+}
+function isLevelUnlocked(idx){
+  if(idx===0)return true;
+  const lvl=LEVELS[idx], prev=LEVELS[idx-1];
+  if(lvl.ch===prev.ch){
+    // внутри главы — открывается за «пройдено» предыдущего урока (без требования 3★)
+    return !!(S.levels[prev.id]&&S.levels[prev.id].done);
+  }
+  // переход на НОВУЮ главу — нужны 3★ во ВСЕХ уроках предыдущей главы
+  return chapterAll3Stars(prev.ch);
+}
+function renderHome(){
+  ensureDaily();
+  const goalPct=Math.min(100,Math.round(S.dailyXp/S.dailyGoal*100));
+  let h=`<div class="hello">
+    <h1>¡Hola! 👋</h1>
+    <p>Доведём 3 времени до автоматизма. Сегодня: ${S.dailyXp}/${S.dailyGoal} XP · ⏱ ${fmtDur(S.time[localDay()]||0)}</p>
+    <div class="goalbar"><i style="width:${goalPct}%"></i></div>
+    <div class="goal-row"><span>Цель дня</span><span>${goalPct}%${goalPct>=100?' ✅':''}</span></div>
+  </div>`;
+
+  // карта по главам
+  let idx=0;
+  CHAPTERS.forEach((ch,chPos)=>{
+    const chLevels=LEVELS.filter(l=>l.ch===ch.id);
+    const ids=chLevelItemIds(ch);
+    const m=Math.round(masteryOf(ids)*100);
+    const need=chapterNeed3(ch.id);          // сколько уроков ещё не на 3★
+    const chOpen=isLevelUnlocked(LEVELS.indexOf(chLevels[0]));
+    const sub = !chOpen ? '🔒 закрыто — добей прошлую главу на 3★'
+              : (need>0 ? `до следующей главы: ${need} ${plural(need,'урок','урока','уроков')} на 3★` : '✅ глава закрыта на 3★');
+    h+=`<div class="chapter"><div class="ch-head">
+      <div class="ch-emoji">${ch.emoji}</div>
+      <div style="flex:1"><div class="ch-title">${ch.title}</div><div class="ch-sub">${sub}</div></div>
+      <div class="ch-bar" title="владение ${m}%"><i style="width:${m}%"></i></div>
+    </div><div class="path">`;
+    chLevels.forEach((lvl,i)=>{
+      const gIdx=LEVELS.indexOf(lvl);
+      const unlocked=isLevelUnlocked(gIdx);
+      const st=S.levels[lvl.id];
+      const stars=st?st.stars:0;
+      const lvlIds=levelItemIds(lvl);
+      const gold=stars>=3 && masteryOf(lvlIds)>=0.9;
+      const cls=!unlocked?'locked':(gold?'gold':(st&&st.done?'done':''));
+      const emoji=lvl.control?'📝':(lvl.review?'🔁':(lvl.kind==='vocab'?'📒':(ch.boss?'👑':'✦')));
+      const side=i%2===1?'r':'';
+      h+=`<div class="node-row ${side}">
+        <button class="node ${cls}" ${unlocked?`onclick="startLevel('${lvl.id}')"`:''}>
+          ${unlocked?(gold?'⭐':emoji):'<span class="lk">🔒</span>'}
+          ${unlocked?`<span class="stars">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</span>`:''}
+        </button>
+        <div class="node-meta"><div class="nm">${lvl.title}</div>
+          <div class="ns">${unlocked?lvlDesc(lvl):(LEVELS[gIdx-1]&&LEVELS[gIdx-1].ch!==lvl.ch?'🔒 добей прошлую главу на 3★':'🔒 пройди предыдущий урок')}</div></div>
+      </div>`;
+      idx++;
+    });
+    h+=`</div></div>`;
+  });
+  view.innerHTML=h;
+}
+function lvlDesc(lvl){
+  if(lvl.kind==='control')return 'всё из глав 1–'+(lvl.upto+1)+' вместе';
+  if(lvl.kind==='vocab')return (lvl.words?lvl.words.length:0)+' слов';
+  if(lvl.kind==='mixall')return 'все глаголы';
+  return lvl.verbs.map(v=>v).join(', ');
+}
+function chLevelItemIds(ch){
+  let ids=[];
+  if(ch.vocab){ allVocab().forEach(w=>ids.push(vocabId(w))); return ids; }
+  if(ch.boss){ Object.keys(VERBS).forEach(inf=>TEN.forEach(t=>PRON.forEach(p=>ids.push(vFormId(inf,t.k,p.k))))); return ids; }
+  ch.verbs.forEach(inf=>TEN.forEach(t=>PRON.forEach(p=>ids.push(vFormId(inf,t.k,p.k)))));
+  return ids;
+}
+function levelItemIds(lvl){
+  if(lvl.kind==='vocab')return (lvl.words||[]).map(w=>'n:'+w);
+  if(lvl.kind==='control'){
+    let ids=[]; controlVerbs(lvl.upto).forEach(inf=>TEN.forEach(t=>PRON.forEach(p=>ids.push(vFormId(inf,t.k,p.k)))));
+    if(controlHasVocab(lvl.upto))allVocab().forEach(w=>ids.push(vocabId(w)));
+    return ids;
+  }
+  let ids=[]; const vs=lvl.verbs||Object.keys(VERBS);
+  vs.forEach(inf=>TEN.forEach(t=>PRON.forEach(p=>ids.push(vFormId(inf,t.k,p.k)))));
+  return ids;
+}
+
+/* ----- PRACTICE ----- */
+function renderPractice(){
+  const dueCount=Object.keys(S.srs).filter(id=>srsGet(id).due<=Date.now()).length;
+  view.innerHTML=`<div class="hello"><h1>🎯 Практика</h1>
+    <p>Свободная тренировка вне уровней — мешаем всё подряд.</p></div>
+    <div class="card pad" style="margin-bottom:14px">
+      <div style="font-weight:800;font-size:17px;margin-bottom:4px">🔁 Умное повторение</div>
+      <div class="note" style="margin-bottom:14px">Движок сам выберет формы, которые ты чаще путаешь${dueCount?` · к повтору готово ${dueCount}`:''}.</div>
+      <button class="btn primary" onclick="startReview()">Начать повторение</button>
+    </div>
+    <div class="card pad" style="margin-bottom:14px">
+      <div style="font-weight:800;font-size:17px;margin-bottom:10px">⚡ Быстрый дрилл по времени</div>
+      <div class="grid2">
+        <button class="btn" onclick="startTenseDrill('pres')">Настоящее</button>
+        <button class="btn" onclick="startTenseDrill('pret')">Прошедшее</button>
+        <button class="btn" onclick="startTenseDrill('fut')">Будущее</button>
+        <button class="btn" onclick="startTenseDrill('all')">Все вперемешку</button>
+      </div>
+    </div>
+    <div class="card pad">
+      <div style="font-weight:800;font-size:17px;margin-bottom:10px">🪜 Лестница времён</div>
+      <div class="note" style="margin-bottom:14px">Твой любимый формат: один глагол × 3 времени подряд (trabajo / trabajé / trabajaré).</div>
+      <button class="btn" onclick="startLadderDrill()">Тренировать лестницу</button>
+    </div>`;
+}
+
+/* ----- STATS ----- */
+function renderStats(){
+  let totalA=0,totalC=0; const perT={pres:[0,0],pret:[0,0],fut:[0,0]};
+  Object.keys(S.seen).forEach(id=>{
+    const s=S.seen[id]; totalA+=s.a; totalC+=s.c;
+    const m=id.match(/^v:[^:]+:(pres|pret|fut):/); if(m){perT[m[1]][0]+=s.c;perT[m[1]][1]+=s.a;}
+  });
+  const acc=totalA?Math.round(totalC/totalA*100):0;
+  const allIds=[]; Object.keys(VERBS).forEach(inf=>TEN.forEach(t=>PRON.forEach(p=>allIds.push(vFormId(inf,t.k,p.k)))));
+  const mastered=allIds.filter(id=>srsGet(id).box>=4).length;
+  const lvlsDone=Object.values(S.levels).filter(l=>l.done).length;
+  const bar=(c,a,col)=>{const pc=a?Math.round(c/a*100):0;return `<div class="bar-line"><div class="nm">${col.nm}</div><div class="bt"><i style="width:${pc}%;background:${col.c}"></i></div><div class="pc">${pc}%</div></div>`;};
+  view.innerHTML=`<div class="hello"><h1>📊 Прогресс</h1><p>Чем выше точность по временам — тем ближе автоматизм.</p></div>
+    <div class="grid2">
+      <div class="card stat"><div class="v" style="color:var(--warn)">🔥 ${S.streak}</div><div class="l">дней подряд</div></div>
+      <div class="card stat"><div class="v" style="color:var(--acc2)">⚡ ${S.xp}</div><div class="l">всего XP</div></div>
+      <div class="card stat"><div class="v" style="color:var(--ok)">${acc}%</div><div class="l">точность</div></div>
+      <div class="card stat"><div class="v" style="color:var(--gold)">${mastered}</div><div class="l">форм усвоено</div></div>
+    </div>
+    <div class="card pad" style="margin-top:14px">
+      <div style="font-weight:800;margin-bottom:6px">Точность по временам</div>
+      ${bar(perT.pres[0],perT.pres[1],{nm:'Настоящее',c:'#5ad6ff'})}
+      ${bar(perT.pret[0],perT.pret[1],{nm:'Прошедшее',c:'#ff9d6e'})}
+      ${bar(perT.fut[0],perT.fut[1],{nm:'Будущее',c:'#9cff9c'})}
+    </div>
+    ${timeCardHTML()}
+    <div class="card pad" style="margin-top:14px">
+      <div class="grid2">
+        <div class="stat" style="padding:4px"><div class="v" style="font-size:22px">${lvlsDone}/${LEVELS.length}</div><div class="l">уровней пройдено</div></div>
+        <div class="stat" style="padding:4px"><div class="v" style="font-size:22px">${totalA}</div><div class="l">ответов всего</div></div>
+      </div>
+    </div>`;
+}
+
+/* ----- REFERENCE / таблицы спряжения ----- */
+let DICT_CAT='all';
+const POS_LABEL={verb:'глагол',vinf:'глагол',sus:'существительное',adj:'прилагательное',adv:'наречие',fr:'фраза',prep:'предлог',other:'слово'};
+function dictItems(){
+  const items=[];
+  Object.values(VERBS).forEach(v=>items.push({es:v.inf,ru:v.ru,pos:'verb',verb:v}));
+  allVocab().forEach(w=>items.push({es:w[0],ru:w[1],pos:w[2]||'other'}));
+  return items;
+}
+function renderRef(){
+  const all=dictItems();
+  const cats=[['all','Всё '+all.length],['verb','Глаголы'],['sus','Существительные'],['adj','Прилагательные'],['other','Слова и фразы']];
+  view.innerHTML=`<div class="hello"><h1>📖 Словарь</h1><p>Все слова в одном месте. Глаголы — отдельной категорией, с тремя временами.</p></div>
+    <div class="dict-cats">${cats.map(c=>`<button class="${DICT_CAT===c[0]?'on':''}" onclick="setDictCat('${c[0]}')">${c[1]}</button>`).join('')}</div>
+    <input class="ref-search" id="refSearch" placeholder="Поиск: trabajar, светофор, fuego…">
+    <div id="refList"></div>`;
+  const inp=document.getElementById('refSearch');
+  inp.addEventListener('input',()=>drawRef(inp.value));
+  drawRef('');
+}
+function setDictCat(c){DICT_CAT=c;renderRef();}
+function drawRef(q){
+  q=stripAcc(norm(q));
+  let items=dictItems().filter(it=>{
+    if(DICT_CAT==='verb'&&!(it.pos==='verb'||it.pos==='vinf'))return false;
+    if(DICT_CAT==='sus'&&it.pos!=='sus')return false;
+    if(DICT_CAT==='adj'&&it.pos!=='adj')return false;
+    if(DICT_CAT==='other'&&!['adv','fr','prep','other'].includes(it.pos))return false;
+    if(!q)return true;
+    return stripAcc(it.es.toLowerCase()).includes(q)||stripAcc(it.ru.toLowerCase()).includes(q);
+  });
+  items.sort((a,b)=>a.es.localeCompare(b.es,'es'));
+  let h=`<div class="note" style="margin:10px 4px">Найдено: ${items.length}</div>`;
+  items.forEach(it=>{ h+= (it.pos==='verb'&&it.verb)?verbCardHTML(it.verb):wordCardHTML(it); });
+  if(!items.length)h='<div class="note" style="margin-top:20px;text-align:center">Ничего не найдено.</div>';
+  document.getElementById('refList').innerHTML=h;
+}
+function verbCardHTML(v){
+  let h=`<div class="card pad verb-card"><h3>${v.inf} <span class="ru">${v.ru}</span>
+      <button class="spk" style="margin-left:auto;height:36px;min-width:42px" onclick="tts('${v.inf}')">🔊</button></h3>
+    <table class="conj-table"><tr><th></th><th>Presente</th><th>Pretérito</th><th>Futuro</th></tr>`;
+  PRON.forEach((p,i)=>{h+=`<tr><td>${p.es}</td><td class="c-pres">${v.pres[i]}</td><td class="c-pret">${v.pret[i]}</td><td class="c-fut">${v.fut[i]}</td></tr>`;});
+  return h+`</table></div>`;
+}
+function wordCardHTML(it){
+  const safe=it.es.replace(/'/g,"\\'");
+  return `<div class="card word-card"><div><div class="we">${it.es}</div><div class="wr">${it.ru}</div></div>
+    <span class="wp">${POS_LABEL[it.pos]||'слово'}</span>
+    <button class="spk" style="height:38px;min-width:44px" onclick="tts('${safe}')">🔊</button></div>`;
+}
+
+/* ----- MORE (настройки + добавление слов) ----- */
+function renderMore(){
+  const st=S.settings;
+  const tog=(on)=>`<div class="toggle ${on?'on':''}"><i></i></div>`;
+  view.innerHTML=`<div class="hello"><h1>⚙️ Ещё</h1></div>
+    <div class="section-title">Добавить материал</div>
+    <div class="card pad">
+      <div class="note" style="margin-bottom:10px">Вставляй новые предложения — по одному в строке, в формате<br>
+        <b>испанский | русский</b><br>например:<br>
+        <code>Compré pan en la tienda. | Я купил хлеб в магазине.</code><br>
+        Они появятся в упражнениях «перевод», «на слух» и «пропуск».</div>
+      <textarea class="add" id="addSent" placeholder="Hablé con mi madre por teléfono. | Я поговорил с мамой по телефону."></textarea>
+      <button class="btn primary" style="margin-top:10px" onclick="importSentences()">Добавить предложения</button>
+    </div>
+    <div class="card pad" style="margin-top:12px">
+      <div class="note" style="margin-bottom:10px">Новые <b>слова</b> — формат <b>español | перевод</b>:</div>
+      <textarea class="add" id="addVocab" style="min-height:90px" placeholder="el árbol | дерево"></textarea>
+      <button class="btn primary" style="margin-top:10px" onclick="importVocab()">Добавить слова</button>
+      <div class="note" style="margin-top:10px">Для <b>нового глагола</b> с полным спряжением — просто скинь его мне (Claude), я добавлю в код спряжение по всем временам. Так же добавим и новое время, когда выучишь.</div>
+    </div>
+
+    <div class="section-title">Перенос прогресса</div>
+    <div class="card pad">
+      <div class="note" style="margin-bottom:10px">Если меняешь способ открытия (файл ↔ сервер) — перенеси прогресс, чтобы XP, время и звёзды не потерялись.</div>
+      <button class="btn" onclick="exportProgress()">📤 Скопировать мой прогресс</button>
+      <textarea class="add" id="progIn" style="min-height:70px;margin-top:10px" placeholder="Вставь сюда скопированный прогресс…"></textarea>
+      <button class="btn primary" style="margin-top:10px" onclick="importProgress()">📥 Вставить и применить</button>
+    </div>
+
+    <div class="section-title">Настройки</div>
+    <div class="card pad">
+      <div class="set-row" onclick="toggleSet('lenientAccents')"><div><div class="t">Прощать ударения</div><div class="d">trabaje засчитается как trabajé (но покажу правильное)</div></div>${tog(st.lenientAccents)}</div>
+      <div class="set-row" onclick="toggleSet('tts')"><div><div class="t">Озвучка (TTS)</div><div class="d">проговаривать правильные ответы вслух</div></div>${tog(st.tts)}</div>
+      <div class="set-row" onclick="toggleSet('useTranslate')"><div><div class="t">Перевод RU→ES</div><div class="d">видишь русский — пишешь испанский (целые предложения)</div></div>${tog(st.useTranslate)}</div>
+      <div class="set-row"><div><div class="t">Скорость озвучки</div><div class="d">${Math.round(st.ttsRate*100)}%</div></div>
+        <div style="display:flex;gap:6px"><button class="btn sm" onclick="rate(-1)">−</button><button class="btn sm" onclick="rate(1)">+</button></div></div>
+      <div class="set-row"><div><div class="t">Цель в день (XP)</div><div class="d">${S.dailyGoal} XP</div></div>
+        <div style="display:flex;gap:6px"><button class="btn sm" onclick="goal(-10)">−</button><button class="btn sm" onclick="goal(10)">+</button></div></div>
+    </div>
+    <div class="card pad" style="margin-top:12px">
+      <button class="btn warn-b" onclick="resetProgress()">Сбросить весь прогресс</button>
+    </div>
+    <div class="note" style="text-align:center;margin:18px 0 4px">Глаголов: ${Object.keys(VERBS).length} · Предложений: ${allSent().length} · Слов: ${allVocab().length}</div>`;
+}
+function exportProgress(){
+  const data=localStorage.getItem(LS)||JSON.stringify(S);
+  const ta=document.getElementById('progIn'); if(ta){ta.value=data;ta.focus();ta.select();}
+  try{ navigator.clipboard&&navigator.clipboard.writeText(data); }catch(e){}
+  toast('Прогресс скопирован — вставь его в другой версии');
+}
+function importProgress(){
+  const ta=document.getElementById('progIn'); const raw=(ta&&ta.value||'').trim();
+  if(!raw){toast('Сначала вставь скопированный прогресс');return;}
+  let obj; try{obj=JSON.parse(raw);}catch(e){toast('Не похоже на прогресс (ошибка формата)');return;}
+  if(typeof obj.xp==='undefined'&&!obj.levels){toast('Это не файл прогресса');return;}
+  if(!confirm('Заменить текущий прогресс на вставленный?'))return;
+  localStorage.setItem(LS,JSON.stringify(obj)); S=load(); save(); refreshMini();
+  toast('Прогресс перенесён ✅'); go('home');
+}
+function toggleSet(k){S.settings[k]=!S.settings[k];save();renderMore();}
+function rate(d){S.settings.ttsRate=Math.min(1.3,Math.max(0.6,+(S.settings.ttsRate+d*0.06).toFixed(2)));save();renderMore();tts('Hola, así sueno ahora');}
+function goal(d){S.dailyGoal=Math.max(10,S.dailyGoal+d);save();renderMore();}
+function importSentences(){
+  const lines=document.getElementById('addSent').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  let n=0;
+  lines.forEach(l=>{
+    const [es,ru]=l.split('|').map(x=>(x||'').trim());
+    if(!es||!ru)return;
+    // пытаемся угадать глагол по первому слову (для пропуска/тегов) — не критично
+    const det=detectVerb(es);
+    S.customSent.push({es,ru,v:det.v,t:det.t,p:det.p,a:det.a||es.split(' ')[0]});
+    n++;
+  });
+  save();toast(n?('Добавлено: '+n):'Проверь формат: ES | RU');
+  if(n)document.getElementById('addSent').value='';
+}
+function importVocab(){
+  const lines=document.getElementById('addVocab').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  let n=0;
+  lines.forEach(l=>{const [es,ru]=l.split('|').map(x=>(x||'').trim());if(es&&ru){S.customVocab.push([es,ru]);n++;}});
+  save();toast(n?('Добавлено слов: '+n):'Формат: español | перевод');
+  if(n)document.getElementById('addVocab').value='';
+}
+function detectVerb(es){ // грубое определение для пользовательских предложений
+  const words=es.replace(/[.,!¡¿?]/g,'').split(' ');
+  for(const w of words){
+    for(const inf in VERBS){
+      for(const t of ['pres','pret','fut']) for(const p of PRON){
+        if(norm(form(inf,t,p.k))===norm(w)) return {v:inf,t,p:p.k,a:w};
+      }
+    }
+  }
+  return {v:Object.keys(VERBS)[0],t:'pret',p:'yo',a:words[0]};
+}
+function resetProgress(){
+  if(confirm('Сбросить весь прогресс, XP и статистику? Добавленные слова сохранятся.')){
+    const cs=S.customSent, cv=S.customVocab, set=S.settings;
+    S=JSON.parse(JSON.stringify(DEF_STATE)); S.customSent=cs; S.customVocab=cv; S.settings=set;
+    save();refreshMini();go('home');toast('Прогресс сброшен');
+  }
+}
+
+/* ============================================================
+   ДВИЖОК УРОКА
+   ============================================================ */
+let SESS=null;
+let LESSON_ACTIVE=false;   // время копится только пока идёт активный урок
+let VIDEO_PLAYING=false;   // или пока проигрывается видео в эпизоде
+function startLevel(id){ const lvl=LEVEL_BY_ID[id]; SESS=mkSess(buildSession(lvl),{level:lvl,title:lvl.title}); runLesson(); }
+function startReview(){ SESS=mkSess(buildReviewSession(),{title:'Повторение'}); runLesson(); }
+function startTenseDrill(t){
+  const verbs=Object.keys(VERBS), ex=[];
+  for(let i=0;i<14;i++){ const inf=pick(verbs);
+    const tt=t==='all'?pick(TEN).k:t;
+    ex.push(Math.random()<0.5?exVerbTypeT(inf,tt):exBlankT(inf,tt)); }
+  SESS=mkSess(ex.filter(Boolean),{title:'Дрилл'}); runLesson();
+}
+function exVerbTypeT(inf,t){ return verbProdEx(inf,t,pick(PRON).k); }
+function exBlankT(inf,t){const s=allSent().find(x=>x.v===inf&&x.t===t); return s?exBlank(s):exVerbTypeT(inf,t);}
+function startLadderDrill(){const verbs=Object.keys(VERBS),ex=[];for(let i=0;i<8;i++)ex.push(exLadder(pick(verbs)));SESS=mkSess(ex,{title:'Лестница'});runLesson();}
+
+function mkSess(items,meta){return {items,i:0,correct:0,hearts:5,meta,answered:false,startXp:S.xp};}
+
+function runLesson(){
+  VIDEO_PLAYING=false;           // тест запущен — видео-счётчик стоп
+  document.getElementById('nav').style.display='none';
+  nextQ();
+}
+function exitLesson(){
+  LESSON_ACTIVE=false;
+  document.getElementById('nav').style.display='';
+  hideFb(); SESS=null; go(CUR==='home'?'home':CUR);
+}
+function nextQ(){
+  hideFb();
+  if(!SESS)return;
+  if(SESS.i>=SESS.items.length || SESS.hearts<=0){ return finishLesson(); }
+  LESSON_ACTIVE=true;
+  const q=SESS.items[SESS.i]; SESS.answered=false; SESS.curQ=q;
+  const pct=Math.round(SESS.i/SESS.items.length*100);
+  let body='';
+  if(q.type==='mc') body=mcBody(q);
+  else if(q.type==='ladder') body=ladderBody(q);
+  else if(q.type==='scramble'){ SESS.scrOrder=[]; body=scrambleBody(q); }
+  else body=typeBody(q);
+
+  view.innerHTML=`<div class="lesson">
+    <div class="lh">
+      <button class="x" onclick="confirmExit()">✕</button>
+      <div class="prog"><i style="width:${pct}%"></i></div>
+      <div class="hearts">${'❤️'.repeat(SESS.hearts)}${'🤍'.repeat(5-SESS.hearts)}</div>
+    </div>
+    <div class="q-type">${qIcon(q.type)} ${q.title}</div>
+    <div class="q-stem">${q.qStem||''}</div>
+    <div class="q-main">${q.qMain||''}</div>
+    ${q.qHint?`<div class="q-hint">${q.qHint}</div>`:''}
+    ${q.tags?`<div class="tag-row">${q.tags.map(t=>`<span class="tag ${t.cls}">${t.txt}</span>`).join('')}</div>`:''}
+    ${body}
+  </div>`;
+  // автоплей для listen
+  if(q.autoplay) setTimeout(q.autoplay,350);
+  // фокус
+  const inp=view.querySelector('input.field, input.l-inp');
+  if(inp) setTimeout(()=>inp.focus(),60);
+}
+function qIcon(t){return {type:'✍️',mc:'🔘',blank:'⬜',translate:'🔁',scramble:'🧩',ladder:'🪜'}[t]||'✦';}
+
+/* ----- сборка предложения (scramble) ----- */
+function scrambleBody(q){
+  return `<div class="answer-area">
+    <div class="scr-answer" id="scrAns"></div>
+    <div class="scr-pool" id="scrPool">
+      ${q.pool.map((w,i)=>`<button class="chip" data-i="${i}" onclick="scrPick(${i})">${w}</button>`).join('')}
+    </div>
+    <button class="btn primary" style="margin-top:14px" onclick="submitScramble()">Проверить</button>
+  </div>`;
+}
+function scrPick(i){
+  if(SESS.answered)return;
+  const btn=document.querySelector('#scrPool .chip[data-i="'+i+'"]');
+  if(!btn||btn.disabled)return;
+  btn.disabled=true; btn.classList.add('used'); SESS.scrOrder.push(i); renderScrAns();
+}
+function renderScrAns(){
+  const q=SESS.curQ;
+  document.getElementById('scrAns').innerHTML=SESS.scrOrder.map((idx,pos)=>`<button class="chip pick" onclick="scrUnpick(${pos})">${q.pool[idx]}</button>`).join('');
+}
+function scrUnpick(pos){
+  if(SESS.answered)return;
+  const idx=SESS.scrOrder[pos]; SESS.scrOrder.splice(pos,1);
+  const btn=document.querySelector('#scrPool .chip[data-i="'+idx+'"]'); if(btn){btn.disabled=false;btn.classList.remove('used');}
+  renderScrAns();
+}
+function submitScramble(){
+  if(SESS.answered)return; const q=SESS.curQ;
+  if(!SESS.scrOrder.length)return;
+  const built=SESS.scrOrder.map(i=>q.pool[i]).join(' ');
+  const r=check(built,q.answer);
+  document.querySelectorAll('#scrAns .chip').forEach(c=>c.classList.add(r.ok?'good':'wrong'));
+  resolve(q,r.ok,r.near);
+}
+
+function typeBody(q){
+  return `<div class="answer-area">
+    <input class="field" id="ansInput" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+       placeholder="${q.fullSentence?'Напиши предложение…':'Напиши ответ…'}"
+       onkeydown="if(event.key==='Enter')submitType()">
+    <div class="accents" id="acc"></div>
+    <button class="btn primary" style="margin-top:12px" onclick="submitType()">Проверить</button>
+  </div>`;
+}
+function mcBody(q){
+  return `<div class="answer-area"><div class="choices" id="choices">
+    ${q.options.map((o,i)=>`<button class="choice" data-i="${i}" onclick="submitMC(${i})">${o}</button>`).join('')}
+  </div></div>`;
+}
+function ladderBody(q){
+  return `<div class="answer-area">
+    ${q.steps.map((s,i)=>`<div class="ladder-step">
+      <span class="tlabel ${s.cls}">${s.tlabel}</span>
+      <input class="l-inp" data-i="${i}" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"
+        placeholder="${s.cue}…" onkeydown="if(event.key==='Enter')focusNext(${i})">
+    </div>`).join('')}
+    <div class="accents" id="acc"></div>
+    <button class="btn primary" style="margin-top:6px" onclick="submitLadder()">Проверить</button>
+  </div>`;
+}
+const ACC_KEYS=['á','é','í','ó','ú','ñ','¿','¡'];
+function buildAccents(targetGetter){
+  const box=document.getElementById('acc'); if(!box)return;
+  box.innerHTML=ACC_KEYS.map(k=>`<button type="button" onmousedown="event.preventDefault()" onclick="insertChar('${k}')">${k}</button>`).join('');
+}
+let LAST_FOCUS=null;
+document.addEventListener('focusin',e=>{if(e.target.matches('input.field,input.l-inp'))LAST_FOCUS=e.target;});
+function insertChar(c){
+  const el=LAST_FOCUS||view.querySelector('input.field,input.l-inp'); if(!el)return;
+  const s=el.selectionStart??el.value.length, e=el.selectionEnd??el.value.length;
+  el.value=el.value.slice(0,s)+c+el.value.slice(e); el.selectionStart=el.selectionEnd=s+1; el.focus();
+}
+function focusNext(i){
+  const ins=view.querySelectorAll('input.l-inp');
+  if(i+1<ins.length)ins[i+1].focus(); else submitLadder();
+}
+
+/* построить клавиатуру акцентов после рендера */
+const _origNextQ=nextQ;
+function afterRender(){buildAccents();}
+
+/* ----- проверка ответов ----- */
+function submitType(){
+  if(SESS.answered)return; const q=SESS.curQ;
+  const inp=document.getElementById('ansInput'); const val=inp.value;
+  if(!val.trim()){inp.focus();return;}
+  const r=check(val,q.answer);
+  inp.classList.add(r.ok?'good':'wrong'); inp.disabled=true;
+  resolve(q,r.ok,r.near);
+}
+function submitMC(i){
+  if(SESS.answered)return; const q=SESS.curQ;
+  const ok=norm(q.options[i])===norm(q.answer);
+  const btns=document.querySelectorAll('#choices .choice');
+  btns.forEach((b,bi)=>{b.onclick=null;
+    if(norm(q.options[bi])===norm(q.answer))b.classList.add('good');
+    else if(bi===i)b.classList.add('wrong'); else b.classList.add('dim');});
+  resolve(q,ok,false);
+}
+function submitLadder(){
+  if(SESS.answered)return; const q=SESS.curQ;
+  const ins=view.querySelectorAll('input.l-inp'); let allok=true,anyNear=false;
+  ins.forEach((el,i)=>{const r=check(el.value,q.steps[i].answer);
+    el.classList.add(r.ok?'good':'wrong'); el.disabled=true; if(!r.ok)allok=false; if(r.near)anyNear=true;});
+  resolve(q,allok,anyNear);
+}
+function resolve(q,ok,near){
+  SESS.answered=true;
+  srsUpdate(q.id,ok);
+  if(ok){SESS.correct++; addXp(ok?(near?2:4):0);} else {SESS.hearts--;}
+  // звук
+  if(ok&&q.speak)setTimeout(()=>q.speak&&q.speak(),120);
+  showFb(q,ok,near);
+}
+function addXp(n){S.xp+=n;ensureDaily();S.dailyXp+=n;}
+function ensureDaily(){
+  const today=new Date().toISOString().slice(0,10);
+  if(S.dailyDay!==today){S.dailyDay=today;S.dailyXp=0;}
+  // streak
+  if(S.lastDay!==today){
+    const y=new Date(Date.now()-86400000).toISOString().slice(0,10);
+    if(S.lastDay===y)S.streak++; else if(S.lastDay!==today)S.streak=Math.max(1,S.lastDay?1:1);
+    if(!S.lastDay)S.streak=1;
+    S.lastDay=today;
+  }
+}
+
+/* ----- feedback bar ----- */
+const fb=document.getElementById('fb');
+function showFb(q,ok,near){
+  fb.className='fb show '+(ok?'ok':'bad');
+  document.getElementById('fbTitle').innerHTML=ok?(near?'✅ Почти идеально!':'✅ Верно!'):'❌ Не совсем';
+  let corr='';
+  if(q.type==='ladder') corr=q.steps.map(s=>'<span>'+s.answer+'</span>').join(' &nbsp;/&nbsp; ');
+  else corr=q.answer;
+  document.getElementById('fbCorrect').innerHTML=(ok&&!near)?'':('Правильно: '+corr);
+  let extra=q.extra||'';
+  if(near)extra=(extra?extra+'<br>':'')+'⚠️ Не хватало ударения — пиши <b>'+q.answer+'</b>';
+  document.getElementById('fbExtra').innerHTML=extra;
+  const ovr=document.getElementById('fbOverride');
+  ovr.style.display=(!ok && (q.fullSentence))?'inline-flex':'none';
+  document.getElementById('fbSpk').onclick=()=>q.speak&&q.speak();
+}
+function hideFb(){fb.className='fb';}
+document.getElementById('fbNext').onclick=()=>{SESS.i++;nextQ();};
+document.getElementById('fbOverride').onclick=()=>{ // «я был прав» для переводов
+  const q=SESS.curQ; if(!SESS)return;
+  srsUpdate(q.id,true); SESS.correct++; if(SESS.hearts<5)SESS.hearts++; addXp(2);
+  SESS.i++; nextQ();
+};
+
+function confirmExit(){ if(confirm('Выйти из урока? Прогресс этого урока не сохранится.'))exitLesson(); }
+
+/* ----- финиш урока ----- */
+function finishLesson(){
+  LESSON_ACTIVE=false;
+  hideFb();
+  document.querySelectorAll('.confetti').forEach(c=>c.remove());
+  const total=SESS.items.length;
+  const acc=Math.round(SESS.correct/total*100);
+  const stars=acc>=95?3:acc>=80?2:acc>=60?1:0;
+  const passed=SESS.hearts>0 && acc>=60;
+  const gained=S.xp-SESS.startXp;
+  // сохраняем уровень
+  if(SESS.meta.level && passed){
+    const id=SESS.meta.level.id, prev=S.levels[id]||{best:0,stars:0,done:false};
+    S.levels[id]={best:Math.max(prev.best,acc),stars:Math.max(prev.stars,stars),done:true};
+  }
+  if(SESS.meta.episode){
+    const ep=S.listen[SESS.meta.episode]||{watched:true,best:0};
+    ep.best=Math.max(ep.best||0,acc); ep.watched=true; S.listen[SESS.meta.episode]=ep;
+  }
+  ensureDaily(); save(); refreshMini();
+  if(passed)confetti();
+  document.getElementById('nav').style.display='';
+  view.innerHTML=`<div class="lesson" style="min-height:62vh;justify-content:center;text-align:center;align-items:center">
+    <div style="font-size:64px;margin-bottom:6px">${passed?(stars===3?'🏆':'🎉'):'😅'}</div>
+    <h1 style="margin:0">${passed?'¡Bien hecho!':'Почти!'}</h1>
+    <div style="font-size:30px;margin:12px 0">${'★'.repeat(stars)}${'☆'.repeat(3-stars)}</div>
+    <div class="grid2" style="width:100%;max-width:360px;margin:10px auto">
+      <div class="card stat"><div class="v">${acc}%</div><div class="l">точность</div></div>
+      <div class="card stat"><div class="v" style="color:var(--acc2)">+${gained}</div><div class="l">XP</div></div>
+    </div>
+    <div style="display:flex;gap:10px;width:100%;max-width:360px;margin-top:6px">
+      <button class="btn" onclick="${SESS.meta.level?`startLevel('${SESS.meta.level.id}')`:'startReview()'}">Ещё раз</button>
+      <button class="btn primary" onclick="exitLesson()">Готово</button>
+    </div>
+    ${!passed?'<div class="note" style="margin-top:14px">Нужно набрать 60%+ и не потерять все сердечки. Попробуй ещё!</div>':''}
+  </div>`;
+}
+
+/* ----- мелочи ----- */
+function localDay(d){d=d||new Date();return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,10);}
+function fmtDur(s){s=Math.round(s||0);if(s<60)return s+' сек';const m=Math.floor(s/60);if(m<60)return m+' мин';const h=Math.floor(m/60);return h+' ч '+(m%60)+' мин';}
+function fmtClock(s){s=Math.round(s||0);const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;const p=n=>String(n).padStart(2,'0');return h?(h+':'+p(m)+':'+p(ss)):(m+':'+p(ss));}
+const MON_RU=['янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+function dayLabel(k,today){const p=k.split('-');const dt=new Date(+p[0],+p[1]-1,+p[2]);const wd=['вс','пн','вт','ср','чт','пт','сб'][dt.getDay()];return today?'сегодня':(wd+' '+p[2]+'.'+p[1]);}
+function dayFull(k){const p=k.split('-');const dt=new Date(+p[0],+p[1]-1,+p[2]);const wd=['вс','пн','вт','ср','чт','пт','сб'][dt.getDay()];return (+p[2])+' '+MON_RU[+p[1]-1]+', '+wd;}
+function timeCardHTML(){
+  const today=localDay();
+  const tToday=S.time[today]||0;
+  const days=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const k=localDay(d);days.push({k,sec:S.time[k]||0});}
+  const maxSec=Math.max(60,...days.map(d=>d.sec));
+  let week=0; days.slice(7).forEach(d=>week+=d.sec);
+  // полный журнал: все дни с занятиями, новые сверху
+  const journal=Object.keys(S.time).filter(k=>S.time[k]>=1).sort().reverse();
+  const tTotal=journal.reduce((a,k)=>a+S.time[k],0);
+  return `<div class="card pad" style="margin-top:14px">
+    <div style="font-weight:800;margin-bottom:4px">⏱ Время по дням</div>
+    <div class="grid2" style="margin:10px 0 6px">
+      <div class="stat" style="padding:4px"><div class="v" style="font-size:22px;color:#5ad6ff">${fmtDur(tToday)}</div><div class="l">сегодня</div></div>
+      <div class="stat" style="padding:4px"><div class="v" style="font-size:22px;color:var(--ok)">${fmtDur(week)}</div><div class="l">за неделю</div></div>
+    </div>
+    <div class="note" style="margin:2px 0 10px">Последние 14 дней:</div>
+    ${days.map(d=>{const pc=d.sec?Math.max(5,Math.round(d.sec/maxSec*100)):0;const isT=d.k===today;
+      return `<div class="bar-line"><div class="nm" style="flex:0 0 88px;font-size:12px;${isT?'color:var(--acc2)':''}">${dayLabel(d.k,isT)}</div>
+        <div class="bt"><i style="width:${pc}%;background:${isT?'linear-gradient(90deg,var(--acc),var(--acc2))':'#4f3d8a'}"></i></div>
+        <div class="pc" style="flex:0 0 64px;font-size:12px">${d.sec?fmtDur(d.sec):'—'}</div></div>`;}).join('')}
+    <div style="font-weight:800;margin:18px 0 6px">📅 Журнал по дням</div>
+    ${journal.length? journal.map(k=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)">
+        <span style="font-size:14px;${k===today?'color:var(--acc2);font-weight:700':''}">${dayFull(k)}${k===today?' · сегодня':''}</span>
+        <span style="font-weight:800;font-size:14px">${fmtDur(S.time[k])}</span></div>`).join('')
+      : '<div class="note">Пока пусто — пройди урок, и день появится здесь.</div>'}
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 2px 2px;margin-top:4px">
+      <span style="font-weight:800">Всего за всё время</span>
+      <span style="font-weight:800;color:var(--gold)">${fmtDur(tTotal)}</span></div>
+  </div>`;
+}
+function plural(n,one,few,many){const a=Math.abs(n)%100,b=a%10;if(a>10&&a<20)return many;if(b>1&&b<5)return few;if(b===1)return one;return many;}
+function capFirst(s){return s.charAt(0).toUpperCase()+s.slice(1);}
+function lower(s){return s.charAt(0).toLowerCase()+s.slice(1);}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),1800);}
+function confetti(){
+  document.querySelectorAll('.confetti').forEach(c=>c.remove());
+  const em=['🎉','✨','⭐','🟣','🔵','🟢','💜'];
+  for(let i=0;i<16;i++){const c=document.createElement('div');c.className='confetti';c.textContent=em[i%em.length];
+    c.style.left=Math.random()*100+'vw';c.style.animationDuration=(1.4+Math.random()*1.4)+'s';
+    c.style.fontSize=(14+Math.random()*16)+'px';document.body.appendChild(c);
+    setTimeout(()=>{try{c.remove();}catch(e){}},3000);}
+}
+
+/* перехват рендера вопроса для клавиатуры акцентов */
+const realNextQ=nextQ;
+nextQ=function(){realNextQ();afterRender();};
+
+/* ============================================================
+   АУДИРОВАНИЕ: видео-эпизоды (YouTube)
+   ============================================================ */
+function ytId(u){
+  if(!u)return ''; u=u.trim();
+  let m=u.match(/(?:youtu\.be\/|v=|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
+  if(m)return m[1];
+  if(/^[A-Za-z0-9_-]{11}$/.test(u))return u;
+  return '';
+}
+function epProgress(id){return S.listen[id]||{watched:false,best:0};}
+function renderListen(){
+  const eps=allEpisodes();
+  let h=`<div class="hello"><h1>🎧 Аудио</h1><p>Слушай настоящую речь, разбирай слова и проходи тесты — видео за видео.</p></div>`;
+  if(!eps.length){
+    h+=`<div class="card pad" style="text-align:center">
+      <div style="font-size:42px">🎬</div>
+      <div style="font-weight:800;font-size:17px;margin:8px 0">Пока нет эпизодов</div>
+      <div class="note" style="margin-bottom:14px">Пришли мне (Claude) ссылку на YouTube <b>с субтитрами</b> — я сделаю разбор: транскрипт, перевод, слова и тесты, и добавлю видео сюда.</div>
+      <button class="btn" onclick="toggleAddEp()">➕ Добавить вручную</button>
+    </div>`;
+  } else {
+    eps.forEach(e=>{
+      const pr=epProgress(e.id);
+      h+=`<div class="card pad" style="margin-bottom:12px;cursor:pointer" onclick="openEpisode('${e.id}')">
+        <div style="display:flex;gap:12px;align-items:center">
+          ${e.yt?`<img src="https://i.ytimg.com/vi/${e.yt}/mqdefault.jpg" style="width:96px;height:64px;object-fit:cover;border-radius:10px;flex:0 0 auto" onerror="this.style.visibility='hidden'">`:`<div style="width:96px;height:64px;border-radius:10px;flex:0 0 auto;display:grid;place-items:center;background:var(--card);border:1px solid var(--line);font-size:26px">🎬</div>`}
+          <div style="flex:1">
+            <div style="font-weight:800;font-size:15.5px">${e.title}</div>
+            <div class="note">${(e.segs||[]).length} фраз · ${(e.vocab||[]).length} слов${e.level?' · '+e.level:''}</div>
+            <div class="note" style="margin-top:3px">${pr.best?('★ лучший тест: '+pr.best+'%'):(pr.watched?'просмотрено':'не начато')}</div>
+          </div>
+          <div style="font-size:22px">▶</div>
+        </div></div>`;
+    });
+    h+=`<button class="btn ghost" style="margin-top:4px" onclick="toggleAddEp()">➕ Добавить эпизод вручную</button>`;
+  }
+  h+=`<div class="card pad hidden" id="addEpBox" style="margin-top:12px">
+    <div style="font-weight:800;margin-bottom:6px">Добавить эпизод</div>
+    <div class="note" style="margin-bottom:8px">Ссылка YouTube и строки субтитров. Формат строки: <b>испанский | русский</b> (по фразе в строке). Перевод можно не писать.</div>
+    <input class="ref-search" id="epUrl" placeholder="https://youtu.be/... или ID" style="margin-bottom:8px">
+    <input class="ref-search" id="epTitle" placeholder="Название эпизода" style="margin-bottom:8px">
+    <textarea class="add" id="epLines" placeholder="Hola, ¿cómo estás? | Привет, как дела?"></textarea>
+    <button class="btn primary" style="margin-top:10px" onclick="addEpisode()">Добавить</button>
+  </div>`;
+  view.innerHTML=h;
+}
+function toggleAddEp(){const b=document.getElementById('addEpBox');if(b)b.classList.toggle('hidden');}
+function addEpisode(){
+  const id=ytId(document.getElementById('epUrl').value);
+  const title=(document.getElementById('epTitle').value||'').trim()||'Эпизод';
+  const lines=document.getElementById('epLines').value.split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!id){toast('Не вижу ссылку/ID YouTube');return;}
+  if(!lines.length){toast('Добавь хотя бы одну фразу');return;}
+  const segs=lines.map(l=>{const p=l.split('|');return {t:0,es:(p[0]||'').trim(),ru:(p[1]||'').trim()};}).filter(s=>s.es);
+  S.customListen.push({id:'u'+(S.customListen.length+1)+'_'+id.slice(0,4),title,yt:id,segs,vocab:[]});
+  save();toast('Эпизод добавлен');renderListen();
+}
+let EP_TAB='watch';
+function openEpisode(id){const e=allEpisodes().find(x=>x.id===id);if(!e)return;EP_TAB='watch';drawEpisode(e);}
+function drawEpisode2(id){const e=allEpisodes().find(x=>x.id===id);if(e)drawEpisode(e);}
+function drawEpisode(e){
+  const pr=epProgress(e.id);
+  const tab=(k,t)=>`<button class="seg-b ${EP_TAB===k?'on':''}" onclick="EP_TAB='${k}';drawEpisode2('${e.id}')">${t}</button>`;
+  let body='';
+  if(EP_TAB==='watch'){
+    body=`<div class="note" style="margin-bottom:10px">Смотри ролик целиком, потом открой «Транскрипт» и нажми на фразу, чтобы переслушать её.</div>`;
+  } else if(EP_TAB==='words'){
+    body=(e.vocab&&e.vocab.length)
+      ? e.vocab.map(w=>`<div class="card word-card" style="margin-top:8px"><div><div class="we">${w[0]}</div><div class="wr">${w[1]||''}</div></div>
+          <button class="spk" style="height:38px;min-width:44px" onclick="tts('${(w[0]||'').replace(/'/g,"\\'")}')">🔊</button></div>`).join('')
+      : '<div class="note" style="margin-top:10px">Слова к этому видео ещё не добавлены.</div>';
+  } else {
+    body=(e.segs&&e.segs.length)
+      ? e.segs.map(s=>`<div class="scriptline" ${s.t?`onclick="seekEp('${e.id}',${s.t})"`:''}>
+          <div class="sl-es">${s.es}</div>${s.ru?`<div class="sl-ru">${s.ru}</div>`:''}
+          ${s.t?`<div class="sl-play">▶ ${fmtT(s.t)}</div>`:''}</div>`).join('')
+      : '<div class="note" style="margin-top:10px">Транскрипт пуст.</div>';
+  }
+  view.innerHTML=`<div class="ep-head">
+      <button class="x" onclick="go('listen')">←</button>
+      <div style="font-weight:800;font-size:16px;flex:1">${e.title}</div></div>
+    <div class="ep-player" id="epPlayer">${(e.file&&localVideoOK())?videoPlayer(e):ytPoster(e)}</div>
+    <div class="seg" style="margin:12px 0">${tab('watch','Смотреть')}${tab('words','Слова')}${tab('script','Транскрипт')}</div>
+    <div id="epBody">${body}</div>
+    <button class="btn primary" style="margin-top:14px" onclick="startEpisodeTest('${e.id}')">🧪 Пройти тест по видео</button>
+    ${pr.best?`<div class="note" style="text-align:center;margin-top:8px">Лучший результат: ★ ${pr.best}%</div>`:''}`;
+  if(e.file&&localVideoOK())setTimeout(()=>setupEpisodeVideo(e),120);
+  const p=epProgress(e.id); if(!p.watched){p.watched=true;S.listen[e.id]=p;save();}
+}
+function ytPoster(e){
+  return `<div class="yt-poster">
+    <img src="https://i.ytimg.com/vi/${e.yt}/hqdefault.jpg" alt="" onerror="this.style.visibility='hidden'">
+    <a class="yt-play" href="https://www.youtube.com/watch?v=${e.yt}" target="_blank" rel="noopener">▶</a>
+    <div class="yt-actions">
+      <a class="btn sm" href="https://www.youtube.com/watch?v=${e.yt}" target="_blank" rel="noopener">▶ Открыть на YouTube</a>
+      <button class="btn sm ghost" onclick="embedInline('${e.id}')">Встроить здесь</button>
+    </div></div>`;
+}
+function embedInline(id){const e=allEpisodes().find(x=>x.id===id);if(!e)return;const box=document.getElementById('epPlayer');if(box)box.innerHTML=ytEmbed(e.yt,0,true);}
+function localVideoOK(){ return location.protocol==='file:' || /^(localhost|127\.0\.0\.1)$/.test(location.hostname); }
+function videoPlayer(e){
+  return `<video id="epVideo" controls playsinline preload="auto"
+    style="width:100%;border-radius:12px;border:1px solid var(--line);background:#000;display:block"
+    src="${encodeURI(e.file)}"
+    onerror="var n=document.getElementById('vidErr');if(n)n.style.display='block'"></video>
+    <div id="vidErr" style="display:none;margin-top:8px;font-size:13px;color:var(--warn)">⚠️ Видео не загрузилось. Открывай тренажёр через ярлык <b>«Открыть тренажёр»</b> в папке Downloads — он запускает видео-сервер.</div>
+    ${e.subs?`<button class="btn sm ghost" style="margin-top:8px" id="subBtn" onclick="toggleSubs()">СС Субтитры: вкл</button>`:''}`;
+}
+function setupEpisodeVideo(e){
+  const v=document.getElementById('epVideo'); if(!v)return;
+  if(e.subs)attachSubs(e);
+  // время аудирования идёт, только пока видео играет
+  v.addEventListener('playing',()=>{VIDEO_PLAYING=true;});
+  v.addEventListener('play',()=>{VIDEO_PLAYING=true;});
+  v.addEventListener('pause',()=>{VIDEO_PLAYING=false;});
+  v.addEventListener('ended',()=>{VIDEO_PLAYING=false;});
+  v.addEventListener('waiting',()=>{VIDEO_PLAYING=false;});
+}
+function attachSubs(e){
+  const v=document.getElementById('epVideo');
+  if(!v||!e.subs||v._subsDone)return; v._subsDone=true;
+  try{
+    const tt=v.addTextTrack('subtitles','Español','es');
+    const Cue=window.VTTCue||window.TextTrackCue;
+    e.subs.forEach(c=>{ try{ tt.addCue(new Cue(c[0],c[1],c[2])); }catch(err){} });
+    tt.mode='showing'; v._tt=tt;
+  }catch(err){}
+}
+function toggleSubs(){
+  const v=document.getElementById('epVideo'); if(!v||!v._tt)return;
+  v._tt.mode=(v._tt.mode==='showing')?'hidden':'showing';
+  const b=document.getElementById('subBtn'); if(b)b.textContent='СС Субтитры: '+(v._tt.mode==='showing'?'вкл':'выкл');
+}
+function ytEmbed(id,start,autoplay){
+  return `<iframe width="100%" height="220" style="border-radius:12px;border:1px solid var(--line)"
+    src="https://www.youtube-nocookie.com/embed/${id}?rel=0${start?'&start='+Math.round(start):''}${autoplay?'&autoplay=1':''}"
+    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+}
+function seekEp(id,t){
+  const e=allEpisodes().find(x=>x.id===id);if(!e)return;
+  if(e.file&&localVideoOK()){ const v=document.getElementById('epVideo'); if(v){ v.currentTime=t||0; v.play&&v.play(); } return; }
+  const box=document.getElementById('epPlayer');if(box)box.innerHTML=ytEmbed(e.yt,t,true);
+}
+function fmtT(s){s=Math.round(s||0);const m=Math.floor(s/60);return m+':'+String(s%60).padStart(2,'0');}
+function startEpisodeTest(id){
+  const e=allEpisodes().find(x=>x.id===id);if(!e)return;
+  const items=buildEpisodeTest(e);if(!items.length){toast('Для теста нужны слова или фразы');return;}
+  SESS=mkSess(items,{title:e.title,episode:e.id});runLesson();
+}
+function buildEpisodeTest(e){
+  const vocab=(e.vocab||[]);
+  const verbs=(e.verbs||[]).filter(v=>VERBS[v]);   // глаголы эпизода (спрягаемые)
+  // свежие предложения (practice) приоритетнее транскрипта — ты составляешь НОВЫЕ фразы
+  const sents=((e.practice&&e.practice.length)?e.practice.map(p=>({es:p[0],ru:p[1],a:p[2]}))
+              :(e.segs||[]).filter(s=>s.es&&s.ru).map(s=>({es:s.es,ru:s.ru,a:null})));
+  const out=[];
+  const longS=sents.filter(s=>s.es.split(/\s+/).length>=4);
+  // ГАРАНТИЯ всех трёх времён: для каждого времени — дрилл случайного глагола эпизода
+  if(verbs.length){ TEN.forEach(t=> out.push(verbProdEx(pick(verbs), t.k, pick(PRON).k)) ); }
+  const N=16;
+  for(let i=out.length;i<N;i++){
+    const r=Math.random();
+    if(verbs.length && r<0.30){  // ещё спряжение глагола в случайном времени
+      out.push(Math.random()<0.5 ? verbProdEx(pick(verbs),pick(TEN).k,pick(PRON).k) : exVerbMC(pick(verbs)));
+    } else if(vocab.length && r<0.55){ const w=pick(vocab);
+      if(Math.random()<0.5) out.push({type:'type',id:'Lw:'+w[0],title:'Слово из видео',qStem:'Напиши по-испански',qMain:w[1]||w[0],answer:w[0],speak:()=>tts(w[0]),extra:'<b>'+w[0]+'</b>'});
+      else out.push({type:'mc',id:'Lw:'+w[0],title:'Слово из видео',qStem:'Что значит?',qMain:w[0],options:shuffle([w[1]].concat(shuffle(vocab.filter(x=>x[1]&&x[1]!==w[1])).slice(0,3).map(x=>x[1]))),answer:w[1],speak:()=>tts(w[0])});
+    } else if(sents.length && r<0.62){ const s=pick(sents);  // пропуск слова
+      const w=(s.a||pick(s.es.split(/\s+/).filter(x=>x.replace(/[.,!¡¿?;:"]/g,'').length>3))||s.es.split(' ')[0]);
+      out.push({type:'blank',id:'Lb:'+s.es,title:'Впиши слово (видео)',qStem:s.ru,qMain:s.es.replace(w,'<span class="blank"></span>'),answer:w.replace(/[.,!¡¿?;:"]/g,''),speak:()=>tts(s.es),extra:'Полностью: <b>'+s.es+'</b>'});
+    } else if(longS.length && r<0.80){ const s=pick(longS);  // собери предложение
+      let pool=shuffle(s.es.replace(/\s+/g,' ').trim().split(' '));
+      out.push({type:'scramble',id:'Lsc:'+s.es,title:'Собери фразу (видео)',qStem:s.ru,qMain:'Расставь слова по порядку',pool,answer:s.es,speak:()=>tts(s.es),extra:'<b>'+s.es+'</b>'});
+    } else if(sents.length){ const s=pick(sents);  // перевод
+      out.push({type:'translate',id:'Lt:'+s.es,title:'Переведи (видео)',qStem:'Переведи на испанский',qMain:s.ru,answer:s.es,fullSentence:true,speak:()=>tts(s.es)});
+    } else if(vocab.length){ const w=vocab[0]; out.push({type:'type',id:'Lw0',title:'Слово',qStem:'Напиши по-испански',qMain:w[1]||w[0],answer:w[0]}); }
+  }
+  return out;
+}
+
+/* ----- аварийный выход: всегда можно вернуться на карту ----- */
+function homeEscape(){
+  try{hideFb();}catch(e){}
+  try{document.getElementById('nav').style.display='';}catch(e){}
+  if(SESS){ if(!confirm('Выйти на карту? Текущий урок не сохранится.'))return; }
+  LESSON_ACTIVE=false; SESS=null;
+  try{ go('home'); }catch(e){ location.reload(); }
+}
+/* глобальный перехват ошибок — экран не должен «зависать» без кнопки */
+window.addEventListener('error', function(){ safeRecover(); });
+window.addEventListener('unhandledrejection', function(){ safeRecover(); });
+let _recoverShown=false;
+function safeRecover(){
+  try{ hideFb(); document.getElementById('nav').style.display=''; }catch(e){}
+  // если экран урока пуст/сломан — мягко вернём на карту
+  try{
+    if(SESS){ if(!_recoverShown){ _recoverShown=true; toast('Что-то сбойнуло — нажми логотип, чтобы вернуться'); setTimeout(()=>_recoverShown=false,4000);} }
+  }catch(e){}
+}
+
+/* ============================================================
+   УЧЁТ ВРЕМЕНИ ЗАНЯТИЙ (по дням)
+   Копим только реально активное время: вкладка видима + есть активность.
+   ============================================================ */
+const IDLE_MS=60000;           // 1 мин без касаний/нажатий = пауза (отошёл)
+let _lastTick=Date.now(), _lastAct=Date.now(), _saveAcc=0;
+function studyTick(){
+  const now=Date.now();
+  const delta=Math.min(now-_lastTick, 30000); // защита от «сна» ноутбука / троттлинга вкладки
+  _lastTick=now;
+  const counting = document.visibilityState!=='hidden' && (
+        VIDEO_PLAYING || (LESSON_ACTIVE && (now-_lastAct)<IDLE_MS) );
+  if(counting){
+    const k=localDay();
+    S.time[k]=(S.time[k]||0)+delta/1000;
+    _saveAcc+=delta;
+    refreshMini();                              // обновляем чип каждые 5с (видно, что идёт)
+    if(_saveAcc>=15000){_saveAcc=0; save();}    // на диск пишем реже
+  }
+}
+setInterval(studyTick,5000);
+['pointerdown','keydown','touchstart','wheel'].forEach(ev=>
+  document.addEventListener(ev,()=>{_lastAct=Date.now();},{passive:true}));
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='hidden'){studyTick();save();}
+  _lastTick=Date.now(); _lastAct=Date.now();
+});
+window.addEventListener('beforeunload',()=>{studyTick();save();});
+
+/* старт */
+refreshMini();
+try{ go('home'); }catch(e){ document.getElementById('view').innerHTML='<div class="card pad">Ошибка загрузки. Обнови страницу.</div>'; }
+</script>
+</body>
+</html>

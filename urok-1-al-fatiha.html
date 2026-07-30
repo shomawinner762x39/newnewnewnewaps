@@ -1,0 +1,336 @@
+<meta charset="utf-8">
+<title>Понимание Корана — уроки</title>
+<style>
+  :root{
+    --bg:#f6f4ee; --card:#fffdf8; --ink:#23201a; --muted:#6b6558;
+    --line:#e6e0d4; --accent:#0f7b6c; --accent-soft:#e2f1ee;
+    --gold:#a9852f; --gold-soft:#f6efdd; --arabic:#1c2b28;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#14140f; --card:#1c1c16; --ink:#ece7db; --muted:#a49d8c;
+      --line:#33322a; --accent:#5bc4b2; --accent-soft:#12332e;
+      --gold:#d8b356; --gold-soft:#2a2417; --arabic:#e9e4d6;
+    }
+  }
+  :root[data-theme=dark]{
+      --bg:#14140f; --card:#1c1c16; --ink:#ece7db; --muted:#a49d8c;
+      --line:#33322a; --accent:#5bc4b2; --accent-soft:#12332e;
+      --gold:#d8b356; --gold-soft:#2a2417; --arabic:#e9e4d6;
+  }
+  :root[data-theme=light]{
+    --bg:#f6f4ee; --card:#fffdf8; --ink:#23201a; --muted:#6b6558;
+    --line:#e6e0d4; --accent:#0f7b6c; --accent-soft:#e2f1ee;
+    --gold:#a9852f; --gold-soft:#f6efdd; --arabic:#1c2b28;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font:17px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:840px;margin:0 auto;padding:32px 20px 90px}
+  header.top{text-align:center;padding:20px 0 6px}
+  .kicker{color:var(--accent);font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:12px}
+  h1{font-size:30px;line-height:1.2;margin:.35em 0 .2em}
+  .sub{color:var(--muted);font-size:15px;max-width:60ch;margin:0 auto}
+  .bism{font-family:"Amiri","Scheherazade New",serif;color:var(--gold);font-size:26px;margin:16px 0 4px;direction:rtl}
+
+  /* ---- Урок (аккордеон верхнего уровня) ---- */
+  .lesson{background:var(--card);border:1px solid var(--line);border-radius:16px;margin:16px 0;overflow:hidden;
+          box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .lesson>summary{
+    list-style:none;cursor:pointer;padding:20px 22px;display:flex;align-items:center;gap:16px;
+    user-select:none;transition:background .15s;
+  }
+  .lesson>summary::-webkit-details-marker{display:none}
+  .lesson>summary:hover{background:var(--accent-soft)}
+  .lesson .badge{flex:none;width:52px;height:52px;border-radius:13px;background:var(--accent);color:#fff;
+        display:grid;place-items:center;font-weight:800;font-size:13px;line-height:1.1;text-align:center;letter-spacing:.02em}
+  .lesson[data-locked] .badge{background:var(--line);color:var(--muted)}
+  .lesson .htext{flex:1;min-width:0}
+  .lesson .htext .t{font-size:19px;font-weight:700;line-height:1.25}
+  .lesson .htext .d{font-size:13px;color:var(--muted);margin-top:3px}
+  .lesson .chev{flex:none;color:var(--muted);transition:transform .2s;font-size:20px}
+  .lesson[open] .chev{transform:rotate(90deg)}
+  .lesson .body{padding:4px 22px 24px;border-top:1px solid var(--line)}
+  .lesson[data-locked]>summary{cursor:not-allowed;opacity:.7}
+
+  /* ---- Внутренние секции ---- */
+  h2{font-size:20px;margin:22px 0 .5em;display:flex;align-items:center;gap:.5em}
+  h2 .n{flex:none;width:30px;height:30px;border-radius:9px;background:var(--gold-soft);color:var(--gold);
+        display:grid;place-items:center;font-size:13px;font-weight:800}
+  h3{font-size:16px;margin:1.2em 0 .3em;color:var(--gold)}
+  p{margin:.6em 0}
+  .lead{font-size:18px}
+
+  .ayah{background:var(--accent-soft);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin:14px 0;text-align:center}
+  .ayah .ar{font-family:"Amiri","Scheherazade New",serif;font-size:30px;line-height:1.9;color:var(--arabic);direction:rtl}
+  .ayah .tr{color:var(--muted);font-style:italic;margin-top:6px}
+  .ayah .ru{font-weight:600;margin-top:4px}
+
+  .word{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin:12px 0;background:var(--gold-soft)}
+  .word .ttl{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+  .word .ar{font-family:"Amiri","Scheherazade New",serif;font-size:24px;color:var(--gold)}
+  .word .tag{font-size:12px;color:var(--muted)}
+  .verdict{font-weight:700;margin-top:6px}
+  .verdict.no{color:#c2410c}
+  .verdict.yes{color:var(--accent)}
+  @media (prefers-color-scheme:dark){.verdict.no{color:#f0965b}}
+
+  blockquote{margin:12px 0;padding:10px 16px;border-left:3px solid var(--gold);background:var(--gold-soft);border-radius:0 10px 10px 0;color:var(--ink)}
+  ul{padding-left:1.2em}
+  li{margin:.3em 0}
+  .callout{border:1px dashed var(--accent);border-radius:12px;padding:14px 16px;background:var(--accent-soft)}
+  .note{font-size:14px;color:var(--muted);border-top:1px dashed var(--line);margin-top:26px;padding-top:14px}
+  .toggle{position:fixed;top:14px;right:14px;background:var(--card);border:1px solid var(--line);color:var(--ink);
+          border-radius:20px;padding:7px 13px;font-size:13px;cursor:pointer;z-index:5}
+  .fw{font-weight:700}
+</style>
+
+<button class="toggle" onclick="(function(){var r=document.documentElement;var d=(r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'))==='dark';r.setAttribute('data-theme',d?'light':'dark')})()">🌓 тема</button>
+
+<div class="wrap">
+  <header class="top">
+    <div class="kicker">Курс · Понимание Корана</div>
+    <div class="bism">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</div>
+    <h1>Тадаббур: понимание Корана</h1>
+    <p class="sub">Уроки-разборы. Нажми на урок, чтобы открыть его. Новые уроки будут добавляться сюда же.</p>
+  </header>
+
+  <!-- ======================= УРОК 1 ======================= -->
+  <details class="lesson" open>
+    <summary>
+      <div class="badge">Урок<br>1</div>
+      <div class="htext">
+        <div class="t">Сура «Аль-Фатиха» — открывающая Коран</div>
+        <div class="d">Полный разбор суры: от «Аль-хамду…» до «…ва ля-д-даллин»</div>
+      </div>
+      <div class="chev">›</div>
+    </summary>
+    <div class="body">
+
+      <h2><span class="n">§1</span> Зачем читать с пониманием</h2>
+      <p class="lead">Читать «Аль-Фатиху» с пониманием — это не то же самое, что читать её без понимания смысла. Мы повторяем эту суру <span class="fw">17 раз в день</span> — обязательно в каждом ракаате намаза. Понимать её нам необходимо.</p>
+      <p>Эти уроки будут построены вокруг <span class="fw">тадаббура</span> — вдумчивого понимания Корана. Сегодня разбираем «Аль-Фатиху».</p>
+
+      <h2><span class="n">§2</span> Место суры в Коране</h2>
+      <p><span class="fw">«Аль-Фатиха»</span> (الفاتحة — «Открывающая») — первая сура, которую мы встречаем, открыв Коран. Она начинается словами:</p>
+      <div class="ayah">
+        <div class="ar">ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ</div>
+        <div class="tr">Аль-хамду ли-Лляхи Рабби-ль-‘алямин</div>
+        <div class="ru">«Хвала Аллаху, Господу миров»</div>
+      </div>
+      <p>Есть разногласие среди учёных: входит ли «Бисмиллях…» в состав «Аль-Фатихи» или нет. Это большой вопрос, где нельзя просто взять одно мнение и отбросить другое, — поэтому здесь мы его не разбираем и оставляем как есть.</p>
+      <blockquote>Важно различать: <span class="fw">первая по расположению</span> в Коране — «Аль-Фатиха». Но <span class="fw">первая по ниспосланию</span> — другая.</blockquote>
+
+      <h2><span class="n">§3</span> Первое, что было ниспослано: «Читай»</h2>
+      <p>Первой ниспосланной сурой была <span class="fw">«Аль-‘Аляк»</span> (сура «Икра»):</p>
+      <div class="ayah">
+        <div class="ar">ٱقْرَأْ بِٱسْمِ رَبِّكَ ٱلَّذِى خَلَقَ</div>
+        <div class="tr">Икра’ би-сми Раббика ллязи халяк</div>
+        <div class="ru">«Читай во имя Господа твоего, Который сотворил»</div>
+      </div>
+      <p>Первое, что сотворил Аллах, — это <span class="fw">калям</span> (перо). А первое слово, обращённое к человеку, — <span class="fw">«Икра»</span> («Читай»).</p>
+      <blockquote>Между <span class="fw">пером</span> и <span class="fw">«читай»</span> — между письмом и чтением. Мы — умма Пророка ﷺ, умма «Икра»: умма чтения, умма знания. В этом наше отличие.</blockquote>
+
+      <h2><span class="n">§4</span> Адам и ангелы: превосходство знания</h2>
+      <p>Когда Аллах пожелал объяснить ангелам разницу между человеком и остальным творением, Он обучил Адама названиям всех вещей.</p>
+      <ul>
+        <li>Ангелам: «Назовите Мне имена этих вещей». — «Не знаем; знаем лишь то, чему Ты нас научил».</li>
+        <li>Адаму: «Назови им имена этих вещей». — И Адам назвал.</li>
+      </ul>
+      <p>Так ангелы поняли: человек превосходит их, потому что <span class="fw">он знает</span>. Аллах приводит это в Коране, чтобы мы усвоили правило:</p>
+      <div class="callout">Кто лучше знает — тот лучше и делает. Лучше знаешь свою религию → лучше её практикуешь. И так в любой сфере, даже в делах и бизнесе: чем выше уровень знания, тем выше результат.</div>
+
+      <h2><span class="n">§5</span> Короткая жизнь, но большой вес</h2>
+      <p>Жизнь этой уммы коротка — примерно <span class="fw">60–70 лет</span>, гораздо меньше прежних народов (умма Нуха, Адама, Ибрахима ﷺ). Но благодаря знанию один наш час не равен часу других: мы способны за него сделать больше.</p>
+      <p class="note" style="border:none;margin:0">Примечание по фикху: у Абу Ханифы (رحمه الله) есть мнение, что чтение именно «Аль-Фатихи» не обязательно — достаточно любого отрывка Корана в намазе. Это разногласие в фикхе; здесь мы его лишь упоминаем.</p>
+
+      <h2><span class="n">§6</span> Разбор слова «Аль-хамд»: почему не другое?</h2>
+      <p>В этом аяте <span class="fw">пять слов</span>, и каждое стоит на своём месте не случайно. Даже полностью объяснить его до конца невозможно — сколько ни толкуй, глубина остаётся. Посмотрим, почему выбрано именно <span class="fw">«хвала» (аль-хамд)</span>, а не близкие по смыслу слова.</p>
+
+      <div class="word">
+        <div class="ttl"><span class="ar">شُكْر</span><span class="tag">аш-шукр — благодарность</span></div>
+        <p>Шукр — это благодарность <span class="fw">за конкретную милость</span>: за здоровье, за пропитание, за то, что ты жив. «Шукран ляка» — «спасибо тебе за то-то».</p>
+        <div class="verdict no">✗ Не подходит: если сказать «шукру ли-Лляхи», выйдет, что мы благодарим Аллаха только из-за милости — а без милости будто бы и нет. Это сужает смысл.</div>
+      </div>
+
+      <div class="word">
+        <div class="ttl"><span class="ar">مَدْح</span><span class="tag">аль-мадх — похвала</span></div>
+        <p>Мадх — это похвала чему угодно: можно похвалить красивую машину, умного мальчика, хороший дом. То есть применимо и к <span class="fw">разумному, и к неразумному</span>, и к обычным земным вещам.</p>
+        <div class="verdict no">✗ Не подходит: нельзя хвалить Аллаха тем же словом, каким хвалят неодушевлённые вещи.</div>
+      </div>
+
+      <div class="word">
+        <div class="ttl"><span class="ar">حَمْد</span><span class="tag">аль-хамд — хвала</span></div>
+        <p>В словаре у слова «хвала» вы найдёте эти три варианта — но в данном контексте подходит только <span class="fw">аль-хамд</span>. Именно поэтому Коран — книга бесценная: каждое слово точно на своём месте.</p>
+        <div class="verdict yes">✓ Подходит: только это слово выражает совершенную, безусловную хвалу Аллаху.</div>
+      </div>
+
+      <h2><span class="n">§7</span> Почему имя (масдар), а не глагол</h2>
+      <p>Аллах использовал «аль-хамд» как <span class="fw">имя (существительное)</span>, а не как глагол. Причина — в природе глагола:</p>
+      <ul>
+        <li>у глагола есть <span class="fw">время</span>: прошедшее / настоящее / будущее;</li>
+        <li>у глагола есть <span class="fw">действующее лицо</span> — без него глагола нет. «Приехал Усман»: нет Усмана — нет и действия.</li>
+      </ul>
+      <h3>Если бы стоял глагол — смысл ломался бы:</h3>
+      <ul>
+        <li>«хвалил (прош.)» → значит сейчас уже не хвалим;</li>
+        <li>«хвалю (наст.)» → значит в прошлом не хвалил и в будущем не буду;</li>
+        <li>«буду хвалить (буд.)» → значит сейчас и в прошлом не хвалю.</li>
+      </ul>
+      <p>Любое время что-то <span class="fw">исключает</span>. А имя «аль-хамд» охватывает <span class="fw">все времена сразу</span> — хвала непрерывна. Поэтому слово должно быть именем: «аль-хамд», не «аш-шукр» и не «аль-мадх».</p>
+
+      <h2><span class="n">§8</span> «Ли-Лляхи» — почему именно имя «Аллах»</h2>
+      <p>Хвала обращена к имени <span class="fw">«Аллах»</span>, а не к одному из описаний. Если бы стояло, например:</p>
+      <ul>
+        <li>«аль-хамду ли-ш-Шафи» (Дарующему здоровье) → вышло бы, что хвалим Его <span class="fw">только за здоровье</span>;</li>
+        <li>«аль-хамду ли-р-Раззак» (Дарующему пропитание) → только <span class="fw">за пропитание</span>.</li>
+      </ul>
+      <p>Каждое такое имя сузило бы хвалу до одной стороны. Имя <span class="fw">«Аллах»</span> объемлет все качества сразу — поэтому подходит только оно.</p>
+
+      <h2><span class="n">§9</span> «Рабби-ль-‘алямин» — Господь миров</h2>
+      <div class="ayah">
+        <div class="ar">رَبِّ ٱلْعَٰلَمِينَ</div>
+        <div class="tr">Рабби-ль-‘алямин</div>
+        <div class="ru">«Господь миров»</div>
+      </div>
+      <p>«Рабби-ль-‘алямин» идёт как <span class="fw">описание (сифа)</span> к слову «Аллах» — уточняет и раскрывает Его. А описание должно соответствовать имени, которое оно определяет. Так первый аят складывается в цельный, точный смысл:</p>
+      <div class="ayah">
+        <div class="ar">ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ</div>
+        <div class="ru">«Хвала Аллаху, Господу миров»</div>
+      </div>
+
+      <h2><span class="n">§10</span> Ар-Рахман Ар-Рахим · Малики яуми-д-дин</h2>
+      <div class="ayah">
+        <div class="ar">ٱلرَّحْمَٰنِ ٱلرَّحِيمِ ۝ مَٰلِكِ يَوْمِ ٱلدِّينِ</div>
+        <div class="tr">Ар-Рахмани-р-Рахим · Малики яуми-д-дин</div>
+        <div class="ru">«Милостивому, Милосердному · Владыке Дня воздаяния»</div>
+      </div>
+      <p>Первая половина суры — это <span class="fw">описание Аллаха</span>: Достойного хвалы, Господа миров, Милостивого и Милосердного, Владыки Дня воздаяния. А дальше сура поворачивается <span class="fw">к нам</span>: сначала — Кто такой Аллах, а потом — кто мы. Мы — те, кто Ему поклоняется.</p>
+      <p class="note" style="border:none;margin:0">Пометка честности: подробный словесный разбор слов «Ар-Рахман / Ар-Рахим» и «Малики яуми-д-дин» пришёлся на стык двух аудиозаписей и в расшифровку не попал. Сами аяты приведены для полноты суры; толкование по ним не додумывалось.</p>
+
+      <h2><span class="n">§11</span> «Иййака на‘буду» — переход к нам</h2>
+      <div class="ayah">
+        <div class="ar">إِيَّاكَ نَعْبُدُ وَإِيَّاكَ نَسْتَعِينُ</div>
+        <div class="tr">Иййака на‘буду ва иййака наста‘ин</div>
+        <div class="ru">«Тебе одному мы поклоняемся и Тебя одного молим о помощи»</div>
+      </div>
+      <p>Здесь и дальше сура сказана <span class="fw">во множественном числе</span> — «мы», «нас», а не «я». Дуа, сделанное за всех, возвращается благом и к тебе самому: прося за всех верующих, ты просишь и за себя. Этому дуа Аллах научил нас через Пророка ﷺ — как правильно обращаться.</p>
+
+      <h2><span class="n">§12</span> «Ихдина» — веди нас, а не только покажи</h2>
+      <div class="ayah">
+        <div class="ar">ٱهْدِنَا ٱلصِّرَٰطَ ٱلْمُسْتَقِيمَ</div>
+        <div class="tr">Ихдина-с-сирата-ль-мустаким</div>
+        <div class="ru">«Веди нас прямым путём»</div>
+      </div>
+      <p>Мы просим не «покажи нам» и не «укажи», а <span class="fw">веди нас</span> — и веди до конца пути. Почему? Потому что иногда человек <span class="fw">знает истину, но не следует ей</span>: откладывает («потом», «завтра», «я ещё не готов»), боится семьи или народа, ждёт удобного случая. Видеть истину — этого мало.</p>
+      <blockquote>Учитель привёл дуа Пророка ﷺ по смыслу: «О Аллах, покажи мне истину истиной и даруй мне следование ей». То есть просим не только увидеть правду, но и <span class="fw">быть на ней ведомым до конца</span>.</blockquote>
+
+      <h2><span class="n">§13</span> Почему слово «сират», а не «тарик» или «сабиль»</h2>
+      <p>В арабском «путь» можно сказать тремя словами — но выбрано именно <span class="fw">сират</span>:</p>
+      <div class="word">
+        <div class="ttl"><span class="ar">طَرِيق</span><span class="tag">тарик — путь</span></div>
+        <p>Дорога, по которой <span class="fw">ходит много людей</span>, оживлённый путь.</p>
+      </div>
+      <div class="word">
+        <div class="ttl"><span class="ar">سَبِيل</span><span class="tag">сабиль — путь</span></div>
+        <p><span class="fw">Любая</span> тропа — даже та, по которой ходят животные. (Отсюда «ибн сабиль» — путник, странник.)</p>
+      </div>
+      <div class="word">
+        <div class="ttl"><span class="ar">صِرَاط</span><span class="tag">сират — большая дорога</span></div>
+        <p>Главная дорога, <span class="fw">в которую вливаются все остальные</span>. Как большая улица, куда сходятся все маленькие: в конце она одна.</p>
+        <div class="verdict yes">✓ Прямой путь Аллаха — одна дорога, идущая от Аллаха и к Аллаху. Пророк ﷺ описал: вот путь Аллаха, вот путь шайтана — а между ними ничего третьего нет.</div>
+      </div>
+
+      <h2><span class="n">§14</span> Условие быть ведомым: «руководство для богобоязненных»</h2>
+      <p>Чтобы Аллах поставил тебя на прямой путь, одного дуа мало — нужно <span class="fw">подготовить условия</span>. Открой начало суры «Аль-Бакара»:</p>
+      <div class="ayah">
+        <div class="ar">ذَٰلِكَ ٱلْكِتَٰبُ لَا رَيْبَ فِيهِ هُدًى لِّلْمُتَّقِينَ</div>
+        <div class="tr">Заликя-ль-китабу ля райба фихи, худан ли-ль-муттакин</div>
+        <div class="ru">«Это Писание, в котором нет сомнения, — руководство для богобоязненных»</div>
+      </div>
+      <p>Коран ведёт по прямому пути <span class="fw">только того, кто из аль-муттакин</span> (богобоязненных). А кто они — тут же описано:</p>
+      <div class="ayah">
+        <div class="ar">ٱلَّذِينَ يُؤْمِنُونَ بِٱلْغَيْبِ وَيُقِيمُونَ ٱلصَّلَوٰةَ وَمِمَّا رَزَقْنَٰهُمْ يُنفِقُونَ</div>
+        <div class="tr">Аллязина ю’минуна би-ль-гайби ва юкимуна-с-салята ва мимма разакнахум юнфикун</div>
+        <div class="ru">«…которые веруют в сокровенное, совершают намаз и расходуют из того, чем Мы их наделили»</div>
+      </div>
+      <ul>
+        <li><span class="fw">Веруют в сокровенное</span> — сердце готово верить в то, чего не видели (право Аллаха).</li>
+        <li><span class="fw">Совершают намаз</span> — связь раба со своим Господом.</li>
+        <li><span class="fw">Расходуют</span> из данного им — право других людей.</li>
+      </ul>
+      <p>Есть эти качества — ты готов быть из богобоязненных, и тогда можешь просить: «веди нас путём…».</p>
+
+      <h2><span class="n">§15</span> «Путём тех, кого Ты облагодетельствовал»</h2>
+      <div class="ayah">
+        <div class="ar">صِرَٰطَ ٱلَّذِينَ أَنْعَمْتَ عَلَيْهِمْ</div>
+        <div class="tr">Сирата-ллязина ан‘амта ‘аляйхим</div>
+        <div class="ru">«путём тех, кого Ты облагодетельствовал»</div>
+      </div>
+      <p>Путь уточняется ещё раз: не просто прямой, а <span class="fw">путь тех, кому Аллах даровал милость</span> — пророков и праведников. Это даёт мерило: если кто-то заявляет, что он на прямом пути, — сверь его с теми, кого Аллах облагодетельствовал. Есть у него то, что было у пророков и праведников, — тогда за ним можно идти; нет — значит он не из них.</p>
+
+      <h2><span class="n">§16</span> «Не тех, на кого пал гнев, и не заблудших»</h2>
+      <div class="ayah">
+        <div class="ar">غَيْرِ ٱلْمَغْضُوبِ عَلَيْهِمْ وَلَا ٱلضَّآلِّينَ</div>
+        <div class="tr">Гайри-ль-магдуби ‘аляйхим ва ля-д-даллин</div>
+        <div class="ru">«не тех, на кого пал гнев, и не заблудших»</div>
+      </div>
+      <p>Прямой путь противопоставлен двум уклонениям. Учитель связал <span class="fw">«тех, на кого пал гнев» (аль-магдуб ‘аляйхим)</span> с теми, кто <span class="fw">знал истину, но не последовал ей</span> — с этого и начинался разбор «ихдина» (§12); за это на них пал гнев. А <span class="fw">«заблудшие» (ад-даллин)</span> — те, кто сбились с пути.</p>
+      <p class="note" style="border:none;margin:0">По известному разъяснению из хадиса Пророка ﷺ (Ади ибн Хатим) «те, на кого пал гнев» — это иудеи, а «заблудшие» — христиане. Учитель на записи прямо называет для первых «яхуд» (иудеев); по вторым его слова в расшифровке неразборчивы, поэтому даю их как «заблудшие», а привязку к христианам — отдельной пометкой по хадису, не как его прямую цитату.</p>
+
+      <h2><span class="n">§17</span> Наставление в конце: ради чего это всё</h2>
+      <p>В этом мире (<span class="fw">дунья</span>) нет настоящего покоя — <span class="fw">раха</span>: и покой, и радость здесь лишь временны. Поэтому земные дела не должны отвлекать от главной миссии — <span class="fw">поклонения (аль-‘ибада)</span>:</p>
+      <div class="ayah">
+        <div class="ar">وَمَا خَلَقْتُ ٱلْجِنَّ وَٱلْإِنسَ إِلَّا لِيَعْبُدُونِ</div>
+        <div class="tr">Ва ма халякту-ль-джинна ва-ль-инса илля ли-я‘будун</div>
+        <div class="ru">«Я сотворил джиннов и людей только для того, чтобы они поклонялись Мне»</div>
+      </div>
+      <p>А как поклоняться, не понимая основу религии — Коран? Причём для этого <span class="fw">не обязательно знать арабский</span>: сегодня ты понял «Аль-Фатиху» глубже, чем понимает её большинство. Многие лишь <span class="fw">отчитывают</span> Коран в намазе или на мероприятиях, но не берут его как книгу <span class="fw">для размышления (тадаббур)</span> и как книгу, <span class="fw">по которой судят свою жизнь</span>: прежде чем что-то сделать — смотрю, а что об этом сказал Аллах.</p>
+      <blockquote>Пророк ﷺ сказал (передал Муслим): «Кто вступит на путь в поисках знания — тому Аллах облегчит путь в Рай». Пусть этот путь, который мы начали сегодня, станет для нас путём в Рай.</blockquote>
+      <p>Замысел учителя: идти дальше, разбирая Коран слово за словом — если получится, весь; если нет, то хотя бы <span class="fw">к Рамадану</span> пройти его так, чтобы, читая, размышлять над каждым словом, а не просто проговаривать.</p>
+
+      <div class="callout" style="margin-top:22px">
+        <h3 style="margin-top:0">Итог урока</h3>
+        <ul style="margin-bottom:0">
+          <li>«Аль-Фатиха» — первая по расположению; «Аль-‘Аляк» («Икра») — первая по ниспосланию. Первое творение — <span class="fw">перо</span>, первое слово — <span class="fw">«Читай»</span>.</li>
+          <li>Знание поднимает уровень человека — в религии и в любом деле; мы — умма знания.</li>
+          <li>Выбрано <span class="fw">«аль-хамд»</span> (не шукр, не мадх) и в форме <span class="fw">имени</span> — чтобы хвала была полной и вне времени; обращена к имени <span class="fw">«Аллах»</span>.</li>
+          <li>Первая половина суры — описание Аллаха; со слов <span class="fw">«Иййака на‘буду»</span> сура поворачивается к нам, и дальше — во множественном числе.</li>
+          <li>Просим <span class="fw">«веди нас»</span>, а не «покажи»: знать истину мало — нужно за ней следовать.</li>
+          <li>Слово <span class="fw">«сират»</span> — одна большая дорога от Аллаха и к Аллаху; вести по ней Аллах будет <span class="fw">богобоязненного</span> (условия из «Аль-Бакара»).</li>
+          <li>Это путь <span class="fw">облагодетельствованных</span> (пророков и праведников) — не тех, на кого пал гнев, и не заблудших.</li>
+          <li>Цель курса: читать Коран, размышляя над каждым словом (тадаббур), а не просто проговаривать.</li>
+        </ul>
+      </div>
+
+      <p class="note">Материал восстановлен из двух аудиозаписей урока (авторасшифровка была неполной, с зацикленными повторами и ошибками в передаче арабских слов). Аяты приведены по тексту Корана; транслитерация — к общепринятому виду. Смыслы переданы по словам учителя; где запись неразборчива или это спорный вопрос — отмечено отдельно, без домысливания и без вынесения решений.</p>
+
+    </div>
+  </details>
+  <!-- ===================== /УРОК 1 ======================= -->
+
+  <!-- Шаблон для будущих уроков: скопируй блок ниже, убери data-locked и заполни .body -->
+  <details class="lesson" data-locked>
+    <summary>
+      <div class="badge">Урок<br>2</div>
+      <div class="htext">
+        <div class="t">Скоро…</div>
+        <div class="d">Следующий урок появится здесь</div>
+      </div>
+      <div class="chev">›</div>
+    </summary>
+    <div class="body"><p class="note" style="border:none">Урок ещё не добавлен.</p></div>
+  </details>
+
+  <p class="note" style="text-align:center;border:none">Курс пополняется. Каждый новый урок — отдельная раскрывающаяся карточка.</p>
+</div>
+
+<script>
+  // блокируем открытие "закрытых" уроков
+  document.querySelectorAll('.lesson[data-locked]').forEach(function(d){
+    d.querySelector('summary').addEventListener('click',function(e){e.preventDefault();});
+  });
+</script>

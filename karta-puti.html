@@ -2315,8 +2315,8 @@ function makeInitial() {
     moneyHistory: [],   // [{id, date, amount, note}]
     relapseCount: 0,        // количество срывов всего
     lastRelapseDate: null,  // дата последнего срыва
-    perfectWeekStreak: 0,       // идеальных недель подряд (искупление срывов)
-    lastWeekCheckDate: today(), // до какой даты уже оценены недели
+    rehabAnchor: null,          // purityDate, к которому привязаны зачёты рубежей
+    rehabLastMilestone: 0,      // последний зачтённый рубеж воздержания (в днях)
     activeContract: null,        // текущий активный контракт
     pendingContract: null,       // контракт ожидающий ответа (24ч)
     contractSeals: [],           // [{rank,sphereId,earnedDate,stageId}]
@@ -2724,8 +2724,11 @@ function load() {
   if (!state.moneyHistory) state.moneyHistory = [];
   if (state.relapseCount === undefined) state.relapseCount = 0;
   if (state.lastRelapseDate === undefined) state.lastRelapseDate = null;
-  if (state.perfectWeekStreak === undefined) state.perfectWeekStreak = 0;
-  if (state.lastWeekCheckDate === undefined) state.lastWeekCheckDate = today();
+  if (state.rehabAnchor === undefined) state.rehabAnchor = null;
+  if (state.rehabLastMilestone === undefined) state.rehabLastMilestone = 0;
+  // Чистка полей удалённой механики «идеальных недель»
+  delete state.perfectWeekStreak;
+  delete state.lastWeekCheckDate;
   if (!state.contractSeals) state.contractSeals = [];
   if (state.activeContract === undefined) state.activeContract = null;
   if (state.pendingContract === undefined) state.pendingContract = null;
@@ -2776,8 +2779,7 @@ function load() {
   // Гарантируем что обязательные задачи всегда есть
   ensureMandatoryTasks();
   state.history.forEach(h => { if (!h.taskKey) h.taskKey = null; });
-  checkRelapseRehab();
-  checkPerfectWeekRehab();
+  if (checkRelapseRehab()) save();
   render();
 }
 function save() {
@@ -4913,18 +4915,29 @@ function buildMonthBar() {
 }
 
 // ── Механика срывов ──────────────────────────────────────────────────────────
+// Рубежи воздержания: на каждом списывается по 3 срыва. 7 дней — без списания.
+var REHAB_MILESTONES = [30, 60, 90, 180, 365, 500, 730, 1095];
+var REHAB_REMOVE_PER_MILESTONE = 3;
+
 function checkRelapseRehab() {
-  if (!state.purityDate || !state.relapseCount || state.relapseCount <= 0) return false;
+  if (!state.purityDate) { state.rehabAnchor = null; state.rehabLastMilestone = 0; return false; }
+  // Новый чистый путь → сбрасываем зачёт рубежей
+  if (state.rehabAnchor !== state.purityDate) {
+    state.rehabAnchor = state.purityDate;
+    state.rehabLastMilestone = 0;
+  }
+  if (!state.relapseCount || state.relapseCount <= 0) return false;
   const cleanDays = Math.floor((new Date() - new Date(state.purityDate)) / 86400000);
   if (cleanDays <= 0) return false;
   var changed = false;
-  if (cleanDays >= 365) {
-    state.relapseCount = 0;
-    changed = true;
-  } else if (cleanDays > 0 && cleanDays % 30 === 0) {
-    state.relapseCount = Math.max(0, state.relapseCount - 1);
-    changed = true;
-  }
+  // Зачитываем все пройденные рубежи, которые ещё не были засчитаны
+  REHAB_MILESTONES.forEach(function(m) {
+    if (cleanDays >= m && m > (state.rehabLastMilestone || 0) && (state.relapseCount || 0) > 0) {
+      state.relapseCount = Math.max(0, state.relapseCount - REHAB_REMOVE_PER_MILESTONE);
+      state.rehabLastMilestone = m;
+      changed = true;
+    }
+  });
   return changed;
 }
 
@@ -4932,82 +4945,10 @@ function handleRelapse() {
   if (!state.relapseCount) state.relapseCount = 0;
   state.relapseCount = Math.min(30, state.relapseCount + 1);
   state.lastRelapseDate = today();
-  // Срыв обнуляет прогресс искупления и перезапускает счётчик недель
-  state.perfectWeekStreak = 0;
-  state.lastWeekCheckDate = today();
   const pct = state.relapseCount;
   view.relapseNotif = { count: pct };
   save();
   render();
-}
-
-// ── Искупление через идеальные недели ──────────────────────────────────────────
-// Идеальная неделя = за 7 дней закрыт весь недельный план по всем активным сферам:
-// ни одного пропущенного намаза (5 фард × 7 дней), план тренировок/работы/навыков, недельный PnL.
-// 2 идеальные недели подряд → −1 срыв.
-function wasPerfectWeek(startISO, endISO) {
-  var active = getActiveSpheres().map(function(s){ return s.id; });
-  var hist = state.history.filter(function(h){ return h.date >= startISO && h.date <= endISO; });
-
-  // Религия: каждый из 7 дней — все 5 обязательных намазов (фард)
-  if (active.indexOf('religion') !== -1) {
-    var fard = ['religion_fajr','religion_dhuhr','religion_asr','religion_maghrib','religion_isha'];
-    for (var i = 0; i < 7; i++) {
-      var d = contractAddDays(startISO, i);
-      var okDay = fard.every(function(k){ return hist.some(function(h){ return h.taskKey === k && h.date === d; }); });
-      if (!okDay) return false;
-    }
-  }
-  // Тело: число тренировок за неделю ≥ план
-  if (active.indexOf('body') !== -1) {
-    var bs = state.bodySettings || { weeklyCount: 3 };
-    var trainings = hist.filter(function(h){ return h.sphere === 'body'; }).length;
-    if (trainings < bs.weeklyCount) return false;
-  }
-  // Карьера: часы за неделю ≥ рабочие дни × часов в день
-  if (active.indexOf('career') !== -1) {
-    var cs = state.careerSettings || { workDaysPerWeek: 5, hoursPerDay: 8 };
-    var careerHrs = hist.filter(function(h){ return h.sphere === 'career'; }).reduce(function(s,h){ return s + (h.hours||0); }, 0);
-    if (careerHrs < cs.workDaysPerWeek * cs.hoursPerDay) return false;
-  }
-  // Навыки: часы за неделю ≥ сумма плановых часов
-  if (active.indexOf('skills') !== -1) {
-    var totalHPW = (state.skills || []).reduce(function(s,sk){ return s + (sk.hoursPerWeek||0); }, 0);
-    if (totalHPW > 0) {
-      var skillHrs = hist.filter(function(h){ return h.sphere === 'skills'; }).reduce(function(s,h){ return s + (h.hours||0); }, 0);
-      if (skillHrs < totalHPW) return false;
-    }
-  }
-  // Финансы: недельный PnL записан хотя бы раз
-  if (active.indexOf('money') !== -1) {
-    if (!hist.some(function(h){ return h.taskKey === 'money_weekly_pnl'; })) return false;
-  }
-  return true;
-}
-
-function checkPerfectWeekRehab() {
-  if (!state || !state.onboardingDone) return false;
-  if (!state.lastWeekCheckDate) state.lastWeekCheckDate = today();
-  var changed = false;
-  // Оцениваем только полностью прошедшие недели (winEnd строго до сегодня,
-  // чтобы незавершённый текущий день не помечал неделю неидеальной раньше времени)
-  while (daysBetween(state.lastWeekCheckDate, today()) >= 8) {
-    var winStart = contractAddDays(state.lastWeekCheckDate, 1);
-    var winEnd = contractAddDays(state.lastWeekCheckDate, 7);
-    // Копим стрик только если есть что искупать (без «банкования» прощений наперёд)
-    if ((state.relapseCount || 0) > 0 && wasPerfectWeek(winStart, winEnd)) {
-      state.perfectWeekStreak = (state.perfectWeekStreak || 0) + 1;
-    } else {
-      state.perfectWeekStreak = 0;
-    }
-    state.lastWeekCheckDate = winEnd;
-    if (state.perfectWeekStreak >= 2 && (state.relapseCount || 0) > 0) {
-      state.relapseCount = Math.max(0, state.relapseCount - 1);
-      state.perfectWeekStreak = 0;
-      changed = true;
-    }
-  }
-  return changed;
 }
 
 // ── Система контрактов ────────────────────────────────────────────────────────
@@ -7829,7 +7770,8 @@ function renderSphereModal() {
     const rcCount = state.relapseCount || 0;
     const rcColor = rcCount === 0 ? '#6a5a8a' : rcCount <= 10 ? '#FFAA00' : rcCount <= 20 ? '#FF7A3C' : '#FF3D3D';
     const cleanDaysForInfo = purity ? Math.floor((new Date() - new Date(purity)) / 86400000) : 0;
-    const daysToNext = Math.max(0, 30 - (cleanDaysForInfo % 30));
+    const nextMs = REHAB_MILESTONES.find(function(m){ return m > cleanDaysForInfo; });
+    const daysToNext = nextMs ? nextMs - cleanDaysForInfo : 0;
     purityHtml += '<div style="margin-top:12px;display:flex;align-items:center;justify-content:space-between;">'
       + '<div onclick="window.__app.toggleRelapseInfo()" style="display:flex;align-items:center;gap:5px;padding:5px 9px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:8px;cursor:pointer;">'
       + '<span style="font-size:10px">💀</span>'
@@ -7846,14 +7788,13 @@ function renderSphereModal() {
         + '<div><div style="font-size:11px;color:#fff;font-weight:700;margin-bottom:2px">Максимальный штраф</div>'
         + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5">Штраф не превысит <b style="color:#ff5050">+30%</b> — путь останется проходимым.</div></div></div>'
         + '<div style="display:flex;gap:8px;margin-bottom:8px;"><div style="font-size:16px;flex-shrink:0">🌱</div>'
-        + '<div><div style="font-size:11px;color:#fff;font-weight:700;margin-bottom:2px">Путь 1 — воздержание</div>'
-        + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5">Каждые <b style="color:#10E891">30 дней чистоты</b> списывается <b style="color:#10E891">1 срыв</b>. Год без срывов — <b style="color:#10E891">полная амнистия</b>.</div></div></div>'
-        + '<div style="display:flex;gap:8px;margin-bottom:8px;"><div style="font-size:16px;flex-shrink:0">🔥</div>'
-        + '<div><div style="font-size:11px;color:#fff;font-weight:700;margin-bottom:2px">Путь 2 — идеальные недели</div>'
-        + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5"><b style="color:#10E891">2 идеальные недели подряд</b> списывают <b style="color:#10E891">1 срыв</b>. Неделя идеальна если закрыт весь план: ноль пропущенных намазов + тренировки, работа, навыки и PnL по плану.</div></div></div>'
+        + '<div><div style="font-size:11px;color:#fff;font-weight:700;margin-bottom:2px">Как снять штраф — воздержание</div>'
+        + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5">На каждом рубеже чистоты списывается <b style="color:#10E891">3 срыва</b>: <b style="color:#10E891">30, 60, 90, 180, 365</b> дней и дальше. Первые <b style="color:#fff">7 дней</b> — без списания.</div></div></div>'
         + '<div style="display:flex;gap:8px;"><div style="font-size:16px;flex-shrink:0">⏱</div>'
         + '<div><div style="font-size:11px;color:#fff;font-weight:700;margin-bottom:2px">Прогресс искупления</div>'
-        + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5">Воздержание: <b style="color:#fff">' + cleanDaysForInfo + ' дн</b> · до списания <b style="color:#10E891">' + daysToNext + ' дн</b>.<br>Идеальных недель подряд: <b style="color:#10E891">' + (state.perfectWeekStreak || 0) + '/2</b> · текущая неделя <b style="color:#fff">' + Math.min(7, daysBetween(state.lastWeekCheckDate || today(), today())) + '/7 дн</b>.</div></div></div>'
+        + '<div style="font-size:10px;color:#6a5a8a;line-height:1.5">Чистота: <b style="color:#fff">' + cleanDaysForInfo + ' дн</b>. '
+        + (nextMs ? 'Рубеж <b style="color:#10E891">' + nextMs + ' дн</b> через <b style="color:#10E891">' + daysToNext + ' дн</b> → <b style="color:#10E891">−3 срыва</b>.' : 'Все рубежи пройдены.')
+        + '</div></div></div>'
         + '</div>';
     }
 
@@ -8892,7 +8833,6 @@ window.__app = {
     state.purityDate = el.value;
     view.purityEditing = false;
     checkRelapseRehab();
-    checkPerfectWeekRehab();
     save(); render();
     showToast('☽ Отсчёт начат', '#A78BFA');
   },

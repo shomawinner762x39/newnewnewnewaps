@@ -86,6 +86,31 @@
   .toggle{position:fixed;top:14px;right:14px;background:var(--card);border:1px solid var(--line);color:var(--ink);
           border-radius:20px;padding:7px 13px;font-size:13px;cursor:pointer;z-index:5}
   .fw{font-weight:700}
+
+  /* ---- Тест ---- */
+  .lesson.quiz .badge{background:var(--gold)}
+  .qscore{position:sticky;top:0;z-index:2;background:var(--card);border:1px solid var(--line);border-radius:12px;
+          padding:10px 14px;margin:6px 0 16px;font-weight:700;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+  .qscore .bar{flex:1;min-width:120px;height:8px;background:var(--line);border-radius:5px;overflow:hidden}
+  .qscore .bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+  .q{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:14px 0;background:var(--card)}
+  .q .qq{font-weight:700;margin-bottom:10px}
+  .q .qq .num{color:var(--gold);margin-right:6px}
+  .opt{display:block;width:100%;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);
+       border-radius:10px;padding:11px 14px;margin:7px 0;cursor:pointer;font:inherit;transition:.15s;line-height:1.4}
+  .opt:hover:not(:disabled){border-color:var(--accent)}
+  .opt:disabled{cursor:default}
+  .opt.correct{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+  .opt.wrong{background:rgba(194,65,12,.12);border-color:#c2410c}
+  .opt .mk{float:right;font-weight:800}
+  .opt.correct .mk{color:var(--accent)}
+  .opt.wrong .mk{color:#c2410c}
+  .expl{margin-top:8px;font-size:14.5px;color:var(--muted);border-left:3px solid var(--gold);padding:6px 12px;background:var(--gold-soft);border-radius:0 8px 8px 0;display:none}
+  .expl.show{display:block}
+  .qtag{font-size:12px;color:var(--muted);font-weight:600}
+  .qreset{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:20px;padding:8px 16px;cursor:pointer;font:inherit;margin-top:6px}
+  .qfinal{border-radius:14px;padding:18px;margin-top:16px;text-align:center;font-weight:700;display:none}
+  .qfinal.show{display:block}
 </style>
 
 <button class="toggle" onclick="(function(){var r=document.documentElement;var d=(r.getAttribute('data-theme')||(matchMedia('(prefers-color-scheme:dark)').matches?'dark':'light'))==='dark';r.setAttribute('data-theme',d?'light':'dark')})()">🌓 тема</button>
@@ -721,6 +746,28 @@
   </details>
   <!-- ===================== /УРОК 5 ======================= -->
 
+  <!-- ======================= ТЕСТ ======================= -->
+  <details class="lesson quiz" id="quiz">
+    <summary>
+      <div class="badge">Тест</div>
+      <div class="htext">
+        <div class="t">Проверь себя — уроки 1–5</div>
+        <div class="d">20 вопросов по сурам «Аль-Фатиха», «Аль-Ихлас», «Аль-Фаляк», таухиду и «Аль-Масад»</div>
+      </div>
+      <div class="chev">›</div>
+    </summary>
+    <div class="body">
+      <div class="qscore">
+        <span id="qscoreText">Отвечено 0 / 20 · верно 0</span>
+        <span class="bar"><i id="qscoreBar"></i></span>
+      </div>
+      <div id="qlist"></div>
+      <div class="qfinal" id="qfinal"></div>
+      <div style="text-align:center"><button class="qreset" id="qreset">Пройти заново</button></div>
+    </div>
+  </details>
+  <!-- ===================== /ТЕСТ ======================= -->
+
   <details class="lesson" data-locked>
     <summary>
       <div class="badge">Урок<br>6</div>
@@ -741,4 +788,135 @@
   document.querySelectorAll('.lesson[data-locked]').forEach(function(d){
     d.querySelector('summary').addEventListener('click',function(e){e.preventDefault();});
   });
+
+  // ===== Тест =====
+  var QUIZ = [
+    {l:"Урок 1 · Аль-Фатиха", q:"Почему в аяте выбрано слово «аль-хамд», а не «шукр»?",
+     o:["«Шукр» — благодарность лишь за конкретную милость, это сужает смысл","«Шукр» вообще не арабское слово","Между ними нет разницы"], a:0,
+     e:"Шукр — благодарность за конкретную милость; хвала Аллаху не должна ограничиваться одной причиной."},
+    {l:"Урок 1 · Аль-Фатиха", q:"«Аль-Фатиха» — первая сура по…",
+     o:["по ниспосланию","по расположению в Коране (первая по ниспосланию — «Аль-Аляк»)","и по тому, и по другому"], a:1,
+     e:"Первая по расположению — «Аль-Фатиха»; первая по ниспосланию — «Аль-Аляк» («Икра»)."},
+    {l:"Урок 1 · Аль-Фатиха", q:"Почему «аль-хамд» стоит как имя, а не как глагол?",
+     o:["Так короче","Глагол привязан ко времени, а имя охватывает хвалу во все времена","Чтобы было красивее звучание"], a:1,
+     e:"Любое время у глагола что-то исключает; имя «аль-хамд» означает непрерывную хвалу."},
+    {l:"Урок 1 · Аль-Фатиха", q:"Чем «сират» отличается от «тарик» и «сабиль»?",
+     o:["«Сират» — тропа для животных","«Сират» — большая дорога, в которую вливаются все остальные","«Сират» — самый узкий путь"], a:1,
+     e:"Сират — главная дорога, куда сходятся все пути; одна дорога от Аллаха и к Аллаху."},
+
+    {l:"Урок 2 · Аль-Ихлас", q:"В чём разница между «ахад» и «вахид»?",
+     o:["После «вахид» можно продолжить счёт, а «ахад» — Единственный, без счёта","Это одно и то же слово","«Ахад» значит «первый»"], a:0,
+     e:"После «один» (вахид) идёт два, три… А «ахад» — Единственный, второго нет и быть не может."},
+    {l:"Урок 2 · Аль-Ихлас", q:"Чтение суры «Аль-Ихлас» приравнено к…",
+     o:["половине Корана","трети Корана","всему Корану за один раз"], a:1,
+     e:"Она равна трети Корана, потому что целиком о таухиде (Коран делится на таухид, истории пророков и шариат)."},
+    {l:"Урок 2 · Аль-Ихлас", q:"Что означает имя «ас-Самад»?",
+     o:["Создатель","Самодостаточный — ни в ком не нуждается, а всё нуждается в Нём","Богатый"], a:1,
+     e:"Ас-Самад: Он не ест, не пьёт, ни в чём не нуждается; всё нуждается в Нём."},
+    {l:"Урок 2 · Аль-Ихлас", q:"Какие три вопроса задают человеку в могиле?",
+     o:["Сколько ты молился, постился, раздал","Кто твой Господь? Кто твой Пророк? Какая у тебя религия?","Кем ты работал и сколько у тебя денег"], a:1,
+     e:"Знание Господа, Пророка и своей религии — это и есть суть таухида."},
+
+    {l:"Урок 3 · Аль-Фаляк", q:"По какому случаю были ниспосланы «Аль-Фаляк» и «Ан-Нас»?",
+     o:["Когда на Пророка ﷺ навели колдовство (сихр)","После битвы при Бадре","При переселении в Медину"], a:0,
+     e:"Их читали ангелы над Пророком ﷺ; колдовство было спрятано в колодце и уничтожено."},
+    {l:"Урок 3 · Аль-Фаляк", q:"Почему сказано «Господь рассвета», а не ночи или дня?",
+     o:["Рассвет красивее","Всё зло в суре связано с темнотой, а рассвет её рассеивает","Так проще запомнить"], a:1,
+     e:"Прибегают к защите у Того, Кто способен помочь именно против этого зла — тьмы."},
+    {l:"Урок 3 · Аль-Фаляк", q:"Когда употребляется глагол «а‘узу» (прибегаю)?",
+     o:["Когда сам можешь справиться со злом","Когда ты бессилен отвести зло сам","В любых просьбах"], a:1,
+     e:"А‘узу — прибежище там, где человек бессилен, и помочь может только Аллах."},
+    {l:"Урок 3 · Аль-Фаляк", q:"Почему ночь («мрак, когда наступает») выделена отдельно?",
+     o:["Это самое опасное время","Ночью холоднее","Ночь не входит в творения Аллаха"], a:0,
+     e:"Выделение = указание на самое опасное; беды ночью тяжелее (нет врачей и т.п.)."},
+
+    {l:"Урок 4 · Таухид", q:"Что человек должен изучить в первую очередь?",
+     o:["Правила таджвида","Таухид (акиду)","Истории пророков"], a:1,
+     e:"Сначала таухид; сподвижники в Мекке ~10 лет работали только над единобожием."},
+    {l:"Урок 4 · Таухид", q:"Что такое уровень «аль-Ихсан»?",
+     o:["Много раздавать милостыню","Поклоняться Аллаху так, будто ты Его видишь; а если не видишь — Он видит тебя","Читать Коран наизусть"], a:1,
+     e:"Ихсан — поклонение с ощущением постоянного взгляда Аллаха."},
+    {l:"Урок 4 · Таухид", q:"В чём разница между Исламом и Иманом?",
+     o:["Это одно и то же","Ислам виден (намаз, пост…), Иман сокровенен (вера в Аллаха, ангелов…)","Иман — только для учёных"], a:1,
+     e:"Иман связан с сердцем (духовное), Ислам проявляется физически."},
+    {l:"Урок 4 · Таухид", q:"Сколько «встреч» в день назначил Аллах через намаз?",
+     o:["Три","Пять","Столько, сколько захочешь"], a:1,
+     e:"Пять обязательных намазов — назначенные Аллахом аудиенции; сверх них — сколько угодно."},
+    {l:"Урок 4 · Таухид", q:"Чем прежде всего раб приближается к Аллаху?",
+     o:["Добровольными делами (навафиль)","Тем, что Аллах сделал обязательным (фараид)","Постом в понедельник и четверг"], a:1,
+     e:"Сначала фараид — лучшее средство; затем навафиль приближают ещё больше."},
+
+    {l:"Урок 5 · Аль-Масад", q:"О ком сура «Аль-Масад»?",
+     o:["О дяде Пророка ﷺ Абу Ляхабе","Об Абу Бакре","О Фараоне"], a:0,
+     e:"Абу Ляхаб (Абд аль-Узза) — дядя Пророка ﷺ, восставший против него."},
+    {l:"Урок 5 · Аль-Масад", q:"Сколько верблюдов составляет «дия» (выкуп за убитого)?",
+     o:["10","50","100"], a:2,
+     e:"Отсюда и пошло: 100 верблюдов — по истории выкупа Абдуллаха, отца Пророка ﷺ."},
+    {l:"Урок 5 · Аль-Масад", q:"Главный урок суры «Аль-Масад»?",
+     o:["Богатство защищает от наказания","Ничто не спасает, кроме сделанного ради Аллаха (искренность, таухид)","Родство с Пророком ﷺ гарантирует спасение"], a:1,
+     e:"Даже дяде Пророка ﷺ не помогли ни богатство, ни дети, ни знатность — Аллах Справедлив."}
+  ];
+
+  (function(){
+    var list=document.getElementById('qlist');
+    if(!list) return;
+    var total=QUIZ.length, answered=0, correct=0;
+    var scoreText=document.getElementById('qscoreText'), bar=document.getElementById('qscoreBar'), fin=document.getElementById('qfinal');
+
+    function updateScore(){
+      scoreText.textContent='Отвечено '+answered+' / '+total+' · верно '+correct;
+      bar.style.width=(answered/total*100)+'%';
+      if(answered===total){
+        var pct=Math.round(correct/total*100), msg, col;
+        if(pct>=85){msg='Отлично, машаллах! '+correct+' из '+total;col='var(--accent-soft)';}
+        else if(pct>=60){msg='Хорошо — '+correct+' из '+total+'. Повтори отмеченные места.';col='var(--gold-soft)';}
+        else {msg='Стоит перечитать уроки: '+correct+' из '+total+'.';col='rgba(194,65,12,.12)';}
+        fin.textContent=msg; fin.style.background=col; fin.classList.add('show');
+        fin.scrollIntoView({behavior:'smooth',block:'center'});
+      }
+    }
+
+    QUIZ.forEach(function(item,qi){
+      var q=document.createElement('div'); q.className='q';
+      var tag=document.createElement('div'); tag.className='qtag'; tag.textContent=item.l; q.appendChild(tag);
+      var qq=document.createElement('div'); qq.className='qq';
+      qq.innerHTML='<span class="num">'+(qi+1)+'.</span>'+item.q; q.appendChild(qq);
+      var expl=document.createElement('div'); expl.className='expl'; expl.textContent=item.e;
+      item.o.forEach(function(text,oi){
+        var b=document.createElement('button'); b.className='opt'; b.textContent=text;
+        b.addEventListener('click',function(){
+          if(q.dataset.done) return;
+          q.dataset.done='1'; answered++;
+          var opts=q.querySelectorAll('.opt');
+          opts.forEach(function(x){x.disabled=true;});
+          if(oi===item.a){ b.classList.add('correct'); b.innerHTML+='<span class="mk">✓</span>'; correct++; }
+          else{
+            b.classList.add('wrong'); b.innerHTML+='<span class="mk">✗</span>';
+            var right=opts[item.a]; right.classList.add('correct'); right.innerHTML+='<span class="mk">✓</span>';
+          }
+          expl.classList.add('show');
+          updateScore();
+        });
+        q.appendChild(b);
+      });
+      q.appendChild(expl);
+      list.appendChild(q);
+    });
+
+    document.getElementById('qreset').addEventListener('click',function(){
+      answered=0; correct=0; fin.classList.remove('show');
+      list.querySelectorAll('.q').forEach(function(q){
+        delete q.dataset.done;
+        q.querySelectorAll('.opt').forEach(function(b){
+          b.disabled=false; b.classList.remove('correct','wrong');
+          var mk=b.querySelector('.mk'); if(mk) mk.remove();
+        });
+        q.querySelector('.expl').classList.remove('show');
+      });
+      updateScore();
+      document.getElementById('quiz').scrollIntoView({behavior:'smooth',block:'start'});
+    });
+
+    updateScore();
+  })();
 </script>

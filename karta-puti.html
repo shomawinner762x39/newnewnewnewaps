@@ -3408,21 +3408,6 @@ function renderOnboarding() {
 
       <div style="margin-bottom:14px;">${sphereRows}</div>
 
-      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:12px;margin-bottom:10px;">
-        <div style="font-size:11px;color:#A78BFA;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px;">🌙 Сон и питание — трекинг без влияния на этапы</div>
-        <div style="display:flex;gap:10px;margin-bottom:6px;">
-          <div style="flex:1;background:rgba(167,139,250,0.08);border-radius:8px;padding:9px;">
-            <div style="font-size:12px;color:#fff;font-weight:600;margin-bottom:3px;">Сон</div>
-            <div style="font-size:11px;color:#8870a8;line-height:1.5;">Цель — 8ч/ночь. Приложение предложит отметить сон каждое утро. Статистика видна на вкладке Путь.</div>
-          </div>
-          <div style="flex:1;background:rgba(167,139,250,0.08);border-radius:8px;padding:9px;">
-            <div style="font-size:12px;color:#fff;font-weight:600;margin-bottom:3px;">Питание</div>
-            <div style="font-size:11px;color:#8870a8;line-height:1.7;"><strong style="color:#d0c0e8;">3 приёма пищи × 1ч = 3ч/день</strong> — учтено в нижнем баре автоматически (еда + поход в магазин/кафе). За месяц (31 день) = <strong style="color:#d0c0e8;">93ч</strong>.<br><strong style="color:#d0c0e8;">Каждый отмеченный намаз = 10 мин</strong> в нижнем баре. Пропустил — не считается. 7 намазов/день = <strong style="color:#d0c0e8;">1.17ч/день</strong> (≈36ч/мес) — только если отметил.</div>
-          </div>
-        </div>
-        <div style="font-size:11px;color:#555;text-align:center;">Сон и питание видны в статистике, но <strong style="color:#6a5a8a;">не открывают этапы</strong></div>
-      </div>
-
       <div style="background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:12px;padding:12px;margin-bottom:18px;">
         <div style="font-size:11px;color:#A78BFA;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:6px;">🔓 Что открывает следующий этап</div>
         <div style="font-size:12px;color:#d0c0e8;line-height:1.7;">
@@ -3495,20 +3480,7 @@ function renderApp() {
     const subText = daysSinceLast === null ? 'Ты ещё ни разу не сохранял бэкап' : daysSinceLast === 1 ? 'Прошёл 1 день с последнего бэкапа' : `Прошло ${daysSinceLast} ${plural(daysSinceLast, 'день', 'дня', 'дней')} с последнего бэкапа`;
     banner = `<div style="background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(167,139,250,0.1)); border-bottom: 1px solid rgba(0,229,255,0.3); padding: 14px 18px; display: flex; align-items: center; gap: 12px; animation: slide-down 0.4s;"><div style="font-size: 24px; flex-shrink: 0; text-shadow: 0 0 8px rgba(0,229,255,0.6);">💾</div><div style="flex: 1; min-width: 0;"><div style="font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 2px;">Сделай бэкап</div><div style="font-size: 11px; color: #b0a0d0; line-height: 1.4;">${subText}.</div></div><button onclick="window.__app.backupAndMark()" style="background: linear-gradient(135deg, #00E5FF, #A78BFA); color: #000; border: none; border-radius: 10px; padding: 10px 14px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; flex-shrink: 0; box-shadow: 0 0 16px rgba(0,229,255,0.5);">↓ Скачать</button><button onclick="window.__app.dismissBanner()" title="Скрыть до завтра" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #b0a0d0; cursor: pointer; padding: 0; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; flex-shrink: 0;">✕</button></div>`;
   }
-  // 🌙 Утренний баннер сна
-  const sleepPrompt = checkSleepPrompt();
-  if (sleepPrompt) {
-    banner += `<div style="background: linear-gradient(135deg, rgba(167,139,250,0.18), rgba(10,6,40,0.5)); border-bottom: 1px solid rgba(167,139,250,0.35); padding: 14px 18px; display: flex; align-items: center; gap: 12px; animation: slide-down 0.4s;">
-      <div style="font-size: 26px; flex-shrink: 0; text-shadow: 0 0 12px rgba(167,139,250,0.7);">🌙</div>
-      <div style="flex: 1; min-width: 0;">
-        <div style="font-size: 13px; color: #fff; font-weight: 600; margin-bottom: 2px;">Похоже, ты спал ~${fmtDur(sleepPrompt.hours)}</div>
-        <div style="font-size: 11px; color: #b0a0d0; line-height: 1.4;">с ${fmtHM(sleepPrompt.bedtime)} до ${fmtHM(sleepPrompt.wake)} · записать?</div>
-      </div>
-      <button onclick="window.__app.sleepAcceptPrompt()" style="background: linear-gradient(135deg, #A78BFA, #FF4DD8); color: #fff; border: none; border-radius: 10px; padding: 9px 12px; font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; flex-shrink: 0;">✓ Да</button>
-      <button onclick="window.__app.sleepEditPrompt()" title="Изменить" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.15); color: #e8d5a8; cursor: pointer; padding: 0; width: 36px; height: 36px; border-radius: 50%; font-size: 13px; flex-shrink: 0;">✎</button>
-      <button onclick="window.__app.sleepDismissPrompt()" title="Не сегодня" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #b0a0d0; cursor: pointer; padding: 0; width: 28px; height: 28px; border-radius: 50%; font-size: 14px; flex-shrink: 0;">✕</button>
-    </div>`;
-  }
+  // Утренний баннер сна удалён — сон не отслеживается
 
   const header = `<div style="padding: 18px 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.06); position:relative; overflow:hidden;">
     <div id="guts-eyes" style="position:absolute;inset:0;background-image:var(--guts-bg);background-size:cover;background-position:center 28%;opacity:0.7;transform:scale(1.08) translate(0%,0%);"></div>
@@ -4824,34 +4796,7 @@ function buildMonthBar() {
   // Для режима 'stage' — _dateFilter уже содержит нужный фильтр по дате старта этапа
   var _fpPeriod = mode === 'month' ? 'month' : 'all';
 
-  // Сон (своя коллекция, filterByPeriod не подходит — фильтруем вручную)
-  var _sleepH = (state.sleep && state.sleep.entries || [])
-    .filter(function(e){ return _dateFilter(e.date); })
-    .reduce(function(s,e){ return s + (e.hours || 0); }, 0);
-
-  // Питание: 3 раза × 0.5ч = 1.5ч/день
-  // current = прошедшие дни × 1.5 (плавно растёт каждый день)
-  // target  = все дни периода × 1.5
-  var _periodDays = Math.round(_tot / 24); // полный период
-  var _todayStr = (function(){ var d=new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); })();
-  var _elapsedDays; // фактически прошедших дней в периоде
-  if (mode === 'month') {
-    var _selMsBar2 = (view && view.statsMonth) ? view.statsMonth : _ms;
-    if (_selMsBar2 === _ms) {
-      // Текущий месяц: только прошедшие дни (включая сегодня)
-      _elapsedDays = new Date().getDate();
-    } else {
-      // Прошлый месяц: все дни
-      _elapsedDays = _periodDays;
-    }
-  } else if (mode === 'alltime') {
-    _elapsedDays = typeof daysPassed === 'function' ? daysPassed() : _periodDays;
-  } else {
-    // stage: дни с начала этапа до сегодня
-    _elapsedDays = Math.round(_tot / 24); // уже считается от start до today
-  }
-  var _foodH = _elapsedDays * 1.5;  // текущее (плавно растёт)
-  var _foodHTgt = _periodDays * 1.5; // цель (весь период)
+  // Сон и Пища больше не отслеживаются — в разбивке времени не участвуют
 
   function _histOf(sphere) {
     var base = (state.history||[]).filter(function(h){ return h.sphere === sphere; });
@@ -4865,12 +4810,10 @@ function buildMonthBar() {
   // Намазы: только от ручных отметок × 10 мин за намаз
   var _religH  = _histOf('religion').length * (10 / 60);
 
-  var _usedH = _sleepH + _foodH + _careerH + _bodyH + _skillH + _religH;
+  var _usedH = _careerH + _bodyH + _skillH + _religH;
   var _freeH = Math.max(0, _tot - _usedH);
 
   var _segs = [
-    { color: '#4a2a6a',                h: _sleepH,  label: 'Сон'      },
-    { color: '#7a4a1a',                h: _foodH,   label: 'Пища'     },
     { color: '#b87a0a',                h: _careerH, label: 'Работа'   },
     { color: '#8b1a1a',                h: _bodyH,   label: 'Тело'     },
     { color: '#2a6a4a',                h: _skillH,  label: 'Навыки'   },
@@ -5462,48 +5405,7 @@ function renderCharacterCard() {
       + '<span style="font-size:10px;color:#10E891;font-weight:700;">' + _daysInMonth + ' дн</span>';
   }
 
-  // ── Бар сна — вычисляем до stageBars ────────────────────────────────
-  var _sleepE = (state.sleep && state.sleep.entries) || [];
-  var _sleepCur, _sleepTgt;
-  var _tgtDays, _elapsedDaysCard;
-  if (_mode === 'month') {
-    _sleepCur = _sleepE.filter(function(e){ return e.date && e.date.startsWith(_selMs); })
-                       .reduce(function(s,e){ return s+(e.hours||0); }, 0);
-    _tgtDays = _daysInMonth; // цель = все дни месяца
-    // прошло: если текущий месяц — день месяца, если прошлый — все дни
-    var _isCurrentMonth2 = (_selMs === (_now2.getFullYear() + '-' + String(_now2.getMonth()+1).padStart(2,'0')));
-    _elapsedDaysCard = _isCurrentMonth2 ? _now2.getDate() : _daysInMonth;
-    _sleepTgt = _tgtDays * 8;
-  } else if (_mode === 'alltime') {
-    _sleepCur = _sleepE.reduce(function(s,e){ return s+(e.hours||0); }, 0);
-    _tgtDays = 1095;
-    _elapsedDaysCard = typeof daysPassed === 'function' ? daysPassed() : 1; // реально прошло
-    _sleepTgt = 1095 * 8;
-  } else {
-    var _stgIdSleep = currentStageId();
-    var _stgStartSleep = (state.stagesUnlocked && state.stagesUnlocked[_stgIdSleep]) || (state.startedAt || today());
-    var _stgObjSleep = PATH.find(function(p){ return p.id === _stgIdSleep; });
-    _sleepCur = _sleepE.filter(function(e){ return e.date && e.date >= _stgStartSleep; })
-                       .reduce(function(s,e){ return s+(e.hours||0); }, 0);
-    _tgtDays = _stgObjSleep ? _stgObjSleep.days : 90; // цель = полный срок этапа
-    _elapsedDaysCard = typeof daysBetween === 'function' ? Math.max(1, daysBetween(_stgStartSleep, today())) : 1;
-    _sleepTgt = _tgtDays * 8;
-  }
-  // Питание: current = прошедшие дни × 1.5, target = весь период × 1.5
-  var _foodCurCard = _elapsedDaysCard * 1.5;
-  var _foodTgtCard = _tgtDays * 1.5;
-  var _sleepFoodCur = Math.round(_sleepCur + _foodCurCard);
-  var _sleepFoodTgt = Math.round(_sleepTgt + _foodTgtCard);
-  _sleepTgt = _sleepFoodTgt;
-  var _sleepPct = Math.min(100, _sleepFoodTgt > 0 ? (_sleepFoodCur / _sleepFoodTgt * 100) : 0);
-  var _sleepBarHtml = '<div style="margin-bottom:6px;">'
-    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">'
-    + '<span style="font-size:10px;color:#b0a0d0;">💤 Сон + Пища</span>'
-    + '<span style="font-size:10px;color:#7a5aaa;font-weight:700;">' + _sleepFoodCur + '/' + _sleepFoodTgt + ' ч</span>'
-    + '</div>'
-    + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
-    + '<div style="height:100%;width:' + _sleepPct + '%;background:#7a5aaa;border-radius:2px;"></div>'
-    + '</div></div>';
+  // Бар «Сон + Пища» удалён — не отслеживается
 
   const stageBars = modeToggle
     + '<div style="margin-bottom:6px;display:flex;justify-content:space-between;align-items:center;">'
@@ -5529,8 +5431,7 @@ function renderCharacterCard() {
         + '<div style="height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;">'
         + '<div style="height:100%;width:' + d.pct + '%;border-radius:2px;' + barFillStyle + (done ? 'box-shadow:0 0 6px ' + sp.color + ';' : '') + '"></div>'
         + '</div></div>';
-    }).join('')
-    + _sleepBarHtml;
+    }).join('');
 
   // ── Месячный бар времени ──────────────────────────────────────────
   var monthBar = '';
@@ -6911,8 +6812,7 @@ function renderBodyPanel(sphere) {
     </div>
   </div>`;
 
-  // Сон — вверху панели Тела
-  html += renderSleepBlock(s);
+  // Блок сна удалён — сон не отслеживается
 
   // Питание — выпадающий блок
   html += `<button onclick="window.__app.toggleGroup('body_nutrition')" style="width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;background:${nutritionOpen?'rgba(255,61,113,0.1)':'rgba(255,255,255,0.03)'};border:1px solid ${nutritionOpen?'rgba(255,61,113,0.35)':'rgba(255,255,255,0.07)'};border-radius:${nutritionOpen?'12px 12px 0 0':'12px'};cursor:pointer;text-align:left;margin-bottom:${nutritionOpen?'0':'8px'}">

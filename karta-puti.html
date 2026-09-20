@@ -6814,17 +6814,7 @@ function renderBodyPanel(sphere) {
 
   // Блок сна удалён — сон не отслеживается
 
-  // Питание — выпадающий блок
-  html += `<button onclick="window.__app.toggleGroup('body_nutrition')" style="width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;background:${nutritionOpen?'rgba(255,61,113,0.1)':'rgba(255,255,255,0.03)'};border:1px solid ${nutritionOpen?'rgba(255,61,113,0.35)':'rgba(255,255,255,0.07)'};border-radius:${nutritionOpen?'12px 12px 0 0':'12px'};cursor:pointer;text-align:left;margin-bottom:${nutritionOpen?'0':'8px'}">
-    <span style="font-size:18px;">🥗</span>
-    <div style="flex:1;font-size:13px;color:#fff;font-weight:700;">Питание</div>
-    <span style="font-size:13px;color:#8870a8;">${nutritionOpen?'▾':'▸'}</span>
-  </button>`;
-  if (nutritionOpen) {
-    html += `<div style="padding:14px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.07);border-top:none;border-radius:0 0 12px 12px;margin-bottom:8px;">`;
-    html += renderNutritionTab(s);
-    html += `</div>`;
-  }
+  // Блок «Питание» удалён — не нужен
 
   // Замеры — выпадающий блок
   html += `<button onclick="window.__app.toggleGroup('body_measures')" style="width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;background:${measuresOpen?'rgba(255,61,113,0.1)':'rgba(255,255,255,0.03)'};border:1px solid ${measuresOpen?'rgba(255,61,113,0.35)':'rgba(255,255,255,0.07)'};border-radius:${measuresOpen?'12px 12px 0 0':'12px'};cursor:pointer;text-align:left;margin-bottom:${measuresOpen?'0':'8px'}">

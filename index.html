@@ -1529,7 +1529,14 @@ function adjustedTarget(sphereId, stageId) {
 
   if (sphereId === 'money') {
     const ms = state && state.moneySettings || {};
-    return withPenalty(ms.totalGoalAmount || 0);
+    const fullGoal = ms.totalGoalAmount || 0;
+    // Цель по деньгам растёт по этапам — доля от полной цели (как остальные сферы).
+    // На s8 нужна вся цель, на ранних этапах — только часть. Поэтому поднятие
+    // общей цели не «закрывает» уже пройденные этапы.
+    const _s8m = (STAGE_TARGETS.s8 && STAGE_TARGETS.s8.money) || 300;
+    const _stgM = (STAGE_TARGETS[stageId] && STAGE_TARGETS[stageId].money) || 0;
+    const _frac = _s8m > 0 ? _stgM / _s8m : 1;
+    return withPenalty(Math.round(fullGoal * _frac));
   }
 
   return withPenalty(STAGE_TARGETS[stageId] && STAGE_TARGETS[stageId][sphereId] || 0);

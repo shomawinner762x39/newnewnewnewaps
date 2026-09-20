@@ -2091,16 +2091,7 @@ function addFinEntry(data) {
 
 function removeFinEntry(id) {
   state.finance.entries = (state.finance.entries || []).filter(e => e.id !== id);
-  // Откат: если из-за удаления уже открытый этап перестал соответствовать норме — закрыть
-  const dp = daysPassed();
-  Object.keys(state.stagesUnlocked).forEach(sid => {
-    if (sid === 's0') return;
-    const stage = PATH.find(s => s.id === sid);
-    if (!stage) return;
-    if (dp < stage.days || !isStageReady(sid)) {
-      delete state.stagesUnlocked[sid];
-    }
-  });
+  // Открытые этапы НЕ откатываем — заслуженный этап остаётся навсегда
   save(); render();
 }
 
@@ -2780,6 +2771,8 @@ function load() {
   ensureMandatoryTasks();
   state.history.forEach(h => { if (!h.taskKey) h.taskKey = null; });
   if (checkRelapseRehab()) save();
+  // Пересчитываем открытые этапы при входе — заслуженный этап восстановится, если был ошибочно закрыт
+  if (checkUnlocks()) save();
   render();
 }
 function save() {
@@ -3004,16 +2997,7 @@ function currentStageId() {
 
 function undoTask(historyId) {
   state.history = state.history.filter(h => h.id !== historyId);
-  // Пересчитываем открытые этапы — если уже не дотягиваем по нормам, откатываем
-  const dp = daysPassed();
-  Object.keys(state.stagesUnlocked).forEach(sid => {
-    if (sid === 's0') return;
-    const stage = PATH.find(s => s.id === sid);
-    if (!stage) return;
-    if (dp < stage.days || !isStageReady(sid)) {
-      delete state.stagesUnlocked[sid];
-    }
-  });
+  // Открытые этапы НЕ откатываем — заслуженный этап остаётся навсегда
   const snap = getSnapshot();
   Object.keys(state.achievementsUnlocked).forEach(aid => {
     const a = ACHIEVEMENTS.find(x => x.id === aid);
